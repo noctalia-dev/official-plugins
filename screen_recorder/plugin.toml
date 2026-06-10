@@ -1,167 +1,178 @@
 # GPU Screen Recorder — records the screen with gpu-screen-recorder and manages a
-# replay buffer. Two entries share state through noctalia.state:
-#   [[widget]]   recorder — the bar tile that owns the recording logic
-#   [[shortcut]] toggle   — a control-center tile that mirrors/drives the recorder
+# replay buffer. The recording logic runs in a headless [[service]] for the whole
+# session; the bar [[widget]] and control-center [[shortcut]] are thin clients that
+# mirror the recorder's "status" and drive it through the "command" channel — so a
+# recording can be started even with no widget placed.
 #
 # Click mapping (widget): left = toggle recording, right = replay toggle/save,
 # middle = save replay. The shortcut mirrors left/right.
+#
+# Settings are plugin-level ([[setting]] at the root): one set shared by every
+# entry, edited from Settings → Plugins, seeded into noctalia.getConfig everywhere.
 
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.0.0"
+version = "1.1.0"
 min_noctalia = "5.0.0"
 author = "noctalia"
 tags = ["recording", "screen", "video"]
 icon = "video"
 description = "Record the screen with gpu-screen-recorder."
 
+[[setting]]
+key = "video_source"
+type = "string"
+label = "Video source"
+default = "portal"
+description = "\"portal\", \"focused-monitor\", or a monitor/output name"
+
+[[setting]]
+key = "directory"
+type = "folder"
+label = "Output directory"
+description = "Defaults to ~/Videos when empty"
+
+[[setting]]
+key = "filename_pattern"
+type = "string"
+label = "Filename pattern"
+default = "recording_%Y%m%d_%H%M%S"
+description = "os.date/strftime pattern without extension; use %s for unix epoch"
+
+[[setting]]
+key = "frame_rate"
+type = "int"
+label = "Frame rate"
+default = 60
+min = 1
+max = 240
+
+[[setting]]
+key = "video_codec"
+type = "select"
+label = "Video codec"
+default = "h264"
+options = [
+  { value = "h264", label = "H.264" },
+  { value = "hevc", label = "HEVC" },
+  { value = "av1", label = "AV1" },
+  { value = "vp8", label = "VP8" },
+  { value = "vp9", label = "VP9" },
+]
+
+[[setting]]
+key = "quality"
+type = "select"
+label = "Quality"
+default = "very_high"
+options = [
+  { value = "medium", label = "Medium" },
+  { value = "high", label = "High" },
+  { value = "very_high", label = "Very high" },
+  { value = "ultra", label = "Ultra" },
+]
+
+[[setting]]
+key = "resolution"
+type = "string"
+label = "Resolution"
+default = "original"
+description = "\"original\" or WIDTHxHEIGHT, e.g. 1920x1080"
+
+[[setting]]
+key = "audio_source"
+type = "select"
+label = "Audio source"
+default = "default_output"
+options = [
+  { value = "default_output", label = "System output" },
+  { value = "default_input", label = "Microphone" },
+  { value = "both", label = "Output + microphone" },
+  { value = "none", label = "No audio" },
+]
+
+[[setting]]
+key = "audio_codec"
+type = "select"
+label = "Audio codec"
+default = "opus"
+options = [
+  { value = "opus", label = "Opus" },
+  { value = "aac", label = "AAC" },
+  { value = "flac", label = "FLAC" },
+]
+
+[[setting]]
+key = "show_cursor"
+type = "bool"
+label = "Show cursor"
+default = true
+
+[[setting]]
+key = "color_range"
+type = "select"
+label = "Color range"
+default = "limited"
+options = [
+  { value = "limited", label = "Limited" },
+  { value = "full", label = "Full" },
+]
+
+[[setting]]
+key = "copy_to_clipboard"
+type = "bool"
+label = "Copy path to clipboard"
+default = false
+
+[[setting]]
+key = "hide_inactive"
+type = "bool"
+label = "Hide widget when idle"
+default = false
+
+[[setting]]
+key = "replay_enabled"
+type = "bool"
+label = "Enable replay buffer"
+default = false
+
+[[setting]]
+key = "replay_duration"
+type = "int"
+label = "Replay seconds"
+default = 30
+min = 5
+max = 3600
+visible_when = { key = "replay_enabled", values = ["true"] }
+
+[[setting]]
+key = "replay_storage"
+type = "select"
+label = "Replay storage"
+default = "ram"
+options = [
+  { value = "ram", label = "RAM" },
+  { value = "disk", label = "Disk" },
+]
+visible_when = { key = "replay_enabled", values = ["true"] }
+
+[[setting]]
+key = "restore_portal"
+type = "bool"
+label = "Restore portal session"
+default = false
+advanced = true
+
+# Headless background service: owns the recording / replay logic, runs for the
+# whole session, and bridges the "command" / "status" state channels.
+[[service]]
+id = "service"
+entry = "recorder_service.luau"
+
+# Bar tile. Thin presentation: mirrors "status", drives the recorder via "command".
 [[widget]]
 id = "recorder"
 entry = "recorder.luau"
-
-  [[widget.setting]]
-  key = "video_source"
-  type = "string"
-  label = "Video source"
-  default = "portal"
-  description = "\"portal\", \"focused-monitor\", or a monitor/output name"
-
-  [[widget.setting]]
-  key = "directory"
-  type = "folder"
-  label = "Output directory"
-  description = "Defaults to ~/Videos when empty"
-
-  [[widget.setting]]
-  key = "filename_pattern"
-  type = "string"
-  label = "Filename pattern"
-  default = "recording_%Y%m%d_%H%M%S"
-  description = "os.date/strftime pattern without extension; use %s for unix epoch"
-
-  [[widget.setting]]
-  key = "frame_rate"
-  type = "int"
-  label = "Frame rate"
-  default = 60
-  min = 1
-  max = 240
-
-  [[widget.setting]]
-  key = "video_codec"
-  type = "select"
-  label = "Video codec"
-  default = "h264"
-  options = [
-    { value = "h264", label = "H.264" },
-    { value = "hevc", label = "HEVC" },
-    { value = "av1", label = "AV1" },
-    { value = "vp8", label = "VP8" },
-    { value = "vp9", label = "VP9" },
-  ]
-
-  [[widget.setting]]
-  key = "quality"
-  type = "select"
-  label = "Quality"
-  default = "very_high"
-  options = [
-    { value = "medium", label = "Medium" },
-    { value = "high", label = "High" },
-    { value = "very_high", label = "Very high" },
-    { value = "ultra", label = "Ultra" },
-  ]
-
-  [[widget.setting]]
-  key = "resolution"
-  type = "string"
-  label = "Resolution"
-  default = "original"
-  description = "\"original\" or WIDTHxHEIGHT, e.g. 1920x1080"
-
-  [[widget.setting]]
-  key = "audio_source"
-  type = "select"
-  label = "Audio source"
-  default = "default_output"
-  options = [
-    { value = "default_output", label = "System output" },
-    { value = "default_input", label = "Microphone" },
-    { value = "both", label = "Output + microphone" },
-    { value = "none", label = "No audio" },
-  ]
-
-  [[widget.setting]]
-  key = "audio_codec"
-  type = "select"
-  label = "Audio codec"
-  default = "opus"
-  options = [
-    { value = "opus", label = "Opus" },
-    { value = "aac", label = "AAC" },
-    { value = "flac", label = "FLAC" },
-  ]
-
-  [[widget.setting]]
-  key = "show_cursor"
-  type = "bool"
-  label = "Show cursor"
-  default = true
-
-  [[widget.setting]]
-  key = "color_range"
-  type = "select"
-  label = "Color range"
-  default = "limited"
-  options = [
-    { value = "limited", label = "Limited" },
-    { value = "full", label = "Full" },
-  ]
-
-  [[widget.setting]]
-  key = "copy_to_clipboard"
-  type = "bool"
-  label = "Copy path to clipboard"
-  default = false
-
-  [[widget.setting]]
-  key = "hide_inactive"
-  type = "bool"
-  label = "Hide widget when idle"
-  default = false
-
-  [[widget.setting]]
-  key = "replay_enabled"
-  type = "bool"
-  label = "Enable replay buffer"
-  default = false
-
-  [[widget.setting]]
-  key = "replay_duration"
-  type = "int"
-  label = "Replay seconds"
-  default = 30
-  min = 5
-  max = 3600
-  visible_when = { key = "replay_enabled", values = ["true"] }
-
-  [[widget.setting]]
-  key = "replay_storage"
-  type = "select"
-  label = "Replay storage"
-  default = "ram"
-  options = [
-    { value = "ram", label = "RAM" },
-    { value = "disk", label = "Disk" },
-  ]
-  visible_when = { key = "replay_enabled", values = ["true"] }
-
-  [[widget.setting]]
-  key = "restore_portal"
-  type = "bool"
-  label = "Restore portal session"
-  default = false
-  advanced = true
 
 # Control-center quick tile. Mirrors the recorder's state and drives it through
 # the plugin's shared state channel (no shell-out, no IPC PATH dependency).
