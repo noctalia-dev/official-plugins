@@ -1,0 +1,41 @@
+# Reference [[desktop_widget]] plugin: a countdown timer built from the
+# declarative ui.* vocabulary (desktopWidget.render). Demonstrates the full
+# desktop-widget pipeline: manifest -> appears in the desktop-widget editor ->
+# declarative control tree -> button callbacks -> second ticks -> settings.
+
+id = "noctalia/timer"
+name = "Timer"
+version = "1.0.0"
+min_noctalia = "5.0.0"
+author = "noctalia"
+license = "MIT"
+tags = ["timer", "countdown", "desktop"]
+icon = "clock"
+description = "A countdown timer desktop widget with start/pause and reset."
+
+[[desktop_widget]]
+id = "timer"
+entry = "timer.luau"
+
+  [[desktop_widget.setting]]
+  key = "duration"
+  type = "int"
+  label = "Duration (seconds)"
+  description = "Countdown length in seconds."
+  default = 300
+  min = 10
+  max = 7200
+  step = 10
+
+  [[desktop_widget.setting]]
+  key = "color"
+  type = "color"
+  label = "Color"
+  description = "Accent color for the time and progress bar."
+  default = "primary"
+
+  [[desktop_widget.setting]]
+  key = "show_progress"
+  type = "bool"
+  label = "Show progress bar"
+  default = true
