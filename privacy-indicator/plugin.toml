@@ -1,0 +1,45 @@
+id = "rebiz/privacy-indicator"
+name = "Privacy Indicator"
+version = "1.0.0"
+min_noctalia = "5.0.0"
+author = "Rebiz"
+license = "MIT"
+tags = ["privacy", "indicator", "microphone", "camera", "screencast"]
+icon = "eye"
+description = "Shows when microphone, camera, or screen sharing is active."
+
+[[setting]]
+key = "hide_inactive"
+type = "bool"
+label = "Hide when inactive"
+description = "Hide the widget from the bar if no microphone, camera, or screen share is active."
+default = false
+
+[[setting]]
+key = "enable_toast"
+type = "bool"
+label = "Enable notifications"
+description = "Show system notifications when microphone, camera, or screen sharing becomes active."
+default = true
+
+[[setting]]
+key = "active_color"
+type = "color"
+label = "Active color"
+description = "Color when active."
+default = "error"
+
+[[setting]]
+key = "inactive_color"
+type = "color"
+label = "Inactive color"
+description = "Color when inactive."
+default = "none"
+
+[[service]]
+id = "privacy_service"
+entry = "privacy_service.luau"
+
+[[widget]]
+id = "indicator"
+entry = "privacy.luau"

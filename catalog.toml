@@ -57,3 +57,14 @@ icon = "clock"
 description = "A countdown timer desktop widget with start/pause and reset."
 min_noctalia = "5.0.0"
 tags = ["timer", "countdown", "desktop"]
+
+[[plugin]]
+id = "rebiz/privacy-indicator"
+name = "Privacy Indicator"
+version = "1.0.0"
+author = "Rebiz"
+license = "MIT"
+icon = "eye"
+description = "Shows when microphone, camera, or screen sharing is active."
+min_noctalia = "5.0.0"
+tags = ["privacy", "indicator", "microphone", "camera", "screencast"]
