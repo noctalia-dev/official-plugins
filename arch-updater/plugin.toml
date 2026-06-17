@@ -1,0 +1,171 @@
+id = "noctalia/arch-updater"
+name = "Arch Updater"
+version = "3.1.0"
+min_noctalia = "5.0.0"
+author = "noctalia"
+license = "MIT"
+icon = "arrow-big-down-lines"
+description = "Check and manage package updates on Arch Linux."
+tags = ["system", "updates", "arch", "utility"]
+
+# ============================================================
+# Plugin-level settings (shared across all entries)
+# ============================================================
+
+[[setting]]
+key = "system_cmd"
+type = "string"
+label = "System check command"
+description = "Command to check system updates (output: name oldver -> newver)"
+default = "yay -Qu 2>/dev/null"
+
+[[setting]]
+key = "aur_cmd"
+type = "string"
+label = "AUR check command"
+description = "Command to check AUR updates (output: name oldver -> newver)"
+default = "yay -Qum 2>/dev/null"
+
+[[setting]]
+key = "update_cmd"
+type = "string"
+label = "Update command"
+description = "Command to run system updates (opens in terminal)"
+default = "yay"
+
+[[setting]]
+key = "aur_homepage_cmd"
+type = "string"
+label = "AUR homepage command"
+description = "Command to get AUR package homepage URL"
+default = "LC_ALL=C yay -Si {id} 2>/dev/null | awk '/^URL/ {print $3}'"
+
+[[setting]]
+key = "flatpak_enabled"
+type = "bool"
+label = "Flatpak support"
+description = "Check for Flatpak updates"
+default = true
+
+[[setting]]
+key = "noctalia_highlight"
+type = "bool"
+label = "Highlight Noctalia updates"
+description = "Highlight widget when Noctalia packages have updates"
+default = true
+
+[[setting]]
+key = "toast_enabled"
+type = "bool"
+label = "Refresh toast"
+description = "Show notification on refresh"
+default = true
+
+[[setting]]
+key = "refresh_interval"
+type = "int"
+label = "Refresh interval (minutes)"
+description = "How often to check for updates"
+default = 120
+min = 5
+max = 1440
+
+# ============================================================
+# Headless background service: owns the update logic
+# ============================================================
+
+[[service]]
+id = "updater"
+entry = "service.luau"
+
+# ============================================================
+# Bar widget: shows update count
+# ============================================================
+
+[[widget]]
+id = "updates"
+entry = "widget.luau"
+
+  [[widget.setting]]
+  key = "hide_on_empty"
+  type = "bool"
+  label = "Hide when empty"
+  description = "Hide widget when no updates are available"
+  default = false
+
+  [[widget.setting]]
+  key = "bold_count"
+  type = "bool"
+  label = "Bold count"
+  description = "Show update count in bold"
+  default = true
+
+  [[widget.setting]]
+  key = "tooltip_enabled"
+  type = "bool"
+  label = "Tooltip"
+  description = "Show update list on hover"
+  default = true
+
+  [[widget.setting]]
+  key = "glyph"
+  type = "glyph"
+  label = "Icon"
+  description = "Widget icon glyph"
+  default = "arrow-big-down-lines"
+
+# ============================================================
+# Desktop widget: shows update table
+# ============================================================
+
+[[desktop_widget]]
+id = "desktop"
+entry = "desktop.luau"
+
+  [[desktop_widget.setting]]
+  key = "bold_ver"
+  type = "bool"
+  label = "Bold new version"
+  description = "Make new version column bold"
+  default = true
+
+  [[desktop_widget.setting]]
+  key = "show_help"
+  type = "bool"
+  label = "Show help section"
+  description = "Show click instruction help at the bottom"
+  default = true
+
+  [[desktop_widget.setting]]
+  key = "per_repo_counts"
+  type = "bool"
+  label = "Per-repo counts"
+  description = "Show per-source breakdown (System/AUR/Flatpak) in header"
+  default = true
+
+  [[desktop_widget.setting]]
+  key = "copy_cmd"
+  type = "string"
+  label = "Copy command"
+  description = "Command used for clipboard copy (e.g. wl-copy, xclip)"
+  default = "wl-copy"
+
+# ============================================================
+# Control-center shortcut
+# ============================================================
+
+[[shortcut]]
+id = "shortcut"
+entry = "shortcut.luau"
+
+# ============================================================
+# Launcher provider: search + commands
+# ============================================================
+
+[[launcher_provider]]
+id = "launcher"
+entry = "launcher.luau"
+prefix = ">au"
+glyph = "arrow-big-down-lines"
+include_in_global_search = false
+debounce_ms = 200

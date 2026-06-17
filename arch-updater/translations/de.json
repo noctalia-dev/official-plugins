@@ -1,0 +1,47 @@
+{
+  "tooltip": {
+    "availableUpdates": "Verfügbare Updates",
+    "noctaliaUpdates": "Noctalia Updates verfügbar",
+    "noUpdates": "Keine Updates verfügbar"
+  },
+  "widget": {
+    "updates": "Update verfügbar",
+    "updates_plural": "Updates verfügbar"
+  },
+  "toast": {
+    "refreshing": "Suche nach Updates...",
+    "refreshed": "Update verfügbar",
+    "refreshed_plural": "Updates verfügbar"
+  },
+  "desktop": {
+    "header": "Update verfügbar",
+    "header_plural": "Updates verfügbar",
+    "name": "Name",
+    "oldVer": "Alte Version",
+    "newVer": "Neue Version",
+    "refresh": "Aktualisieren",
+    "update": "Update",
+    "refreshing": "Aktualisiere...",
+    "upToDate": "Aktuell",
+    "noUpdates": "Keine Updates",
+    "noUpdatesDesc": "Alle Pakete sind aktuell.",
+    "checkFailed": "Prüfung fehlgeschlagen",
+    "copy": "Liste kopieren",
+    "help": "Linksklick = aktualisieren  |  Mittelklick = Update  |  Rechtsklick = Widget umschalten"
+  },
+  "shortcut": {
+    "updates": "Update verfügbar",
+    "updates_plural": "Updates verfügbar",
+    "noUpdates": "Aktuell",
+    "refreshing": "Prüfe..."
+  },
+  "launcher": {
+    "commands": "Arch Updater Befehle:",
+    "refresh": "Verfügbare Updates abrufen",
+    "update": "System aktualisieren",
+    "search": "Verfügbare Updates durchsuchen",
+    "refreshing": "Suche nach Updates...",
+    "updating": "Starte System-Update...",
+    "noResults": "Keine passenden Updates gefunden"
+  }
+}

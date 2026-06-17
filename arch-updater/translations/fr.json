@@ -1,0 +1,47 @@
+{
+  "tooltip": {
+    "availableUpdates": "Mises à jour disponibles",
+    "noctaliaUpdates": "Mises à jour Noctalia disponibles",
+    "noUpdates": "Aucune mise à jour disponible"
+  },
+  "widget": {
+    "updates": "mise à jour disponible",
+    "updates_plural": "mises à jour disponibles"
+  },
+  "toast": {
+    "refreshing": "Recherche de mises à jour...",
+    "refreshed": "mise à jour disponible",
+    "refreshed_plural": "mises à jour disponibles"
+  },
+  "desktop": {
+    "header": "mise à jour disponible",
+    "header_plural": "mises à jour disponibles",
+    "name": "Nom",
+    "oldVer": "Ancienne version",
+    "newVer": "Nouvelle version",
+    "refresh": "Actualiser",
+    "update": "Mettre à jour",
+    "refreshing": "Actualisation...",
+    "upToDate": "À jour",
+    "noUpdates": "Aucune mise à jour",
+    "noUpdatesDesc": "Tous les paquets sont à jour.",
+    "checkFailed": "Vérification échouée",
+    "copy": "Copier la liste",
+    "help": "Clic gauche = actualiser  |  Clic milieu = mettre à jour  |  Clic droit = basculer le widget"
+  },
+  "shortcut": {
+    "updates": "mise à jour disponible",
+    "updates_plural": "mises à jour disponibles",
+    "noUpdates": "À jour",
+    "refreshing": "Vérification..."
+  },
+  "launcher": {
+    "commands": "Commandes Arch Updater:",
+    "refresh": "Vérifier les mises à jour",
+    "update": "Mettre à jour le système",
+    "search": "Rechercher des mises à jour",
+    "refreshing": "Recherche de mises à jour...",
+    "updating": "Mise à jour du système...",
+    "noResults": "Aucune mise à jour trouvée"
+  }
+}

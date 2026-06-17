@@ -1,0 +1,47 @@
+{
+  "tooltip": {
+    "availableUpdates": "Available Updates",
+    "noctaliaUpdates": "Noctalia Updates available",
+    "noUpdates": "No updates available"
+  },
+  "widget": {
+    "updates": "update available",
+    "updates_plural": "updates available"
+  },
+  "toast": {
+    "refreshing": "Refreshing updates...",
+    "refreshed": "update available",
+    "refreshed_plural": "updates available"
+  },
+  "desktop": {
+    "header": "update available",
+    "header_plural": "updates available",
+    "name": "Name",
+    "oldVer": "Old Version",
+    "newVer": "New Version",
+    "refresh": "Refresh",
+    "update": "Update",
+    "refreshing": "Refreshing...",
+    "upToDate": "Up to date",
+    "noUpdates": "No updates",
+    "noUpdatesDesc": "All packages are up to date.",
+    "checkFailed": "Check failed",
+    "copy": "Copy List",
+    "help": "Left-click = refresh  |  Middle-click = update  |  Right-click = toggle widget"
+  },
+  "shortcut": {
+    "updates": "update available",
+    "updates_plural": "updates available",
+    "noUpdates": "Up to date",
+    "refreshing": "Checking..."
+  },
+  "launcher": {
+    "commands": "Arch Updater commands:",
+    "refresh": "Refresh available updates",
+    "update": "Update system",
+    "search": "Search available updates",
+    "refreshing": "Refreshing updates...",
+    "updating": "Starting system update...",
+    "noResults": "No matching updates found"
+  }
+}

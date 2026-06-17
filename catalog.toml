@@ -57,3 +57,14 @@ icon = "clock"
 description = "A countdown timer desktop widget with start/pause and reset."
 min_noctalia = "5.0.0"
 tags = ["timer", "countdown", "desktop"]
+
+[[plugin]]
+id = "noctalia/arch-updater"
+name = "Arch Updater"
+version = "3.1.0"
+author = "noctalia"
+license = "MIT"
+icon = "arrow-big-down-lines"
+description = "Check and manage package updates on Arch Linux."
+min_noctalia = "5.0.0"
+tags = ["system", "updates", "arch", "utility"]
