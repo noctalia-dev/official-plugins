@@ -6,14 +6,14 @@
 
 id = "noctalia/example"
 name = "Example"
-version = "1.0.3"
+version = "1.0.4"
 min_noctalia = "5.0.0"
 author = "noctalia"
 license = "MIT"
 dependencies = []
-tags = ["example", "demo", "launcher"]
+tags = ["example", "demo", "launcher", "panel"]
 icon = "puzzle"
-description = "A minimal reference plugin: a bar widget with settings and IPC, a service, a shortcut, and a launcher provider with setQuery drill-in."
+description = "A minimal reference plugin: a bar widget with settings and IPC, a service, a shortcut, a launcher provider with setQuery drill-in, and a panel of interactive controls."
 
 [[widget]]
 id = "hello"
@@ -60,3 +60,14 @@ entry = "finder.luau"
 prefix = "/ex"
 glyph = "list-search"
 include_in_global_search = false
+
+# Panel: a settings-style surface built from the declarative ui.* vocabulary
+# (panel.render). Demonstrates the interactive controls (toggle/slider/input/
+# select inside a scroll) and their value callbacks. Panel size is host-owned
+# and declared here, so the surface is sized right on the first open.
+# Open it with: noctalia ipc panel-toggle noctalia/example:panel
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 420
+height = 410
