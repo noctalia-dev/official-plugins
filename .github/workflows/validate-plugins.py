@@ -25,8 +25,8 @@ ROOT_STRING_FIELDS = (
     "description",
 )
 ROOT_ARRAY_FIELDS = ("dependencies", "tags")
-ENTRY_TYPES = ("widget", "desktop_widget", "service", "shortcut", "launcher_provider")
-SETTING_OWNER_TYPES = ("widget", "desktop_widget", "launcher_provider")
+ENTRY_TYPES = ("widget", "panel", "shortcut", "desktop_widget", "launcher_provider", "service")
+SETTING_OWNER_TYPES = ("widget", "panel", "desktop_widget", "launcher_provider")
 SETTING_TYPES = {"string", "string_list", "bool", "glyph", "select", "folder", "int", "color"}
 
 ROOT_FIELDS = set(ROOT_STRING_FIELDS) | set(ROOT_ARRAY_FIELDS) | set(ENTRY_TYPES) | {
@@ -36,6 +36,7 @@ ROOT_FIELDS = set(ROOT_STRING_FIELDS) | set(ROOT_ARRAY_FIELDS) | set(ENTRY_TYPES
 BASE_ENTRY_FIELDS = {"id", "entry"}
 ENTRY_FIELDS = {
     "widget": BASE_ENTRY_FIELDS | {"setting"},
+    "panel": BASE_ENTRY_FIELDS | {"setting", "width", "height"},
     "desktop_widget": BASE_ENTRY_FIELDS | {"setting"},
     "service": BASE_ENTRY_FIELDS,
     "shortcut": BASE_ENTRY_FIELDS,
@@ -67,6 +68,10 @@ def is_int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+def is_number(value: Any) -> bool:
+    return isinstance(value, int | float) and not isinstance(value, bool)
+
+
 def rel(root: Path, path: Path) -> str:
     try:
         return path.relative_to(root).as_posix()
@@ -75,6 +80,9 @@ def rel(root: Path, path: Path) -> str:
 
 
 def has_key_path(data: Any, dotted_key: str) -> bool:
+    if isinstance(data, dict) and dotted_key in data:
+        return True
+
     current = data
     for part in dotted_key.split("."):
         if not isinstance(current, dict) or part not in current:
@@ -265,6 +273,15 @@ class Validator:
                     "debounce_ms must be a non-negative integer",
                 )
 
+    def validate_panel_fields(self, manifest_path: Path, context: str, entry: dict[str, Any]) -> None:
+        for field in ("width", "height"):
+            if field not in entry:
+                continue
+
+            value = entry[field]
+            if not is_number(value) or value < 0:
+                self.add_context_error(manifest_path, context, f"{field} must be a non-negative number")
+
     def validate_entries(
         self,
         manifest_path: Path,
@@ -309,6 +326,9 @@ class Validator:
                 if entry_type == "launcher_provider":
                     self.validate_launcher_fields(manifest_path, context, entry)
 
+                if entry_type == "panel":
+                    self.validate_panel_fields(manifest_path, context, entry)
+
                 if entry_type in SETTING_OWNER_TYPES and "setting" in entry:
                     self.validate_settings(
                         manifest_path,
@@ -320,7 +340,7 @@ class Validator:
         if entry_count == 0:
             self.add_error(
                 manifest_path,
-                "must define at least one entry: widget, desktop_widget, service, shortcut, or launcher_provider",
+                "must define at least one entry: widget, panel, shortcut, desktop_widget, launcher_provider, or service",
             )
 
     def validate_default(
