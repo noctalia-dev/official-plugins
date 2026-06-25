@@ -1,0 +1,8 @@
+{
+  "title": "Video Wallpaper",
+  "output": "Output",
+  "all_outputs": "All outputs",
+  "stop": "Stop",
+  "empty": "No videos found in the configured directory",
+  "not_installed": "mpvpaper is not installed"
+}

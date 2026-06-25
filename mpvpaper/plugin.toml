@@ -1,0 +1,78 @@
+# mpvpaper video wallpaper. A headless [[service]] supervises one mpvpaper instance
+# per output (driven through a single long-lived helper process, so reassigning a
+# video never spawns a new stream). The [[panel]] is a per-output video picker and the
+# bar [[widget]] opens it. When a video is assigned to an output, the service asks the
+# host to drop its own wallpaper surface there (noctalia.setWallpaperEnabled) so the
+# mpvpaper surface shows through; clearing the video restores it.
+#
+# Requires the external `mpvpaper` command (which pulls in mpv). mpv is also used to
+# generate the picker thumbnails.
+
+id = "noctalia/mpvpaper"
+name = "Video Wallpaper"
+version = "1.0.0"
+min_noctalia = "5.0.0"
+author = "noctalia"
+license = "MIT"
+tags = ["wallpaper", "video", "mpvpaper"]
+icon = "movie"
+description = "Animated and video wallpapers via mpvpaper."
+
+[[setting]]
+key = "video_directory"
+type = "folder"
+label = "Video directory"
+description = "Folder scanned for wallpaper videos. Defaults to ~/Videos when empty."
+default = ""
+
+[[setting]]
+key = "mute"
+type = "bool"
+label = "Mute audio"
+default = true
+
+[[setting]]
+key = "hardware_decode"
+type = "bool"
+label = "Hardware decoding"
+description = "Use GPU video decoding (mpv hwdec=auto)."
+default = true
+
+[[setting]]
+key = "auto_pause"
+type = "bool"
+label = "Pause when covered"
+description = "Pause playback while a fullscreen window covers the wallpaper (mpvpaper --auto-pause)."
+default = true
+
+[[setting]]
+key = "mpv_options"
+type = "string"
+label = "Extra mpv options"
+description = "Additional space-separated mpv options, e.g. panscan=1.0 video-zoom=0.1"
+default = ""
+
+# Headless background service: owns the mpvpaper supervisor and per-output assignments.
+[[service]]
+id = "service"
+entry = "mpvpaper_service.luau"
+
+# Per-output video picker.
+[[panel]]
+id = "picker"
+entry = "panel.luau"
+width = 920
+height = 780
+placement = "attached"
+position = "auto"
+
+# Bar tile that opens the picker.
+[[widget]]
+id = "mpvpaper"
+entry = "widget.luau"
+
+  [[widget.setting]]
+  key = "glyph"
+  type = "glyph"
+  label = "Glyph"
+  default = "movie"
