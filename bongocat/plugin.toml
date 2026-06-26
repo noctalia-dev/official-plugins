@@ -28,6 +28,12 @@ entry = "bongocat.luau"
   default = []
 
   [[widget.setting]]
+  key = "executable_path"
+  type = "file"
+  label_key = "settings.executable_path.label"
+  default = "evtest"
+
+  [[widget.setting]]
   key = "audio_spectrum"
   type = "bool"
   label_key = "settings.audio_spectrum.label"
