@@ -81,3 +81,14 @@ icon = "movie"
 description = "Video wallpapers via mpvpaper."
 min_noctalia = "5.0.0"
 tags = ["wallpaper", "video", "mpvpaper"]
+
+[[plugin]]
+id = "noctalia/kaomoji"
+name = "Kaomoji"
+version = "1.0.0"
+author = "noctalia"
+license = "MIT"
+icon = "mood-smile"
+description = "Browse and search kaomoji emoticons from the launcher and copy them to the clipboard."
+min_noctalia = "5.0.0"
+tags = ["kaomoji", "emoticon", "launcher", "fun"]
