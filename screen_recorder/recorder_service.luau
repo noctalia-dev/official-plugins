@@ -359,6 +359,26 @@ end
 local function saveReplay()
     if state ~= "replaying" then return end
     noctalia.runAsync("pkill -SIGUSR1 -f 'gpu-screen-recorder.*-r ' 2>/dev/null || true")
+
+    local pattern = cfg("replay_filename_pattern")
+    if pattern ~= nil and pattern ~= "" then
+        local dir = outputDirectory()
+        local gsrFile = `{dir}Replay_{noctalia.formatTime("%Y-%m-%d_%H-%M-%S")}.mp4`
+        local targetFile = `{dir}{noctalia.formatTime(pattern)}.mp4`
+        local attempts = 25
+        local function poll()
+            noctalia.runAsync("sleep 0.2", function()
+                if noctalia.fileExists(gsrFile) then
+                    noctalia.runAsync(`mv -- {shellQuote(gsrFile)} {shellQuote(targetFile)} 2>/dev/null || true`)
+                elseif attempts > 0 then
+                    attempts -= 1
+                    poll()
+                end
+            end)
+        end
+        poll()
+    end
+
     noctalia.notify(noctalia.tr("notify.replay-saved"))
 end
 

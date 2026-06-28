@@ -154,6 +154,14 @@ max = 3600
 visible_when = { key = "replay_enabled", values = ["true"] }
 
 [[setting]]
+key = "replay_filename_pattern"
+type = "string"
+label_key = "settings.replay_filename_pattern.label"
+default = "replay_%Y%m%d_%H%M%S"
+description_key = "settings.replay_filename_pattern.description"
+visible_when = { key = "replay_enabled", values = ["true"] }
+
+[[setting]]
 key = "replay_storage"
 type = "select"
 label_key = "settings.replay_storage.label"

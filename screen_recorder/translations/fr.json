@@ -98,6 +98,10 @@
     "replay_duration": {
       "label": "Secondes de relecture"
     },
+    "replay_filename_pattern": {
+      "label": "Modèle de nom de fichier de relecture",
+      "description": "Modèle de date pour les relectures sauvegardées sans extension; utilisez %s pour l'horodatage Unix"
+    },
     "replay_storage": {
       "label": "Stockage de relecture",
       "options": {

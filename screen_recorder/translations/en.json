@@ -98,6 +98,10 @@
     "replay_duration": {
       "label": "Replay seconds"
     },
+    "replay_filename_pattern": {
+      "label": "Replay filename pattern",
+      "description": "Date-format pattern for saved replays without extension; use %s for Unix timestamp"
+    },
     "replay_storage": {
       "label": "Replay storage",
       "options": {
