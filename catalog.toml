@@ -19,7 +19,7 @@ tags = ["demo"]
 [[plugin]]
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.1.8"
+version = "1.1.9"
 author = "noctalia"
 license = "MIT"
 icon = "video"
