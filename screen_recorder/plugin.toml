@@ -12,7 +12,7 @@
 
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.1.7"
+version = "1.1.8"
 min_noctalia = "5.0.0"
 author = "noctalia"
 license = "MIT"
