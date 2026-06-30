@@ -230,13 +230,18 @@ local function startInputReader()
   if #patterns == 0 then
     return
   end
-  if not noctalia.commandExists("evtest") then
-    noctalia.notifyError("Bongo Cat", "evtest is not installed — cannot read input devices")
+
+  local executable = barWidget.getConfig("executable_path") or "evtest"
+
+  if not noctalia.commandExists(executable) then
+    noctalia.notifyError("Bongo Cat", "the evtest path is invalid (" .. executable .. ") — cannot read input devices")
     return
   end
 
   local command = "for device in " .. table.concat(patterns, " ")
-      .. '; do [ -e "$device" ] || continue; evtest "$device" 2>/dev/null & done; wait'
+      .. '; do [ -e "$device" ] || continue; ' .. executable 
+      .. ' "$device" 2>/dev/null & done; wait'
+
   if not noctalia.runStream(command, onEvtestLine) then
     noctalia.notifyError("Bongo Cat", "Unable to start input device reader")
   end
