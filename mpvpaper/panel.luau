@@ -34,6 +34,9 @@ local function tr(key)
   return noctalia.tr(key)
 end
 
+--- Shell-safe single-quoting.
+--- Note: duplicated here because Noctalia sandboxed plugins don't have `require`
+--- to share code between scripts (like panel.luau and mpvpaper_service.luau).
 local function shellQuote(s)
   return "'" .. tostring(s):gsub("'", "'\\''") .. "'"
 end
@@ -65,12 +68,25 @@ local function assignmentFor(connector)
   return nil
 end
 
-local function selectedConnector()
+-- Check if the selected output has an active video
+local function hasActiveVideo()
   if selectedConnectorName == "" then
-    return nil
+    return assignmentFor("*") ~= nil
   end
-  return selectedConnectorName
+  return assignmentFor(selectedConnectorName) ~= nil or assignmentFor("*") ~= nil
 end
+
+-- Check if the selected output is currently paused
+local function isPausedForSelection()
+  local paused = noctalia.state.get("paused")
+  if type(paused) ~= "table" then return false end
+  if selectedConnectorName == "" then
+    return paused["*"] == true
+  end
+  return paused[selectedConnectorName] == true or paused["*"] == true
+end
+
+
 
 local function sendCommand(action, connector, path)
   cmdNonce += 1
@@ -78,24 +94,22 @@ local function sendCommand(action, connector, path)
 end
 
 local function applyVideo(path)
-  if selectedConnectorName == "" then
-    for _, output in ipairs(outputsList) do
-      sendCommand("set", output.name, path)
-    end
-  else
-    sendCommand("set", selectedConnectorName, path)
-  end
+  local target = selectedConnectorName == "" and "*" or selectedConnectorName
+  sendCommand("set", target, path)
   render()
 end
 
 local function stopSelected()
   if selectedConnectorName == "" then
-    for _, output in ipairs(outputsList) do
-      sendCommand("clear", output.name, nil)
-    end
+    sendCommand("clear-all", nil, nil)
   else
     sendCommand("clear", selectedConnectorName, nil)
   end
+  render()
+end
+
+local function toggleSelected()
+  sendCommand("toggle", selectedConnectorName, nil)
   render()
 end
 
@@ -117,7 +131,7 @@ local function pumpThumbQueue()
       -- file.jpg is not available on every mpv build); move it to the cache name.
       local cmd = "mkdir -p " .. shellQuote(tmpdir) ..
         " && mpv " .. shellQuote(path) ..
-        " --no-config --no-terminal --really-quiet --frames=1 --start=10% --no-audio --vf=scale=480:-2" ..
+        " --no-config --no-terminal --really-quiet --frames=1 --start=10% --no-audio" ..
         " --vo=image --vo-image-format=jpg --vo-image-outdir=" .. shellQuote(tmpdir) ..
         " && mv " .. shellQuote(tmpdir .. "/00000001.jpg") .. " " .. shellQuote(dest) ..
         "; rm -rf " .. shellQuote(tmpdir)
@@ -223,6 +237,13 @@ local function tileSize()
 end
 
 local function isAssignedToSelection(path)
+  -- If this video is currently assigned as the wildcard ("*") wallpaper,
+  -- it should show as selected regardless of which output the user is looking at.
+  if assignmentFor("*") == path then
+    return true
+  end
+
+  -- Otherwise, check if it's assigned to the currently selected output.
   if selectedConnectorName == "" then
     for _, output in ipairs(outputsList) do
       if assignmentFor(output.name) == path then
@@ -231,7 +252,7 @@ local function isAssignedToSelection(path)
     end
     return false
   end
-  return assignmentFor(selectedConnector()) == path
+  return assignmentFor(selectedConnectorName) == path
 end
 
 local function videoTile(video, slotIndex)
@@ -314,6 +335,11 @@ render = function()
     return
   end
 
+  local paused = isPausedForSelection()
+  local pauseBtnText = paused and tr("resume") or tr("pause")
+  local pauseBtnGlyph = paused and "player-play" or "player-pause"
+  local hasVideo = hasActiveVideo()
+
   panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, {
     ui.row({ align = "center", justify = "space_between", gap = 8 }, {
       ui.label({ text = tr("title"), fontSize = 16, fontWeight = "bold", color = "primary", flexGrow = 1 }),
@@ -329,6 +355,7 @@ render = function()
         onChange = "onOutputChange",
         flexGrow = 1,
       }),
+      ui.button({ text = pauseBtnText, glyph = pauseBtnGlyph, variant = "outline", onClick = "onToggle", enabled = hasVideo }),
       ui.button({ text = tr("stop"), glyph = "player-stop", variant = "outline", onClick = "onStop" }),
     }),
 
@@ -373,6 +400,10 @@ function onStop()
   stopSelected()
 end
 
+function onToggle()
+  toggleSelected()
+end
+
 function onPrevPage()
   if page > 1 then
     page -= 1
@@ -393,6 +424,11 @@ end
 
 -- Re-render when the service publishes new assignments (tile highlights).
 noctalia.state.watch("assignments", function(_)
+  render()
+end)
+
+-- Re-render when the paused state changes (button text).
+noctalia.state.watch("paused", function(_)
   render()
 end)
 

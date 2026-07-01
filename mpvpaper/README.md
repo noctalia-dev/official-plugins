@@ -24,10 +24,16 @@ The plugin works on `wlr-layer-shell` compositors (Niri, Hyprland, Sway, Mango).
 
 Assignments persist across restarts. Supported files: `mp4`, `webm`, `mkv`, `mov`, `gif`.
 
+## IPC Commands
+
+You can control the video wallpaper externally via Noctalia's IPC mechanism. Replace `[connector]` with your display name (e.g. `DP-1`), or omit it to target all monitors:
+
+- `noctalia msg plugin noctalia/mpvpaper:service all pause [connector]` - Pauses playback via cgroups freezer.
+- `noctalia msg plugin noctalia/mpvpaper:service all resume [connector]` - Resumes playback.
+- `noctalia msg plugin noctalia/mpvpaper:service all toggle [connector]` - Toggles playback between paused and resumed state.
+- `noctalia msg plugin noctalia/mpvpaper:service all clear <connector>` - Stops the wallpaper on the specified monitor and extracts a frame as a static wallpaper.
+- `noctalia msg plugin noctalia/mpvpaper:service all clear-all` - Stops all active video wallpapers.
+
 ## How it works
 
-A headless service supervises one long-lived helper process (`supervisor.sh`) that owns
-every `mpvpaper` instance, one per output. The picker panel and bar widget are thin
-clients that drive the service through the plugin's shared state. When the plugin is
-disabled or Noctalia exits, the supervisor and all `mpvpaper` instances are torn down
-together.
+A headless service natively supervises `mpvpaper` instances (one per output), either launching them directly or wrapping them in systemd transient scopes (`systemd-run`) for strict CPU and memory resource limits. The picker panel and bar widget are thin clients that drive the service through the plugin's shared state. When the plugin is disabled or Noctalia exits, all `mpvpaper` instances are gracefully torn down together.

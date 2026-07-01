@@ -53,6 +53,64 @@ label_key = "settings.mpv_options.label"
 description_key = "settings.mpv_options.description"
 default = ""
 
+[[setting]]
+key = "run_as_systemd"
+type = "bool"
+label_key = "settings.run_as_systemd.label"
+description_key = "settings.run_as_systemd.description"
+default = false
+
+[[setting]]
+key = "extract_last_frame"
+type = "bool"
+label_key = "settings.extract_last_frame.label"
+description_key = "settings.extract_last_frame.description"
+default = true
+
+[[setting]]
+key = "cpu_quota"
+type = "number"
+label_key = "settings.cpu_quota.label"
+default = 0
+min = 0
+max = 1600
+step = 10
+visible_when = { key = "run_as_systemd", values = ["true"] }
+
+[[setting]]
+key = "allowed_cpus"
+type = "string"
+label_key = "settings.allowed_cpus.label"
+default = ""
+visible_when = { key = "run_as_systemd", values = ["true"] }
+
+[[setting]]
+key = "memory_max"
+type = "string"
+label_key = "settings.memory_max.label"
+default = ""
+visible_when = { key = "run_as_systemd", values = ["true"] }
+
+[[setting]]
+key = "cpu_weight"
+type = "number"
+label_key = "settings.cpu_weight.label"
+default = 0
+min = 0
+max = 10000
+step = 10
+visible_when = { key = "run_as_systemd", values = ["true"] }
+
+[[setting]]
+key = "nice"
+type = "number"
+label_key = "settings.nice.label"
+default = 0
+min = -20
+max = 19
+step = 1
+visible_when = { key = "run_as_systemd", values = ["true"] }
+
 # Headless background service: owns the mpvpaper supervisor and per-output assignments.
 [[service]]
 id = "service"
