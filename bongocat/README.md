@@ -52,3 +52,7 @@ noctalia msg plugin noctalia/bongocat:cat focused pause
 noctalia msg plugin noctalia/bongocat:cat focused resume
 noctalia msg plugin noctalia/bongocat:cat focused toggle
 ```
+
+## CREDITS
+
+- **[@StrayRogue](https://x.com/StrayRogue)** — Creator of the original Bongo Cat artwork used by the bongocat widget
