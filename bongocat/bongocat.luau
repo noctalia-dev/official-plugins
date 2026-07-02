@@ -230,16 +230,23 @@ local function startInputReader()
     return
   end
 
-  local executable = barWidget.getConfig("executable_path") or "evtest"
+  local executable = barWidget.getConfig("executable_path")
+
+  if executable == nil or executable == "" then
+    executable = "evtest"
+  end
 
   if not noctalia.commandExists(executable) then
     noctalia.notifyError("Bongo Cat", "the evtest path is invalid (" .. executable .. ") — cannot read input devices")
     return
   end
 
+  -- single-quote for the shell so paths with spaces or metacharacters are safe
+  local quotedExecutable = "'" .. executable:gsub("'", "'\''") .. "'"
+
   local command = "for device in " .. table.concat(patterns, " ")
-      .. '; do [ -e "$device" ] || continue; ' .. executable 
-      .. ' "$device" 2>/dev/null & done; wait'
+    .. '; do [ -e "$device" ] || continue; ' .. quotedExecutable
+    .. ' "$device" 2>/dev/null & done; wait'
 
   if not noctalia.runStream(command, onEvtestLine) then
     noctalia.notifyError("Bongo Cat", "Unable to start input device reader")
