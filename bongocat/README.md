@@ -36,6 +36,7 @@ Audio reactivity uses Noctalia's PipeWire spectrum callback.
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `input_devices` | `string_list` | `[]` | Input device paths or globs to read with `evtest`. |
+| `executable_path` | `file` | `evtest` | Path to the input reader executable. |
 | `audio_spectrum` | `bool` | `false` | Enables PipeWire audio spectrum events. |
 | `tappy_mode` | `bool` | `false` | Makes the cat tap its paws to detected beats. |
 | `rave_mode` | `bool` | `false` | Flashes cat colors on detected beats. |

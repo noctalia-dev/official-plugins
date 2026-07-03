@@ -4,6 +4,9 @@
       "label": "Input devices",
       "description": "Prefer /dev/input/by-id/*-event-* or /dev/input/by-path/*-event-*; /dev/input/eventN can change after kernel or device updates"
     },
+    "executable_path": {
+      "label": "Alternative evtest binary"
+    },
     "audio_spectrum": {
       "label": "React to audio"
     },
