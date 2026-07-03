@@ -118,6 +118,7 @@ export type Noctalia = {
   notifyError: (title: string, body: string?) -> (),
 
   copyToClipboard: (text: string, mimeType: string) -> boolean,
+  clipboardText: () -> string?, -- latest text clipboard content (nil when empty or non-text)
   getenv: (name: string) -> string?,
   expandPath: (path: string) -> string,
   formatTime: (pattern: string, unixSeconds: number?) -> string,
@@ -128,7 +129,11 @@ export type Noctalia = {
   -- Filesystem (paths resolve ~ -> $HOME, absolute verbatim, else plugin-relative).
   readFile: (path: string) -> (string?, string?), -- contents, or (nil, err)
   writeFile: (path: string, contents: string) -> (boolean, string?),
+  mkdirAll: (path: string) -> (boolean, string?), -- like mkdir -p; existing dir is success
+  removeFile: (path: string) -> (boolean, string?), -- files only, refuses directories
+  renameFile: (from: string, to: string) -> (boolean, string?),
   fileExists: (path: string) -> boolean,
+  fileInfo: (path: string) -> ({ size: number, mtime: number, isDir: boolean }?, string?),
   listDir: (path: string) -> ({ string }?, string?),
   pluginDir: () -> string?,
 
