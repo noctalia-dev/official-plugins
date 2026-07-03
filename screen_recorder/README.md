@@ -9,8 +9,6 @@ Control Center.
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/screen_recorder` |
-| Version | `1.1.9` |
-| Minimum Noctalia | `5.0.0` |
 | Entries | Service: `service`; bar widget: `recorder`; shortcut: `toggle` |
 
 ## Requirements

@@ -8,8 +8,6 @@ progress display.
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/timer` |
-| Version | `1.0.1` |
-| Minimum Noctalia | `5.0.0` |
 | Entry | Desktop widget: `timer` |
 
 ## Usage

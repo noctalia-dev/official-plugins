@@ -65,7 +65,7 @@ include_in_global_search = false
 # (panel.render). Demonstrates the interactive controls (toggle/slider/input/
 # select inside a scroll) and their value callbacks. Panel size is host-owned
 # and declared here, so the surface is sized right on the first open.
-# Open it with: noctalia ipc panel-toggle noctalia/example:panel
+# Open it with: noctalia msg panel-toggle noctalia/example:panel
 [[panel]]
 id = "panel"
 entry = "panel.luau"

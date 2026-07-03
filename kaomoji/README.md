@@ -3,6 +3,14 @@
 Browse and search kaomoji emoticons `(◍•ᴗ•◍)♡` from the Noctalia launcher and
 copy them to the clipboard.
 
+## Plugin
+
+| Field | Value |
+| --- | --- |
+| ID | `noctalia/kaomoji` |
+| Entry | Launcher provider: `kaomoji` |
+| Launcher Prefix | `/kao` |
+
 ## Usage
 
 Open the launcher and type `/kao`:
@@ -17,12 +25,13 @@ The category bar follows the launcher's global *Show categories* setting.
 
 ## Settings
 
-| Setting | Description |
-|---|---|
-| **Notify on copy** | Show a notification when a kaomoji is copied. Default on. |
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `notify_on_copy` | `bool` | `true` | Shows a notification when a kaomoji is copied. |
 
 ## Notes
 
-`database.json` is a curated subset of the upstream kaomoji catalogue. Each entry
-records a primary `category` (the labels declared in `plugin.toml`) plus tags for
-search, indexed so it decodes quickly inside the launcher.
+- `database.json` is a curated subset of the upstream kaomoji catalogue.
+- Each entry records a primary `category` that matches the labels declared in
+  `plugin.toml`, plus tags used for search.
+- The database is indexed so it decodes quickly inside the launcher.

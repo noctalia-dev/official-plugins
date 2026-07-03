@@ -8,8 +8,6 @@ you type or when audio beats are detected.
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/bongocat` |
-| Version | `1.1.1` |
-| Minimum Noctalia | `5.0.0` |
 | Entry | Bar widget: `cat` |
 
 ## Usage

@@ -9,8 +9,6 @@ shortcut.
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/example` |
-| Version | `1.0.2` |
-| Minimum Noctalia | `5.0.0` |
 | Entries | Bar widget: `hello`; service: `ticker`; shortcut: `toggle` |
 
 ## Usage

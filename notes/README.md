@@ -9,6 +9,7 @@ directory you control — yours to sync, edit externally, and grep.
 | --- | --- |
 | ID | `noctalia/notes` |
 | Entries | Panel: `panel`; bar widget: `notes`; launcher provider: `launcher` |
+| Launcher Prefix | `/nt` |
 
 ## Usage
 
