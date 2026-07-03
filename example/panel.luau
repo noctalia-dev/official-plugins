@@ -44,10 +44,10 @@ local function render()
   -- The panel surface already insets its content (Style::panelPadding), so this
   -- adds gaps between rows, not its own outer padding.
   panel.render(ui.column({ flexGrow = 1, gap = 16 }, {
-    -- Header: primary title on the left, close button pinned to the top right —
+    -- Header: title on the left, close button pinned to the top right —
     -- matching the built-in panels (no divider rule).
     ui.row({ align = "center", justify = "space_between", gap = 8 }, {
-      ui.label({ text = "Example Panel", fontSize = 16, fontWeight = "bold", color = "primary", flexGrow = 1 }),
+      ui.label({ text = "Example Panel", fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
       ui.button({ glyph = "close", onClick = "onCloseClicked" }),
     }),
 
