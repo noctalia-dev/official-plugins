@@ -153,6 +153,7 @@ end
 -- without systemd, matching by command line via pkill is the only reliable way to terminate it.
 local function killMpvpaper(connector, callback)
   local killCmd
+  local pattern = shellQuote("mpvpaper .*" .. connector)
   if cfg("run_as_systemd") then
     local unitName = unitNameFor(connector)
     if isPaused[connector] then
@@ -161,8 +162,11 @@ local function killMpvpaper(connector, callback)
     else
       killCmd = "systemctl --user stop " .. shellQuote(unitName)
     end
+  elseif isPaused[connector] then
+    -- A SIGSTOP'd process ignores SIGTERM. We must resume it right before killing.
+    killCmd = "pkill -CONT -f " .. pattern .. " ; pkill -f " .. pattern
   else
-    killCmd = "pkill -f " .. shellQuote("mpvpaper .*" .. connector)
+    killCmd = "pkill -f " .. pattern
   end
   
   isPaused[connector] = false
@@ -216,12 +220,8 @@ local function freezeMpvpaper(connector)
     local unitName = unitNameFor(connector)
     noctalia.runAsync("systemctl --user freeze " .. shellQuote(unitName))
   else
-    local path = assignments[connector]
-    if path then
-      killMpvpaper(connector, function()
-        extractStaticWallpaper(connector, path)
-      end)
-    end
+    -- Send SIGSTOP to freeze the process in place, preserving the last frame on screen.
+    noctalia.runAsync("pkill -STOP -f " .. shellQuote("mpvpaper .*" .. connector))
   end
 end
 
@@ -231,10 +231,8 @@ local function thawMpvpaper(connector)
     local unitName = unitNameFor(connector)
     noctalia.runAsync("systemctl --user thaw " .. shellQuote(unitName))
   else
-    local path = assignments[connector]
-    if path then
-      startMpvpaper(connector, path)
-    end
+    -- Send SIGCONT to resume the frozen process.
+    noctalia.runAsync("pkill -CONT -f " .. shellQuote("mpvpaper .*" .. connector))
   end
 end
 
