@@ -39,3 +39,9 @@ noctalia msg plugin noctalia/example:hello focused fetch "https://example.com"
 
 `set` updates the widget label at runtime. `fetch` performs an asynchronous HTTP
 request and reports the response status in a notification.
+
+You can open the example panel with the following IPC call:
+
+```sh
+noctalia msg panel-toggle noctalia/example:panel
+```
