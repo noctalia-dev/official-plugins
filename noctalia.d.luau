@@ -248,6 +248,7 @@ declare panel: {
 --   function onFrameTick(deltaMs) end           -- continuous animation (setNeedsFrameTick)
 --   function onAudioSpectrum(valuesCsv, stateCsv) end -- audio-reactive bar widget
 --   function onOpen(context) / onClose() end    -- panel lifecycle
+--   function onConfigChanged() end              -- service: plugin settings changed; getConfig() now returns new values
 --
 -- These are intentionally NOT declared here: declaring them as globals makes
 -- luau-lsp treat your definition as overwriting a built-in.
