@@ -160,22 +160,23 @@ end
 -- Kills the mpvpaper process.
 -- Note on pkill: The sandboxed noctalia.runAsync API does not return PIDs. Thus,
 -- without systemd, matching by command line via pkill is the only reliable way to terminate it.
-local function killMpvpaper(connector, callback)
+local function killMpvpaper(connector, callback, signal)
+  local sig = (type(signal) == "number" and signal > 0) and signal or 15
   local killCmd
   local pattern = pkillPattern(connector)
   if cfg("run_as_systemd") then
     local unitName = unitNameFor(connector)
     if isPaused[connector] then
       -- A frozen cgroup ignores SIGTERM. We must thaw it right before stopping.
-      killCmd = "systemctl --user thaw " .. shellQuote(unitName) .. " ; systemctl --user stop " .. shellQuote(unitName)
+      killCmd = "systemctl --user thaw " .. shellQuote(unitName) .. " ; systemctl --user kill --signal=" .. sig .. " " .. shellQuote(unitName)
     else
-      killCmd = "systemctl --user stop " .. shellQuote(unitName)
+      killCmd = "systemctl --user kill --signal=" .. sig .. " " .. shellQuote(unitName)
     end
   elseif isPaused[connector] then
     -- A SIGSTOP'd process ignores SIGTERM. We must resume it right before killing.
-    killCmd = "pkill -CONT -f -- " .. pattern .. " ; pkill -f -- " .. pattern
+    killCmd = "pkill -CONT -f -- " .. pattern .. " ; pkill -" .. sig .. " -f -- " .. pattern
   else
-    killCmd = "pkill -f -- " .. pattern
+    killCmd = "pkill -" .. sig .. " -f -- " .. pattern
   end
   
   isPaused[connector] = false
@@ -349,6 +350,16 @@ function onOutputsChanged()
   end
   
   lastPresent = present
+end
+
+-- Called when the plugin is disabled, removed, or Noctalia is shutting down.
+-- Terminates every active mpvpaper instance so no orphan processes remain.
+-- Handles both direct processes (pkill) and systemd scopes (systemctl stop),
+-- including thawing frozen/paused instances before sending SIGTERM.
+function onExit(signal)
+  for connector in pairs(assignments) do
+    killMpvpaper(connector, nil, signal)
+  end
 end
 
 -- ==============================================================================

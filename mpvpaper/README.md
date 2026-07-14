@@ -66,4 +66,4 @@ You can control the video wallpaper externally via Noctalia's IPC mechanism. Rep
 
 ## How it works
 
-A headless service natively supervises `mpvpaper` instances (one per output), either launching them directly or wrapping them in systemd transient scopes (`systemd-run`) for strict CPU and memory resource limits. The picker panel and bar widget are thin clients that drive the service through the plugin's shared state. When the plugin is disabled or Noctalia exits, all `mpvpaper` instances are gracefully torn down together.
+A headless service natively supervises `mpvpaper` instances (one per output), either launching them directly or wrapping them in systemd transient scopes (`systemd-run`) for strict CPU and memory resource limits. The picker panel and bar widget are thin clients that drive the service through the plugin's shared state. When the plugin is disabled or Noctalia exits, the service's `onExit` hook terminates every running `mpvpaper` instance — including frozen or paused ones — so no orphan processes remain.
