@@ -284,7 +284,7 @@ local function filtersPanel()
           placeholder = tr("resolution_width_placeholder"),
           value = resolutionWidth,
           onChange = "onResolutionWidthChange",
-					onSubmit = "onResolutionWidthSubmit",
+          onSubmit = "onResolutionWidthSubmit",
           flexGrow = 1,
         }),
         ui.label({
@@ -297,7 +297,7 @@ local function filtersPanel()
           placeholder = tr("resolution_height_placeholder"),
           value = resolutionHeight,
           onChange = "onResolutionHeightChange",
-					onSubmit = "onResolutionHeightSubmit",
+          onSubmit = "onResolutionHeightSubmit",
           flexGrow = 1,
         }),
       }), 1),
@@ -799,7 +799,7 @@ function onClearResolution()
   if resolutionMode == "atleast" and resolutionWidth == "" and resolutionHeight == "" then
     return
   end
-	resolutionMode = "atleast"
+  resolutionMode = "atleast"
   resolutionWidth = ""
   resolutionHeight = ""
   clearCounter += 1
