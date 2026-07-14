@@ -51,7 +51,7 @@ local render
 local fetchWallpapers
 local applyWallpaper
 
-local sortOptions = { "date_added", "relevance", "views", "favorites", "random" }
+local sortOptions = { "relevance", "random", "date_added", "views", "favorites", "toplist", "hot" }
 local sortIndex = 0
 local sortOrder = "desc"
 
@@ -61,11 +61,13 @@ end
 
 local function sortLabelList()
   return {
-    tr("sort.options.date_added"),
     tr("sort.options.relevance"),
+    tr("sort.options.random"),
+    tr("sort.options.date_added"),
     tr("sort.options.views"),
     tr("sort.options.favorites"),
-    tr("sort.options.random"),
+    tr("sort.options.toplist"),
+    tr("sort.options.hot")
   }
 end
 
@@ -256,6 +258,7 @@ local function filtersPanel()
         ui.button({
           key = "sort_order",
           glyph = if sortOrder == "desc" then "arrow-down" else "arrow-up",
+          text = if sortOrder == "desc" then tr("sort_desc") else tr("sort_asc"),
           variant = "outline",
           onClick = "onToggleSortOrder",
         }),
