@@ -15,6 +15,7 @@ local STATE_DIR = (noctalia.getenv("XDG_STATE_HOME") or ((noctalia.getenv("HOME"
 local STATE_FILE = STATE_DIR .. "/assignments.json"
 
 local assignments = {}  -- Map of connector -> video path ("*" for all outputs)
+local launchedAsSystemd = {} -- Map of connector -> boolean (true if launched as systemd)
 local lastPresent = {}  -- Map of connector -> true (monitors seen last tick)
 local isPaused = {}     -- Map of connector -> true (paused monitors)
 local available = false -- Is mpvpaper binary installed?
@@ -68,14 +69,24 @@ end
 
 local function persist()
   noctalia.runAsync("mkdir -p " .. shellQuote(STATE_DIR))
-  noctalia.writeFile(STATE_FILE, noctalia.json.encode(assignments) or "")
+  noctalia.writeFile(STATE_FILE, noctalia.json.encode({
+    assignments = assignments,
+    launchedAsSystemd = launchedAsSystemd
+  }) or "")
 end
 
 local function loadAssignments()
   local content = noctalia.readFile(STATE_FILE)
   if type(content) == "string" and content ~= "" then
     local decoded = noctalia.json.decode(content)
-    if type(decoded) == "table" then assignments = decoded end
+    if type(decoded) == "table" then
+      if decoded.assignments then
+        assignments = decoded.assignments
+        launchedAsSystemd = decoded.launchedAsSystemd or {}
+      else
+        assignments = decoded
+      end
+    end
   end
 end
 
@@ -164,7 +175,7 @@ local function killMpvpaper(connector, callback, signal)
   local sig = (type(signal) == "number" and signal > 0) and signal or 15
   local killCmd
   local pattern = pkillPattern(connector)
-  if cfg("run_as_systemd") then
+  if launchedAsSystemd[connector] then
     local unitName = unitNameFor(connector)
     if isPaused[connector] then
       -- A frozen cgroup ignores SIGTERM. We must thaw it right before stopping.
@@ -200,6 +211,8 @@ local function startMpvpaper(connector, path)
   end
 
   killMpvpaper(connector, function()
+    launchedAsSystemd[connector] = cfg("run_as_systemd")
+    persist()
     local flags = mpvpaperFlags()
     local cmd = "mpvpaper "
     if flags ~= "" then cmd = cmd .. flags .. " " end
@@ -210,7 +223,7 @@ local function startMpvpaper(connector, path)
       cmd = "nice -n " .. tostring(nice) .. " " .. cmd
     end
     
-    if cfg("run_as_systemd") then
+    if launchedAsSystemd[connector] then
       local unitName = unitNameFor(connector)
       local propsCmd = ""
       for _, prop in ipairs(systemdProperties()) do
@@ -437,3 +450,8 @@ else
 end
 
 publish()
+
+-- Called when any configuration setting is changed.
+function onConfigChanged(key, value)
+  applyAll()
+end
