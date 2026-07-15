@@ -8,7 +8,7 @@
 [[plugin]]
 id = "noctalia/example"
 name = "Example"
-version = "1.2.0"
+version = "1.2.1"
 author = "noctalia"
 license = "MIT"
 icon = "puzzle"
@@ -30,7 +30,7 @@ tags = ["recording", "video"]
 [[plugin]]
 id = "noctalia/bongocat"
 name = "Bongo Cat"
-version = "1.1.2"
+version = "1.1.3"
 author = "noctalia"
 license = "MIT"
 icon = "cat"
@@ -52,7 +52,7 @@ tags = ["language", "launcher"]
 [[plugin]]
 id = "noctalia/timer"
 name = "Timer"
-version = "1.0.1"
+version = "1.0.2"
 author = "noctalia"
 license = "MIT"
 icon = "clock"
@@ -63,7 +63,7 @@ tags = ["countdown", "desktop"]
 [[plugin]]
 id = "noctalia/wallhaven"
 name = "Wallhaven"
-version = "1.0.5"
+version = "1.0.6"
 author = "noctalia"
 license = "MIT"
 icon = "photo"
@@ -74,7 +74,7 @@ tags = ["wallpaper"]
 [[plugin]]
 id = "noctalia/mpvpaper"
 name = "Video Wallpaper"
-version = "1.0.3"
+version = "1.0.4"
 author = "noctalia"
 license = "MIT"
 icon = "movie"
@@ -96,7 +96,7 @@ tags = ["emoticon", "launcher"]
 [[plugin]]
 id = "noctalia/notes"
 name = "Notes"
-version = "1.0.0"
+version = "1.0.1"
 author = "noctalia"
 license = "MIT"
 icon = "notes"
