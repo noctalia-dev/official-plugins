@@ -12,7 +12,7 @@ version = "1.2.0"
 author = "noctalia"
 license = "MIT"
 icon = "puzzle"
-description = "A minimal reference plugin: a bar widget with settings and IPC, a declarative bar widget (barWidget.render), a service, a shortcut, a launcher provider with setQuery drill-in, and a panel of interactive controls."
+description = "A minimal reference plugin: a bar widget with settings and IPC, a declarative bar widget (barWidget.render), a service, a shortcut, a launcher provider using setQuery, and a panel of interactive controls."
 min_noctalia = "5.0.0"
 tags = ["demo"]
 
