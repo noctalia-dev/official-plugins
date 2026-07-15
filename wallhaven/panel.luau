@@ -131,6 +131,25 @@ local function sortValue()
   return sortOptions[sortIndex + 1] or "date_added"
 end
 
+-- Wallhaven returns an empty first page for relevance when no search query is set.
+local function relevanceWithoutQuery()
+  return sortValue() == "relevance" and noctalia.string.trim(query) == ""
+end
+
+local function apiPage()
+  if relevanceWithoutQuery() then
+    return page + 1
+  end
+  return page
+end
+
+local function normalizeTotalPages(lastPage)
+  if relevanceWithoutQuery() then
+    return math.max(1, lastPage - 1)
+  end
+  return lastPage
+end
+
 local function aspectRatioOptions()
   return {
     "",
@@ -480,7 +499,7 @@ fetchWallpapers = function()
   local params = {
     `categories={buildCategories()}`,
     `purity={buildPurity()}`,
-    `page={page}`,
+    `page={apiPage()}`,
     `sorting={sortValue()}`,
     `order={sortOrder}`,
   }
@@ -520,7 +539,7 @@ fetchWallpapers = function()
     end
 
     wallpapers = data
-    totalPages = lastPage
+    totalPages = normalizeTotalPages(lastPage)
     if page > totalPages then
       page = totalPages
     end
