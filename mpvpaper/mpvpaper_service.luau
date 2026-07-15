@@ -179,9 +179,9 @@ local function killMpvpaper(connector, callback, signal)
     local unitName = unitNameFor(connector)
     if isPaused[connector] then
       -- A frozen cgroup ignores SIGTERM. We must thaw it right before stopping.
-      killCmd = "systemctl --user thaw " .. shellQuote(unitName) .. " ; systemctl --user kill --signal=" .. sig .. " " .. shellQuote(unitName)
+      killCmd = "systemctl --user thaw " .. shellQuote(unitName) .. " ; systemctl --user stop " .. shellQuote(unitName)
     else
-      killCmd = "systemctl --user kill --signal=" .. sig .. " " .. shellQuote(unitName)
+      killCmd = "systemctl --user stop " .. shellQuote(unitName)
     end
   elseif isPaused[connector] then
     -- A SIGSTOP'd process ignores SIGTERM. We must resume it right before killing.
@@ -233,7 +233,7 @@ local function startMpvpaper(connector, path)
     end
 
     -- Run mpvpaper in background
-    noctalia.runAsync("exec " .. cmd .. " 2>/dev/null", function() end)
+    noctalia.runAsync("exec " .. cmd .. " >/dev/null 2>&1 &", function() end)
     noctalia.runAsync("sleep 0.8", function()
       forEachOutput(connector, function(name) noctalia.setWallpaperEnabled(name, false) end)
     end)
