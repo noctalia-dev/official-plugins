@@ -111,7 +111,7 @@ max = 19
 step = 1
 visible_when = { key = "run_as_systemd", values = ["true"] }
 
-# Headless background service: owns the mpvpaper supervisor and per-output assignments.
+# Headless background service: owns the mpvpaper logic and per-output assignments.
 [[service]]
 id = "service"
 entry = "mpvpaper_service.luau"

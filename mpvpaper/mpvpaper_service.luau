@@ -2,7 +2,7 @@
 -- Video wallpaper — headless service.
 -- This service handles active video wallpaper assignments and lifecycle.
 -- Note: Noctalia plugin scripts run in an isolated sandbox without `require`.
--- Therefore, all logic (supervisor, IPC, state management) must reside here.
+-- Therefore, all logic (IPC, state management) must reside here.
 
 noctalia.setUpdateInterval(1000)
 
