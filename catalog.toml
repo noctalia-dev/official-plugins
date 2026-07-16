@@ -13,7 +13,7 @@ author = "noctalia"
 license = "MIT"
 icon = "puzzle"
 description = "A reference plugin demonstrating every supported entry type and common runtime APIs."
-min_noctalia = "5.0.0"
+plugin_api = 3
 tags = ["demo"]
 
 [[plugin]]
@@ -24,7 +24,7 @@ author = "noctalia"
 license = "MIT"
 icon = "video"
 description = "Record the screen with gpu-screen-recorder."
-min_noctalia = "5.0.0"
+plugin_api = 3
 tags = ["recording", "video"]
 
 [[plugin]]
@@ -35,7 +35,7 @@ author = "noctalia"
 license = "MIT"
 icon = "cat"
 description = "A cat that slaps your bar when you type or to the beat."
-min_noctalia = "5.0.0"
+plugin_api = 3
 tags = ["fun", "animation"]
 
 [[plugin]]
@@ -46,7 +46,7 @@ author = "noctalia"
 license = "MIT"
 icon = "language"
 description = "Translate text from the launcher via Google Translate."
-min_noctalia = "5.0.0"
+plugin_api = 3
 tags = ["language", "launcher"]
 
 [[plugin]]
@@ -57,7 +57,7 @@ author = "noctalia"
 license = "MIT"
 icon = "clock"
 description = "A countdown timer desktop widget with start/pause and reset."
-min_noctalia = "5.0.0"
+plugin_api = 3
 tags = ["countdown", "desktop"]
 
 [[plugin]]
@@ -68,7 +68,7 @@ author = "noctalia"
 license = "MIT"
 icon = "photo"
 description = "Browse Wallhaven wallpapers."
-min_noctalia = "5.0.0"
+plugin_api = 3
 tags = ["wallpaper"]
 
 [[plugin]]
@@ -79,7 +79,7 @@ author = "noctalia"
 license = "MIT"
 icon = "movie"
 description = "Video wallpapers via mpvpaper."
-min_noctalia = "5.0.0"
+plugin_api = 3
 tags = ["wallpaper", "video"]
 
 [[plugin]]
@@ -90,7 +90,7 @@ author = "noctalia"
 license = "MIT"
 icon = "mood-smile"
 description = "Browse and search kaomoji emoticons from the launcher and copy them to the clipboard."
-min_noctalia = "5.0.0"
+plugin_api = 3
 tags = ["emoticon", "launcher"]
 
 [[plugin]]
@@ -101,5 +101,5 @@ author = "noctalia"
 license = "MIT"
 icon = "notes"
 description = "Quick text notes in a full-height side panel."
-min_noctalia = "5.0.0"
+plugin_api = 3
 tags = ["productivity"]
