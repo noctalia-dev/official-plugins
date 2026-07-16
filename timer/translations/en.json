@@ -10,6 +10,10 @@
     },
     "show_progress": {
       "label": "Show progress bar"
+    },
+    "show_idle": {
+      "label": "Show count when idle",
+      "description": "Show/hide the widget when timer stopped at zero."
     }
   }
 }

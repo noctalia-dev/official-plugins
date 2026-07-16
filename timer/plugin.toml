@@ -14,9 +14,32 @@ tags = ["countdown", "desktop"]
 icon = "clock"
 description = "A countdown timer desktop widget with start/pause and reset."
 
-[[desktop_widget]]
+[[widget]]
+id = "bar"
+entry = "bar.luau"
+
+  [[widget.setting]]
+  key = "show_idle"
+  type = "bool"
+  label_key = "settings.show_idle.label"
+  default = true
+
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 320
+height = 280
+placement = "attached"
+position = "auto"
+open_near_click = true
+
+[[service]]
 id = "timer"
-entry = "timer.luau"
+entry = "service.luau"
+
+[[desktop_widget]]
+id = "desktop"
+entry = "desktop.luau"
 
   [[desktop_widget.setting]]
   key = "duration"
@@ -40,3 +63,4 @@ entry = "timer.luau"
   type = "bool"
   label_key = "settings.show_progress.label"
   default = true
+
