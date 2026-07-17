@@ -1,3 +1,14 @@
+--!nonstrict
+-- Countdown timer service — the headless [[service]] entry.
+--
+-- The service owns the timer state and handles the countdown logic.
+-- It publishes state changes to other entries via noctalia.state,
+-- and listens for commands (START, PAUSE, RESET) from panel and bar.
+--
+--   noctalia.setUpdateInterval(ms)     set tick rate for countdown
+--   noctalia.state.set(key, value)     publish state to other entries
+--   noctalia.state.watch(key, fn)      react to commands from UI entries
+--   noctalia.notify(title, body)       alert user when timer completes
 
 noctalia.setUpdateInterval(1000)
 
@@ -11,7 +22,7 @@ local function formatTime(seconds)
 end
 
 ---- Initialize state
-noctalia.state.set("timer.state", "IDLE") -- IDLE, NOTIFY, RUNNING
+noctalia.state.set("timer.state", "IDLE") -- IDLE, NOTIFY, RUNNING, PAUSED
 noctalia.state.set("timer.remaining", 0)
 noctalia.state.set("timer.formattedTime", 0)
 
@@ -22,10 +33,18 @@ end)
 noctalia.state.watch("timer.cmd", function(cmd)
 
   local actions = {
-    START = function () 
-      noctalia.state.set("timer.state", "RUNNING")
+    PAUSE = function()
+      noctalia.state.set("timer.state", "IDLE")
     end,
-    RESET = function () 
+    START = function ()
+      local remaining = noctalia.state.get("timer.remaining")
+      local STATE = noctalia.state.get("timer.state")
+
+      if (STATE == "IDLE" or STATE == "PAUSED") and remaining > 0 then
+        noctalia.state.set("timer.state", "RUNNING")
+      end
+    end,
+    RESET = function ()
       noctalia.state.set("timer.remaining", 0)
       noctalia.state.set("timer.state", "IDLE")
     end
@@ -41,6 +60,11 @@ noctalia.state.watch("timer.cmd", function(cmd)
 
 end)
 
+-- send notification and sound when implemented
+function notifyUser()
+  noctalia.notify("Timer", "Time is up!")
+end
+
 function update()
   local STATE = noctalia.state.get("timer.state")
   local remaining = noctalia.state.get("timer.remaining")
@@ -50,6 +74,7 @@ function update()
       noctalia.state.set("timer.remaining", remaining - 1)
     else
       noctalia.state.set("timer.state", "NOTIFY")
+      notifyUser()
     end
 
   end

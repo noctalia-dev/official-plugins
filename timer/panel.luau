@@ -1,9 +1,19 @@
 --!nonstrict
--- Panel: input, Start/Pause, Reset controls.
+-- Timer panel — the [[panel]] entry for duration input and controls.
+--
+-- The panel provides an interactive surface to set the countdown
+-- duration via numeric input (e.g. 300 → 3:00, 10300 → 1:03:00),
+-- and start/pause/reset the timer via buttons. The input is disabled
+-- while the timer is running. The panel closes automatically on start.
+--
+--   panel.render(tree)                 declarative UI tree
+--   panel.close()                       close the panel surface
+--   noctalia.state.set(key, value)     send commands to service
+--   noctalia.state.watch(key, fn)      react to state changes
 
-local inputDigits = "500"
-local remaining = 300
-local formattedTime = "5:00"
+local inputDigits = "0"
+local remaining = 0
+local formattedTime = "0"
 local STATE = "IDLE"
 -- used to update input value programatically
 local inputKey = 0
@@ -80,6 +90,7 @@ local function render()
         text = btnText,
         variant = btnVariant,
         onClick = "onToggle",
+        enabled = remaining > 0 and true or false
       }),
     }),
   }))
@@ -126,14 +137,16 @@ end
 
 function onInputSubmit()
   if STATE == "IDLE" then
+    noctalia.state.set("timer.remaining", parseDigits(inputDigits))
     noctalia.state.set("timer.cmd", "START")
   end
 end
 
 function onToggle()
   if STATE == "RUNNING" then
-    noctalia.state.set("timer.state", "IDLE")
+    noctalia.state.set("timer.cmd", "PAUSE")
   elseif STATE == "IDLE" then
-    noctalia.state.set("timer.state", "RUNNING")
+    noctalia.state.set("timer.remaining", parseDigits(inputDigits))
+    noctalia.state.set("timer.cmd", "START")
   end
 end

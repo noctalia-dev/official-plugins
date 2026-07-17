@@ -1,14 +1,24 @@
 --!nonstrict
--- TODO add descriptions
+-- Timer bar widget — the [[widget]] entry for the status bar.
+--
+-- The bar widget displays the timer's current state: an hourglass
+-- icon when idle, or the formatted countdown when running. Click
+-- the widget to open the panel for duration input and controls.
+--
+--   barWidget.render(tree)             declarative UI tree
+--   barWidget.isVertical()             branch on bar orientation
+--   barWidget.getConfig(key)           per-placement settings
+--   noctalia.togglePanel(id)           open/close the timer panel
 
 local STATE = "IDLE"
-local formattedTime = "05:00"
+local formattedTime = "00:00"
 
 local function render()
   local container = barWidget.isVertical() and ui.column or ui.row
+  local showCounterWhenIdle = barWidget.getConfig("show_idle")
 
   -- Idle state: timer at zero, just show hourglass icon
-  if STATE == "IDLE" and barWidget.getConfig("show_idle") then
+  if STATE == "IDLE" and showCounterWhenIdle == false then
     barWidget.render(container({ align = "center" }, {
       ui.glyph({ name = "hourglass", color = "on_surface" }),
     }))
