@@ -74,7 +74,7 @@ tags = ["wallpaper"]
 [[plugin]]
 id = "noctalia/mpvpaper"
 name = "Video Wallpaper"
-version = "1.0.5"
+version = "1.0.6"
 author = "noctalia"
 license = "MIT"
 icon = "movie"
