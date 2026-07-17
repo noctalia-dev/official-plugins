@@ -24,7 +24,7 @@ end
 ---- Initialize state
 noctalia.state.set("timer.state", "IDLE") -- IDLE, NOTIFY, RUNNING, PAUSED
 noctalia.state.set("timer.remaining", 0)
-noctalia.state.set("timer.formattedTime", 0)
+noctalia.state.set("timer.formattedTime", "0")
 
 noctalia.state.watch("timer.remaining", function (value)
   noctalia.state.set("timer.formattedTime", formatTime(value))

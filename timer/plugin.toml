@@ -5,14 +5,14 @@
 
 id = "noctalia/timer"
 name = "Timer"
-version = "1.0.2"
+version = "1.1.0"
 plugin_api = 3
 author = "noctalia"
 license = "MIT"
 dependencies = []
 tags = ["countdown", "desktop"]
 icon = "clock"
-description = "A countdown timer desktop widget with start/pause and reset."
+description = "A countdown timer widget with start/pause and reset."
 
 [[widget]]
 id = "bar"
