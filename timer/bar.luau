@@ -53,6 +53,8 @@ end)
 
 function onClick()
   if STATE == "NOTIFY" then
+    -- click on the bar when timer is done should stop NOTIFY state and
+    -- should not open the panel. the user most likely don't want to set another timer
     noctalia.state.set("timer.cmd", "RESET")
     return
   end
