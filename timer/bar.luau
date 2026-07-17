@@ -17,7 +17,7 @@ local function render()
   local container = barWidget.isVertical() and ui.column or ui.row
   local showCounterWhenIdle = barWidget.getConfig("show_idle")
 
-  -- Idle state: timer at zero, just show hourglass icon
+  -- Idle state: timer at zero, just show hourglass icon when showCounterWhenIdle in widget settings was set false
   if STATE == "IDLE" and showCounterWhenIdle == false then
     barWidget.render(container({ align = "center" }, {
       ui.glyph({ name = "hourglass", color = "on_surface" }),
