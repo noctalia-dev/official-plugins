@@ -702,6 +702,7 @@ render = function()
       ui.input({
         key = "search",
         placeholder = tr("search_placeholder"),
+        value = query,
         flexGrow = 1,
         onChange = "onSearchChange",
         onSubmit = "onSearchSubmit",
