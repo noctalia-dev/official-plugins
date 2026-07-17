@@ -52,7 +52,7 @@ local fetchWallpapers
 local applyWallpaper
 
 local sortOptions = { "relevance", "random", "date_added", "views", "favorites", "toplist", "hot" }
-local sortIndex = 0
+local sortIndex = 2
 local sortOrder = "desc"
 
 local function tr(key)
@@ -153,8 +153,8 @@ end
 local function aspectRatioOptions()
   return {
     "",
-    "16x9,16x10,21x9,32x9,48x9",
-    "9x16,10x16,9x18",
+    "wide",
+    "portrait",
     "16x9",
     "16x10",
     "21x9",
@@ -175,19 +175,28 @@ local function aspectRatioLabelList()
     tr("ratio_any"),
     tr("ratio_wide"),
     tr("ratio_portrait"),
-    "16x9",
-    "16x10",
-    "21x9",
-    "32x9",
-    "48x9",
-    "9x16",
-    "10x16",
-    "9x18",
-    "1x1",
-    "3x2",
-    "4x3",
-    "5x4",
+    "16:9",
+    "16:10",
+    "21:9",
+    "32:9",
+    "48:9",
+    "9:16",
+    "10:16",
+    "9:18",
+    "1:1",
+    "3:2",
+    "4:3",
+    "5:4",
   }
+end
+
+local function aspectRatioParamValue()
+  local ratios = aspectRatioOptions()
+  local ratio = ratios[aspectRatioIndex + 1] or ""
+  if ratio == "" then return nil end
+  if ratio == "wide" then return "landscape" end
+  if ratio == "portrait" then return "portrait" end
+  return ratio
 end
 
 local function resolutionModeOptions()
@@ -221,15 +230,6 @@ local function buildResolutionParam()
     end
   end
   return nil, nil
-end
-
-local function buildAspectRatioParam()
-  local ratios = aspectRatioOptions()
-  local ratio = ratios[aspectRatioIndex + 1] or ""
-  if ratio ~= "" then
-    return ratio
-  end
-  return nil
 end
 
 local function filterChip(label, active, onClick, key, enabled)
@@ -514,7 +514,7 @@ fetchWallpapers = function()
     table.insert(params, `{resolutionParamName}={resolutionValue}`)
   end
   
-  local aspectRatio = buildAspectRatioParam()
+  local aspectRatio = aspectRatioParamValue()
   if aspectRatio ~= nil then
     table.insert(params, `ratios={aspectRatio}`)
   end
@@ -538,7 +538,47 @@ fetchWallpapers = function()
       return
     end
 
-    wallpapers = data
+    local filteredWallpapers = {}
+    local options = aspectRatioOptions()
+    local selectedRatio = options[aspectRatioIndex + 1] or ""
+    
+    for _, wallpaper in ipairs(data) do
+      local include = true
+      
+      -- Client-side aspect ratio check since API's ratio filter is often inaccurate
+      if selectedRatio ~= "" then
+        local res = wallpaper.resolution
+        if type(res) == "string" then
+          local w, h = res:match("(%d+)x(%d+)")
+          if w and h then
+            w, h = tonumber(w), tonumber(h)
+            local ratio = w / h
+            local isWide = ratio > 1
+            local isPortrait = ratio < 1
+            
+            if selectedRatio == "wide" and not isWide then
+              include = false
+            elseif selectedRatio == "portrait" and not isPortrait then
+              include = false
+            elseif selectedRatio:find("x") then
+              local rw, rh = selectedRatio:match("(%d+)x(%d+)")
+              if rw and rh then
+                local targetRatio = tonumber(rw) / tonumber(rh)
+                if math.abs(ratio - targetRatio) > 0.05 then
+                  include = false
+                end
+              end
+            end
+          end
+        end
+      end
+      
+      if include then
+        table.insert(filteredWallpapers, wallpaper)
+      end
+    end
+
+    wallpapers = filteredWallpapers
     totalPages = normalizeTotalPages(lastPage)
     if page > totalPages then
       page = totalPages
@@ -662,6 +702,7 @@ render = function()
       ui.input({
         key = "search",
         placeholder = tr("search_placeholder"),
+        value = query,
         flexGrow = 1,
         onChange = "onSearchChange",
         onSubmit = "onSearchSubmit",
