@@ -111,6 +111,12 @@ end
 
 function onOpen(_context)
   STATE = noctalia.state.get("timer.state")
+  remaining = noctalia.state.get("timer.remaining")
+  if remaining == 0 then
+    inputDigits = ""
+  else
+    inputDigits = tostring(remaining)
+  end
   render()
 end
 
