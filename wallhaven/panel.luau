@@ -52,7 +52,7 @@ local fetchWallpapers
 local applyWallpaper
 
 local sortOptions = { "relevance", "random", "date_added", "views", "favorites", "toplist", "hot" }
-local sortIndex = 0
+local sortIndex = 2
 local sortOrder = "desc"
 
 local function tr(key)
@@ -227,7 +227,7 @@ local function buildAspectRatioParam()
   local ratios = aspectRatioOptions()
   local ratio = ratios[aspectRatioIndex + 1] or ""
   if ratio ~= "" then
-    return ratio
+    return noctalia.string.urlEncode(ratio)
   end
   return nil
 end
