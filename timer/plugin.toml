@@ -2,6 +2,11 @@
 # declarative ui.* vocabulary (desktopWidget.render). Demonstrates the full
 # desktop-widget pipeline: manifest -> appears in the desktop-widget editor ->
 # declarative control tree -> button callbacks -> second ticks -> settings.
+#
+# Also includes bar widget, panel, and service entries. Demonstrates:
+# bar -> declarative UI with per-placement settings
+# panel -> interactive controls with state sharing via noctalia.state
+# service -> headless countdown logic with command handling
 
 id = "noctalia/timer"
 name = "Timer"
@@ -10,9 +15,9 @@ plugin_api = 3
 author = "noctalia"
 license = "MIT"
 dependencies = []
-tags = ["countdown", "desktop"]
+tags = ["countdown", "utility"]
 icon = "clock"
-description = "A countdown timer widget with start/pause and reset."
+description = "A countdown timer with bar widget, panel, and desktop widget."
 
 [[widget]]
 id = "bar"
@@ -22,6 +27,7 @@ entry = "bar.luau"
   key = "show_idle"
   type = "bool"
   label_key = "settings.show_idle.label"
+  description_key = "settings.show_idle.description"
   default = true
 
 [[panel]]
