@@ -153,8 +153,8 @@ end
 local function aspectRatioOptions()
   return {
     "",
-    "wide",
-    "portrait",
+    "16x9,16x10,21x9,32x9,48x9",
+    "9x16,10x16,9x18",
     "16x9",
     "16x10",
     "21x9",
