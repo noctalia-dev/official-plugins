@@ -34,12 +34,14 @@ local function render()
 
 end
 
+-- update needed for initial load
 function update()
   render()
 end
 
 noctalia.state.watch("timer.state", function(value)
   STATE = value
+  render()
 end)
 
 noctalia.state.watch("timer.formattedTime", function(value)
