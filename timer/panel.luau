@@ -11,7 +11,7 @@
 --   noctalia.state.set(key, value)     send commands to service
 --   noctalia.state.watch(key, fn)      react to state changes
 
-local inputDigits = "0"
+local inputDigits = ""
 local remaining = 0
 local formattedTime = "0"
 local STATE = "IDLE"
@@ -96,13 +96,22 @@ local function render()
   }))
 end
 
+local function updateInputDigits()
+  inputKey = inputKey + 1
+end
+
+local function playTimer()
+  noctalia.state.set("timer.remaining", parseDigits(inputDigits))
+  noctalia.state.set("timer.cmd", "START")
+end
+
+local function resumeTimer()
+  noctalia.state.set("timer.cmd", "START")
+end
+
 function onOpen(_context)
   STATE = noctalia.state.get("timer.state")
   render()
-end
-
-function updateInputDigits()
-  inputKey = inputKey + 1
 end
 
 noctalia.state.watch("timer.state", function(value)
@@ -137,8 +146,9 @@ end
 
 function onInputSubmit()
   if STATE == "IDLE" then
-    noctalia.state.set("timer.remaining", parseDigits(inputDigits))
-    noctalia.state.set("timer.cmd", "START")
+    playTimer()
+  elseif STATE == "PAUSED" then
+    resumeTimer()
   end
 end
 
@@ -146,7 +156,8 @@ function onToggle()
   if STATE == "RUNNING" then
     noctalia.state.set("timer.cmd", "PAUSE")
   elseif STATE == "IDLE" then
-    noctalia.state.set("timer.remaining", parseDigits(inputDigits))
-    noctalia.state.set("timer.cmd", "START")
+    playTimer()
+  elseif STATE == "PAUSED" then
+    resumeTimer()
   end
 end

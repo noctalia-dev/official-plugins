@@ -34,7 +34,7 @@ noctalia.state.watch("timer.cmd", function(cmd)
 
   local actions = {
     PAUSE = function()
-      noctalia.state.set("timer.state", "IDLE")
+      noctalia.state.set("timer.state", "PAUSED")
     end,
     START = function ()
       local remaining = noctalia.state.get("timer.remaining")
@@ -61,7 +61,7 @@ noctalia.state.watch("timer.cmd", function(cmd)
 end)
 
 -- send notification and sound when implemented
-function notifyUser()
+local function notifyUser()
   noctalia.notify("Timer", "Time is up!")
 end
 
