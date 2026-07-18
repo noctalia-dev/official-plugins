@@ -117,6 +117,7 @@ function onOpen(_context)
   else
     inputDigits = tostring(remaining)
   end
+  updateInputDigits()
   render()
 end
 
