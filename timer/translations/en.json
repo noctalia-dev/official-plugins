@@ -15,5 +15,11 @@
       "label": "Show count when idle",
       "description": "Show/hide the widget when timer stopped at zero."
     }
+  },
+  "ui": {
+    "duration_label": "Timer duration",
+    "reset": "Reset",
+    "start": "Start",
+    "pause": "Pause"
   }
 }

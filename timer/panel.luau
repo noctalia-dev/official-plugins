@@ -55,11 +55,11 @@ end
 local function render()
   local remainingText = remaining > 0 and formattedTime or "--:--"
 
-  local btnText = STATE == "RUNNING" and "Pause" or "Start"
+  local btnText = STATE == "RUNNING" and noctalia.tr("ui.pause") or noctalia.tr("ui.start")
   local btnVariant = STATE == "RUNNING" and "secondary" or "primary"
 
   panel.render(ui.column({ gap = 12, padding = 16 }, {
-    ui.label({ text = "Timer duration", fontSize = 16, fontWeight = "bold", color = "primary" }),
+    ui.label({ text = noctalia.tr("ui.duration_label"), fontSize = 16, fontWeight = "bold", color = "primary" }),
     ui.column({ gap = 8, padding = 8, fill = "surface_variant/0.4", radius = 8 }, {
       ui.row({ justify = "center" }, {
         ui.label({
@@ -82,7 +82,7 @@ local function render()
     }),
     ui.row({ gap = 8, justify = "space_between" }, {
       ui.button({
-        text = "Reset",
+        text = noctalia.tr("ui.reset"),
         variant = "destructive",
         onClick = "onReset",
       }),
