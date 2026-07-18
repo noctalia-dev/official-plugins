@@ -12,34 +12,83 @@
 
 local STATE = "IDLE"
 local formattedTime = "00:00"
+local isVertical = false
+
+local Tooltip = {
+  hasTooltip = false,
+}
+
+function Tooltip.show()
+  barWidget.setTooltip(formattedTime)
+  Tooltip.hasTooltip = true
+end
+
+function Tooltip.hide()
+  -- trying to clear a tooltip when there is none is crashing the plugin
+  if Tooltip.hasTooltip then
+    barWidget.clearTooltip()
+    Tooltip.hasTooltip = false
+  end
+end
 
 local function render()
-  local container = barWidget.isVertical() and ui.column or ui.row
-  local showCounterWhenIdle = barWidget.getConfig("show_idle")
+  local showCounterWhenIdle = barWidget.getConfig("show_idle_on_horizontal")
+  local hourGlassColor = getHourglassColor()
 
-  -- Idle state: timer at zero, just show hourglass icon when showCounterWhenIdle in widget settings was set false
-  if STATE == "IDLE" and showCounterWhenIdle == false then
-    barWidget.render(container({ align = "center" }, {
-      ui.glyph({ name = "hourglass", color = "on_surface" }),
+  if isVertical then
+      barWidget.render(ui.column({ align = "center" }, {
+        ui.glyph({ name = "hourglass", color = hourGlassColor }),
+      }))
+
+      if STATE == "RUNNING" then
+        Tooltip.show()
+      end
+  else
+    -- Idle state: timer at zero, just show hourglass icon when showCounterWhenIdle in widget settings was set false
+    if STATE == "IDLE" and showCounterWhenIdle == false then
+      barWidget.render(ui.row({ align = "center" }, {
+        ui.glyph({ name = "hourglass", color = hourGlassColor }),
+      }))
+      return
+    end
+
+    -- Running or paused with time remaining
+    barWidget.render(ui.row({ gap = 6, align = "center" }, {
+      ui.glyph({ name = "hourglass", color = hourGlassColor }),
+      ui.label({ text = formattedTime, fontWeight = "bold", color = hourGlassColor }),
     }))
-    return
   end
+end
 
-  -- Running or paused with time remaining
-  local color = STATE == "NOTIFY" and "primary" or "on_surface"
-  barWidget.render(container({ gap = 6, align = "center" }, {
-    ui.glyph({ name = "hourglass", color = color }),
-    ui.label({ text = formattedTime, fontWeight = "bold", color = color }),
-  }))
+function getHourglassColor()
+    local hourglassColors = {
+      IDLE = "on_surface",
+      RUNNING = "primary",
+      NOTIFY = "error",
+    }
 
+    local color = hourglassColors[STATE]
+
+    if color then
+      return color
+    else
+      return hourglassColors.IDLE
+    end
 end
 
 -- update needed for initial load
 function update()
+  isVertical = barWidget.isVertical()
   render()
 end
 
 noctalia.state.watch("timer.state", function(value)
+  -- if state was RUNNING and is updated to something else,
+  -- we disable the tooltip
+  if isVertical and STATE == "RUNNING" and value ~= "RUNNING" then
+    Tooltip.hide()
+  end
+
   STATE = value
   render()
 end)

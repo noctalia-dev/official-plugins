@@ -24,7 +24,7 @@ id = "bar"
 entry = "bar.luau"
 
   [[widget.setting]]
-  key = "show_idle"
+  key = "show_idle_on_horizontal"
   type = "bool"
   label_key = "settings.show_idle.label"
   description_key = "settings.show_idle.description"

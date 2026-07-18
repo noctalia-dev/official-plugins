@@ -12,7 +12,7 @@
       "label": "Show progress bar"
     },
     "show_idle": {
-      "label": "Show count when idle",
+      "label": "Show count when idle on horizontal bar",
       "description": "Show/hide the widget when timer stopped at zero."
     }
   },
