@@ -26,3 +26,17 @@ runtime no-op — the Luau VM compiles them away — so this only affects your e
    directive every plugin file starts with — the right fit for these
    dynamically-typed scripts (full autocomplete and real type/typo diagnostics,
    without strict-mode noise about always-present optional values).
+
+## Translations
+
+Plugin source strings live in each plugin's `translations/en.json`. Contributors should edit only that English file;
+other locales are maintained through [Noctalia Translate](https://i18n.noctalia.dev).
+
+To test the latest translated locales in a working checkout, run:
+
+```sh
+./.tools/i18n-pull.sh
+```
+
+The command asks for confirmation and overwrites the locale files returned by the translation service. It does not
+delete local locale files that are absent from the export. Review the resulting diff before committing anything.
