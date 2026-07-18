@@ -18,8 +18,11 @@
   },
   "ui": {
     "duration_label": "Timer duration",
+    "duration_placeholder": "e.g. 400 → 4:00",
     "reset": "Reset",
     "start": "Start",
-    "pause": "Pause"
+    "pause": "Pause",
+    "notify_title": "Timer",
+    "notify_body": "Time is up!"
   }
 }

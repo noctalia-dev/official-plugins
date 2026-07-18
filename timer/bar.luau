@@ -7,7 +7,7 @@
 --
 --   barWidget.render(tree)             declarative UI tree
 --   barWidget.isVertical()             branch on bar orientation
---   barWidget.getConfig(key)           per-placement settings
+--   noctalia.getConfig(key)            per-placement widget settings
 --   noctalia.togglePanel(id)           open/close the timer panel
 
 local STATE = "IDLE"
@@ -31,8 +31,18 @@ function Tooltip.hide()
   end
 end
 
+local HOURGLASS_COLORS = {
+  IDLE = "on_surface",
+  RUNNING = "primary",
+  NOTIFY = "error",
+}
+
+local function getHourglassColor()
+  return HOURGLASS_COLORS[STATE] or HOURGLASS_COLORS.IDLE
+end
+
 local function render()
-  local showCounterWhenIdle = barWidget.getConfig("show_idle_on_horizontal")
+  local showCounterWhenIdle = noctalia.getConfig("show_idle_on_horizontal")
   local hourGlassColor = getHourglassColor()
 
   if isVertical then
@@ -58,22 +68,6 @@ local function render()
       ui.label({ text = formattedTime, fontWeight = "bold", color = hourGlassColor }),
     }))
   end
-end
-
-function getHourglassColor()
-    local hourglassColors = {
-      IDLE = "on_surface",
-      RUNNING = "primary",
-      NOTIFY = "error",
-    }
-
-    local color = hourglassColors[STATE]
-
-    if color then
-      return color
-    else
-      return hourglassColors.IDLE
-    end
 end
 
 -- update needed for initial load

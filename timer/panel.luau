@@ -72,12 +72,12 @@ local function render()
       ui.input({
         key = "dur-" .. inputKey,
         value = inputDigits,
-        placeholder = "e.g. 400 → 4:00",
+        placeholder = noctalia.tr("ui.duration_placeholder"),
         fontSize = 14,
         focus = true,
         onChange = "onInputChange",
         onSubmit = "onInputSubmit",
-        enabled = STATE == "IDLE" and true or false
+        enabled = STATE == "IDLE"
       }),
     }),
     ui.row({ gap = 8, justify = "space_between" }, {
@@ -90,7 +90,7 @@ local function render()
         text = btnText,
         variant = btnVariant,
         onClick = "onToggle",
-        enabled = remaining > 0 and true or false
+        enabled = remaining > 0
       }),
     }),
   }))
@@ -109,7 +109,7 @@ local function resumeTimer()
   noctalia.state.set("timer.cmd", "START")
 end
 
-function resetInputDigits()
+local function resetInputDigits()
   if remaining == 0 then
     inputDigits = ""
   else
@@ -145,20 +145,26 @@ end)
 
 noctalia.state.watch("timer.remaining", function(value)
   remaining = value
-  updateInputDigits()
   render()
 end)
 
 function onReset()
   noctalia.state.set("timer.cmd", "RESET")
   inputDigits = ""
+  -- reseed the (now empty) input; the timer may have been running/paused,
+  -- so the field could still show the old value.
+  updateInputDigits()
+  render()
 end
 
 function onInputChange(value)
   if STATE == "IDLE" then
     noctalia.state.set("timer.remaining", parseDigits(value))
+    -- Keep our copy in sync with what the user is typing, but do NOT bump
+    -- inputKey here: the input already holds `value`, and reseeding it
+    -- mid-keystroke would reset the cursor. inputKey is only for pushing a
+    -- new value into the input programmatically (open / reset).
     inputDigits = value
-    updateInputDigits()
     render()
   end
 end

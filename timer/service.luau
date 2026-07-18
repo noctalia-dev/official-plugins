@@ -62,7 +62,7 @@ end)
 
 -- send notification and sound when implemented
 local function notifyUser()
-  noctalia.notify("Timer", "Time is up!")
+  noctalia.notify(noctalia.tr("ui.notify_title"), noctalia.tr("ui.notify_body"))
 end
 
 function update()
