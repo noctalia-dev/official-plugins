@@ -69,4 +69,3 @@ entry = "desktop.luau"
   type = "bool"
   label_key = "settings.show_progress.label"
   default = true
-
