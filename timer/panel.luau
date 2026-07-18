@@ -109,20 +109,32 @@ local function resumeTimer()
   noctalia.state.set("timer.cmd", "START")
 end
 
-function onOpen(_context)
-  STATE = noctalia.state.get("timer.state")
-  remaining = noctalia.state.get("timer.remaining")
+function resetInputDigits()
   if remaining == 0 then
     inputDigits = ""
   else
     inputDigits = tostring(remaining)
   end
   updateInputDigits()
+end
+
+function onOpen(_context)
+  STATE = noctalia.state.get("timer.state")
+  remaining = noctalia.state.get("timer.remaining")
+  resetInputDigits()
   render()
 end
 
 noctalia.state.watch("timer.state", function(value)
+  if STATE == "NOTIFY" and value == "IDLE" then
+    -- if panel is open input will still be displaying number
+    -- but it won't work to start a new timer so this logic
+    -- resets the input user and user won't be confused
+    resetInputDigits()
+  end
+
   STATE = value
+
   render()
 end)
 
