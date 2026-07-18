@@ -52,13 +52,13 @@ tags = ["language", "launcher"]
 [[plugin]]
 id = "noctalia/timer"
 name = "Timer"
-version = "1.0.2"
+version = "1.1.0"
 author = "noctalia"
 license = "MIT"
 icon = "clock"
-description = "A countdown timer desktop widget with start/pause and reset."
+description = "A countdown timer with bar widget, panel, and desktop widget."
 plugin_api = 3
-tags = ["countdown", "desktop"]
+tags = ["countdown", "utility"]
 
 [[plugin]]
 id = "noctalia/wallhaven"
