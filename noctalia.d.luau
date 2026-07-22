@@ -240,6 +240,16 @@ declare shortcut: {
 
 type UiCtor = (props: { [string]: any }?, children: { UiNode }?) -> UiNode
 
+-- Pointer props name global functions in your script. onClick is accepted by
+-- row, column, box, image and button (button also takes onRightClick); the
+-- global takes no arguments. onHover is accepted by the same five and makes the
+-- node a hover target: the global receives (state, key), where state is "true"
+-- on enter and "false" on leave, and key is the node's key prop ("" when it has
+-- none), so one handler can serve a keyed list. Only the innermost hovered node
+-- reports, and every "true" is matched by a "false". An empty callback name
+-- counts as unset. onClick on row/column/box/image makes the node a click
+-- target that also joins the tab order (Enter/Space); a node with only onHover
+-- passes clicks through to an enclosing click target.
 declare ui: {
   column: UiCtor,
   row: UiCtor,
