@@ -243,16 +243,19 @@ declare shortcut: {
 
 type UiCtor = (props: { [string]: any }?, children: { UiNode }?) -> UiNode
 
--- Pointer props name global functions in your script. onClick is accepted by
--- row, column, box, image and button (button also takes onRightClick); the
--- global takes no arguments. onHover is accepted by the same five and makes the
--- node a hover target: the global receives (state, key), where state is "true"
--- on enter and "false" on leave, and key is the node's key prop ("" when it has
--- none), so one handler can serve a keyed list. Only the innermost hovered node
--- reports, and every "true" is matched by a "false". An empty callback name
--- counts as unset. onClick on row/column/box/image makes the node a click
--- target that also joins the tab order (Enter/Space); a node with only onHover
--- passes clicks through to an enclosing click target.
+-- Pointer props take a function (plugin_api >= 9) or the name of a global
+-- function in your script. onClick is accepted by row, column, box, image and
+-- button (button also takes onRightClick); the handler takes no arguments.
+-- onHover is accepted by the same five and makes the node a hover target: the
+-- handler receives (state, key), where state is "true" on enter and "false" on
+-- leave, and key is the node's key prop ("" when it has none), so one named
+-- handler can serve a keyed list (a closure captures its row instead). Only the
+-- innermost hovered node reports, and every "true" is matched by a "false". An
+-- empty callback name counts as unset. A function handler belongs to the render
+-- that produced it: re-rendering replaces it, and a click on a node the current
+-- tree no longer contains does nothing. onClick on row/column/box/image makes
+-- the node a click target that also joins the tab order (Enter/Space); a node
+-- with only onHover passes clicks through to an enclosing click target.
 declare ui: {
   column: UiCtor,
   row: UiCtor,
@@ -274,7 +277,7 @@ declare ui: {
   -- dragType/payload (required strings), enabled, tooltip, previewAncestor
   -- (0-8), liftFromLayout. dropZone props: accepts (string array), value,
   -- onDrop (required), direction, enabled, expandOnDrag, hitSlop. The onDrop
-  -- global receives (payload, value) after a completed drop.
+  -- handler receives (payload, value) after a completed drop.
   dragSource: UiCtor,
   dropZone: UiCtor,
 }
