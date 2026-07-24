@@ -1,15 +1,15 @@
 {
-	"settings": {
-		"duration": {
-			"label": "Süre (seconds)",
-			"description": "Uzunluğu saniyeler ile say."
-		},
-		"color": {
-			"label": "Renk",
-			"description": "Zaman ve ilerleme barı için vurgu rengi."
-		},
-		"show_progress": {
-			"label": "İlerleme barını göster"
-		}
-	}
+  "settings": {
+    "color": {
+      "description": "Zaman ve ilerleme barı için vurgu rengi.",
+      "label": "Renk"
+    },
+    "duration": {
+      "description": "Uzunluğu saniyeler ile say.",
+      "label": "Süre (seconds)"
+    },
+    "show_progress": {
+      "label": "İlerleme barını göster"
+    }
+  }
 }

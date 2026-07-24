@@ -1,25 +1,35 @@
 {
-	"title": "Notlar",
-	"empty": "Henüz not yok — + ile bir tane oluşturun",
-	"editor_placeholder": "Notunuzu yazın…",
-	"confirm_delete": "Silinsin mi?",
-	"editing": "Düzenleniyor…",
-	"saved": "Kaydedildi",
-	"save_failed": "Not kaydedilemedi",
-	"rename_exists": "Aynı isimle bir not zaten var",
-	"bad_extension": "Geçersiz dosya uzantısı — md kullanılıyor",
-	"scratchpad": "Karalama Defteri",
-	"counts": "{words} kelime · {chars} karakter",
-	"launcher.clip_title": "Panodan yeni not",
-	"launcher.home_title": "Notları aç",
-	"launcher.home_subtitle": "Tüm notlara bak",
-	"launcher.append_title": "Karalama defterine ekle",
-	"launcher.new_title": "Yeni not",
-	"launcher.open_subtitle": "Notu aç",
-	"launcher.appended": "Karalama defterine ekledi",
-	"settings.notes_dir.label": "Notlare dizini",
-	"settings.notes_dir.description": "Notların kaydedildiği yer.",
-	"settings.extension.label": "Dosya uzantısı",
-	"settings.extension.description": "Not dosyaları için uzantı (nokta olmadan). Sadece bu uzantılı dosyalar listelenir.",
-	"settings.glyph.label": "Bar glifiç"
+  "bad_extension": "Geçersiz dosya uzantısı — md kullanılıyor",
+  "confirm_delete": "Silinsin mi?",
+  "counts": "{words} kelime · {chars} karakter",
+  "editing": "Düzenleniyor…",
+  "editor_placeholder": "Notunuzu yazın…",
+  "empty": "Henüz not yok — + ile bir tane oluşturun",
+  "launcher": {
+    "append_title": "Karalama defterine ekle",
+    "appended": "Karalama defterine ekledi",
+    "clip_title": "Panodan yeni not",
+    "home_subtitle": "Tüm notlara bak",
+    "home_title": "Notları aç",
+    "new_title": "Yeni not",
+    "open_subtitle": "Notu aç"
+  },
+  "rename_exists": "Aynı isimle bir not zaten var",
+  "save_failed": "Not kaydedilemedi",
+  "saved": "Kaydedildi",
+  "scratchpad": "Karalama Defteri",
+  "settings": {
+    "extension": {
+      "description": "Not dosyaları için uzantı (nokta olmadan). Sadece bu uzantılı dosyalar listelenir.",
+      "label": "Dosya uzantısı"
+    },
+    "glyph": {
+      "label": "Bar glifiç"
+    },
+    "notes_dir": {
+      "description": "Notların kaydedildiği yer.",
+      "label": "Notlare dizini"
+    }
+  },
+  "title": "Notlar"
 }

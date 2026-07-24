@@ -129,9 +129,9 @@
         "30": "30 minutes",
         "60": "1 hour",
         "240": "4 hours",
-        "on_restart": "On Noctalia restart",
+        "custom": "Custom",
         "never": "Never (until serve stops)",
-        "custom": "Custom"
+        "on_restart": "On Noctalia restart"
       }
     },
     "vault_timeout_custom_minutes": {

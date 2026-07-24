@@ -1,0 +1,57 @@
+{
+  "all_outputs": "所有输出",
+  "empty": "在所配置的目录中未找到视频",
+  "not_installed": "尚未安装 mpvpaper",
+  "output": "输出",
+  "pause": "暂停",
+  "resume": "继续",
+  "settings": {
+    "allowed_cpus": {
+      "label": "可用 CPU 核心"
+    },
+    "auto_pause": {
+      "description": "全屏窗口覆盖壁纸时暂停播放（mpvpaper --auto-pause）",
+      "label": "覆盖时暂停"
+    },
+    "cpu_quota": {
+      "label": "CPU 配额"
+    },
+    "cpu_weight": {
+      "label": "CPU 权重"
+    },
+    "extract_last_frame": {
+      "description": "停止播放时，自动从视频中提取一帧作为静态壁纸",
+      "label": "静态回退画面"
+    },
+    "glyph": {
+      "label": "图标"
+    },
+    "hardware_decode": {
+      "description": "使用 GPU 解码视频（mpv hwdec=auto）",
+      "label": "硬件解码"
+    },
+    "memory_max": {
+      "label": "内存上限"
+    },
+    "mpv_options": {
+      "description": "额外的 mpv 选项，多个选项以空格分隔，例如 panscan=1.0 video-zoom=0.1",
+      "label": "额外 mpv 选项"
+    },
+    "mute": {
+      "label": "静音"
+    },
+    "nice": {
+      "label": "Nice 值"
+    },
+    "run_as_systemd": {
+      "description": "在 systemd 临时作用域中运行壁纸，以严格限制资源使用",
+      "label": "作为 systemd 服务运行"
+    },
+    "video_directory": {
+      "description": "用于扫描壁纸视频的文件夹；留空时使用 ~/Videos",
+      "label": "视频目录"
+    }
+  },
+  "stop": "停止",
+  "title": "视频壁纸"
+}

@@ -9,7 +9,7 @@
   "download_failed": "Download failed",
   "empty": "No wallpapers found.",
   "error": "Request failed",
-  "filter_aspect_ratio": "Aspect ratio",
+  "filter_aspect_ratio": "Aspect Ratio",
   "filter_categories": "Categories",
   "filter_purity": "Purity",
   "filter_resolution": "Resolution",
@@ -22,7 +22,7 @@
   "ratio_portrait": "All Portrait",
   "ratio_wide": "All Wide",
   "resolution_height_placeholder": "Height",
-  "resolution_mode_atleast": "At least",
+  "resolution_mode_atleast": "At Least",
   "resolution_mode_exact": "Exact",
   "resolution_mode_label": "Mode",
   "resolution_width_placeholder": "Width",
@@ -30,20 +30,20 @@
   "search_placeholder": "Search tags (e.g. nature, city night)",
   "settings": {
     "api_key": {
-      "description": "Optional Wallhaven API key for higher rate limits and NSFW access.",
-      "label": "API key"
+      "description": "Optional Wallhaven API key for higher rate limits and NSFW access",
+      "label": "API Key"
     },
     "download_dir": {
-      "description": "Optional override for full-resolution downloads. Empty uses your Noctalia wallpaper folder.",
-      "label": "Download directory"
+      "description": "Optional override for full-resolution downloads; empty uses your Noctalia wallpaper folder",
+      "label": "Download Directory"
     },
     "glyph": {
-      "label": "Bar glyph"
+      "label": "Bar Glyph"
     }
   },
   "sort": {
     "options": {
-      "date_added": "Date added",
+      "date_added": "Date Added",
       "favorites": "Favorites",
       "hot": "Hot",
       "random": "Random",

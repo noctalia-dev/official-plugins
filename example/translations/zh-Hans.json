@@ -5,11 +5,11 @@
   },
   "settings": {
     "glyph": {
-      "description": "显示在标签前的图标。",
+      "description": "显示在标签前的图标",
       "label": "图标"
     },
     "label": {
-      "description": "显示在状态栏的文本。",
+      "description": "显示在状态栏的文本",
       "label": "标签"
     },
     "show_glyph": {

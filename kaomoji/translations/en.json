@@ -1,8 +1,8 @@
 {
   "settings": {
     "notify_on_copy": {
-      "description": "Show a notification when a kaomoji is copied to the clipboard.",
-      "label": "Notify on copy"
+      "description": "Show a notification when a kaomoji is copied to the clipboard",
+      "label": "Notify on Copy"
     }
   },
   "title": "Kaomoji"

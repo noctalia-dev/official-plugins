@@ -1,9 +1,9 @@
 {
-	"title": "Kaomoji",
-	"settings": {
-		"notify_on_copy": {
-			"label": "Kopyalayınca haber ver",
-			"description": "Bir kaemoji panoya kopyalandığında bildirim göster."
-		}
-	}
+  "settings": {
+    "notify_on_copy": {
+      "description": "Bir kaemoji panoya kopyalandığında bildirim göster.",
+      "label": "Kopyalayınca haber ver"
+    }
+  },
+  "title": "Kaomoji"
 }

@@ -1,23 +1,23 @@
 {
   "settings": {
     "audio_spectrum": {
-      "label": "React to audio"
+      "label": "React to Audio"
     },
     "executable_path": {
-      "label": "Alternative evtest binary"
+      "label": "Alternative evtest Binary"
     },
     "input_devices": {
       "description": "Prefer /dev/input/by-id/*-event-* or /dev/input/by-path/*-event-*; /dev/input/eventN can change after kernel or device updates",
-      "label": "Input devices"
+      "label": "Input Devices"
     },
     "rave_mode": {
-      "label": "Rave colors on beat"
+      "label": "Rave Colors on Beat"
     },
     "tappy_mode": {
-      "label": "Tap to the beat"
+      "label": "Tap to the Beat"
     },
     "use_mpris_filter": {
-      "label": "Only react while media plays"
+      "label": "Only React While Media Plays"
     }
   }
 }

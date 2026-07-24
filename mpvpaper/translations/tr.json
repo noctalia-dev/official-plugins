@@ -1,29 +1,57 @@
 {
-	"title": "Video Duvar Kağıdı",
-	"output": "Çıkış",
-	"all_outputs": "Tüm Çıkışlar",
-	"stop": "Kapat",
-	"pause": "Durdur",
-	"resume": "Devam et",
-	"empty": "Belirlenen dizinde video bulunamadı",
-	"not_installed": "mpvpaper yüklü değil",
-	"settings.video_directory.label": "Video dizini",
-	"settings.video_directory.description": "Duvar kağıdı videoları için taranacak klasör. Boş olduğunda varsayılan olarak ~/Videos.",
-	"settings.mute.label": "Sesi sustur",
-	"settings.hardware_decode.label": "Donanım Kodlaması",
-	"settings.hardware_decode.description": "GPU video kodlamasını kullan (mpv hwdec=auto).",
-	"settings.auto_pause.label": "Saklandığında durdur",
-	"settings.auto_pause.description": "Duvar kağıdını kaplayan tam ekran pencere varken oynatmayı duraklat (mpvpaper --auto-pause).",
-	"settings.mpv_options.label": "Extra mpv seçenekleri",
-	"settings.mpv_options.description": "Ek boşlukla ayrılı mpv seçenekleri, örn. panscan=1.0 video-zoom=0.1",
-	"settings.glyph.label": "Glif",
-	"settings.run_as_systemd.label": "Systemd servisi olarak çalıştır",
-	"settings.run_as_systemd.description": "Sıkı kaynak sınırlamalarını uygulamak için duvar kağıdını bir systemd geçici kapsamında çalıştır.",
-	"settings.extract_last_frame.label": "Statik yedek kare",
-	"settings.extract_last_frame.description": "Oynatma durdurulduğunda, videodan otomatik olarak bir kare ayıklanarak sabit duvar kağıdı olarak kullan.",
-	"settings.cpu_quota.label": "CPU Kotası",
-	"settings.allowed_cpus.label": "İzin verilen CPUlar",
-	"settings.memory_max.label": "Max Hafıza",
-	"settings.cpu_weight.label": "CPU Ağırlığı",
-	"settings.nice.label": "Nice değeri"
+  "all_outputs": "Tüm Çıkışlar",
+  "empty": "Belirlenen dizinde video bulunamadı",
+  "not_installed": "mpvpaper yüklü değil",
+  "output": "Çıkış",
+  "pause": "Durdur",
+  "resume": "Devam et",
+  "settings": {
+    "allowed_cpus": {
+      "label": "İzin verilen CPUlar"
+    },
+    "auto_pause": {
+      "description": "Duvar kağıdını kaplayan tam ekran pencere varken oynatmayı duraklat (mpvpaper --auto-pause).",
+      "label": "Saklandığında durdur"
+    },
+    "cpu_quota": {
+      "label": "CPU Kotası"
+    },
+    "cpu_weight": {
+      "label": "CPU Ağırlığı"
+    },
+    "extract_last_frame": {
+      "description": "Oynatma durdurulduğunda, videodan otomatik olarak bir kare ayıklanarak sabit duvar kağıdı olarak kullan.",
+      "label": "Statik yedek kare"
+    },
+    "glyph": {
+      "label": "Glif"
+    },
+    "hardware_decode": {
+      "description": "GPU video kodlamasını kullan (mpv hwdec=auto).",
+      "label": "Donanım Kodlaması"
+    },
+    "memory_max": {
+      "label": "Max Hafıza"
+    },
+    "mpv_options": {
+      "description": "Ek boşlukla ayrılı mpv seçenekleri, örn. panscan=1.0 video-zoom=0.1",
+      "label": "Extra mpv seçenekleri"
+    },
+    "mute": {
+      "label": "Sesi sustur"
+    },
+    "nice": {
+      "label": "Nice değeri"
+    },
+    "run_as_systemd": {
+      "description": "Sıkı kaynak sınırlamalarını uygulamak için duvar kağıdını bir systemd geçici kapsamında çalıştır.",
+      "label": "Systemd servisi olarak çalıştır"
+    },
+    "video_directory": {
+      "description": "Duvar kağıdı videoları için taranacak klasör. Boş olduğunda varsayılan olarak ~/Videos.",
+      "label": "Video dizini"
+    }
+  },
+  "stop": "Kapat",
+  "title": "Video Duvar Kağıdı"
 }

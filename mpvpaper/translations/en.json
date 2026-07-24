@@ -1,5 +1,5 @@
 {
-  "all_outputs": "All outputs",
+  "all_outputs": "All Outputs",
   "empty": "No videos found in the configured directory",
   "not_installed": "mpvpaper is not installed",
   "output": "Output",
@@ -10,8 +10,8 @@
       "label": "Allowed CPUs"
     },
     "auto_pause": {
-      "description": "Pause playback while a fullscreen window covers the wallpaper (mpvpaper --auto-pause).",
-      "label": "Pause when covered"
+      "description": "Pause playback while a fullscreen window covers the wallpaper (mpvpaper --auto-pause)",
+      "label": "Pause When Covered"
     },
     "cpu_quota": {
       "label": "CPU Quota"
@@ -20,36 +20,36 @@
       "label": "CPU Weight"
     },
     "extract_last_frame": {
-      "description": "Automatically extract a frame from the video to use as the static wallpaper when playback is stopped.",
-      "label": "Static fallback frame"
+      "description": "Automatically extract a frame from the video to use as the static wallpaper when playback is stopped",
+      "label": "Static Fallback Frame"
     },
     "glyph": {
       "label": "Glyph"
     },
     "hardware_decode": {
-      "description": "Use GPU video decoding (mpv hwdec=auto).",
-      "label": "Hardware decoding"
+      "description": "Use GPU video decoding (mpv hwdec=auto)",
+      "label": "Hardware Decoding"
     },
     "memory_max": {
       "label": "Max Memory"
     },
     "mpv_options": {
       "description": "Additional space-separated mpv options, e.g. panscan=1.0 video-zoom=0.1",
-      "label": "Extra mpv options"
+      "label": "Extra mpv Options"
     },
     "mute": {
-      "label": "Mute audio"
+      "label": "Mute Audio"
     },
     "nice": {
-      "label": "Nice value"
+      "label": "Nice Value"
     },
     "run_as_systemd": {
-      "description": "Run the wallpaper in a systemd transient scope to enforce strict resource limits.",
-      "label": "Run as systemd service"
+      "description": "Run the wallpaper in a systemd transient scope to enforce strict resource limits",
+      "label": "Run as systemd Service"
     },
     "video_directory": {
-      "description": "Folder scanned for wallpaper videos. Defaults to ~/Videos when empty.",
-      "label": "Video directory"
+      "description": "Folder scanned for wallpaper videos; defaults to ~/Videos when empty",
+      "label": "Video Directory"
     }
   },
   "stop": "Stop",

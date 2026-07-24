@@ -1,0 +1,57 @@
+{
+  "all_outputs": "Todas as Saídas",
+  "empty": "Nenhum vídeo encontrado no diretório configurado",
+  "not_installed": "O mpvpaper não está instalado",
+  "output": "Saída",
+  "pause": "Pausar",
+  "resume": "Retomar",
+  "settings": {
+    "allowed_cpus": {
+      "label": "CPUs Permitidas"
+    },
+    "auto_pause": {
+      "description": "Pausar a reprodução enquanto uma janela em tela cheia cobrir o papel de parede (mpvpaper --auto-pause)",
+      "label": "Pausar Quando Coberto"
+    },
+    "cpu_quota": {
+      "label": "Cota de CPU"
+    },
+    "cpu_weight": {
+      "label": "Peso da CPU"
+    },
+    "extract_last_frame": {
+      "description": "Extrair automaticamente um quadro do vídeo para usar como papel de parede estático quando a reprodução estiver parada",
+      "label": "Quadro Estático de Fallback"
+    },
+    "glyph": {
+      "label": "Símbolo"
+    },
+    "hardware_decode": {
+      "description": "Usar decodificação de vídeo por GPU (mpv hwdec=auto)",
+      "label": "Decodificação por Hardware"
+    },
+    "memory_max": {
+      "label": "Memória Máxima"
+    },
+    "mpv_options": {
+      "description": "Opções adicionais do mpv separadas por espaço, ex.: panscan=1.0 video-zoom=0.1",
+      "label": "Opções Extras do mpv"
+    },
+    "mute": {
+      "label": "Silenciar Áudio"
+    },
+    "nice": {
+      "label": "Valor Nice"
+    },
+    "run_as_systemd": {
+      "description": "Executar o papel de parede em um escopo transitório do systemd para impor limites rigorosos de recursos",
+      "label": "Executar como Serviço do systemd"
+    },
+    "video_directory": {
+      "description": "Pasta verificada em busca de vídeos para papel de parede; o padrão é ~/Videos quando vazio",
+      "label": "Diretório de Vídeos"
+    }
+  },
+  "stop": "Parar",
+  "title": "Vídeo como Papel de Parede"
+}

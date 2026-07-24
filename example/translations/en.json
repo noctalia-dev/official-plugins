@@ -5,15 +5,15 @@
   },
   "settings": {
     "glyph": {
-      "description": "Glyph shown before the label.",
+      "description": "Glyph shown before the label",
       "label": "Glyph"
     },
     "label": {
-      "description": "Text shown in the bar.",
+      "description": "Text shown in the bar",
       "label": "Label"
     },
     "show_glyph": {
-      "label": "Show glyph"
+      "label": "Show Glyph"
     }
   },
   "title": "Example"

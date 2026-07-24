@@ -1,0 +1,57 @@
+{
+  "all_outputs": "Alle Outputs",
+  "empty": "Keine Videos im konfigurierten Verzeichnis gefunden",
+  "not_installed": "mpvpaper ist nicht installiert",
+  "output": "Output",
+  "pause": "Pause",
+  "resume": "Fortsetzen",
+  "settings": {
+    "allowed_cpus": {
+      "label": "Zugelassene CPUs"
+    },
+    "auto_pause": {
+      "description": "Pausiere die Wiedergabe, während ein Vollbildfenster das Hintergrundbild verdeckt (mpvpaper --auto-pause)",
+      "label": "Pausieren, wenn verdeckt"
+    },
+    "cpu_quota": {
+      "label": "CPU-Kontingent"
+    },
+    "cpu_weight": {
+      "label": "CPU-Gewichtung"
+    },
+    "extract_last_frame": {
+      "description": "Extrahiere automatisch einen Frame aus dem Video, um ihn als statisches Hintergrundbild zu verwenden, wenn die Wiedergabe gestoppt ist",
+      "label": "Statisches Fallback-Bild"
+    },
+    "glyph": {
+      "label": "Symbol"
+    },
+    "hardware_decode": {
+      "description": "Verwende GPU-Videodekodierung (mpv hwdec=auto)",
+      "label": "Hardware-Dekodierung"
+    },
+    "memory_max": {
+      "label": "Maximaler Speicher"
+    },
+    "mpv_options": {
+      "description": "Zusätzliche, durch Leerzeichen getrennte mpv-Optionen, z.B. panscan=1.0 video-zoom=0.1",
+      "label": "Zusätzliche mpv-Optionen"
+    },
+    "mute": {
+      "label": "Audio stummschalten"
+    },
+    "nice": {
+      "label": "Guter Wert"
+    },
+    "run_as_systemd": {
+      "description": "Führe das Hintergrundbild in einem systemd-Transient-Scope aus, um strikte Ressourcenbeschränkungen durchzusetzen",
+      "label": "Als systemd-Dienst ausführen"
+    },
+    "video_directory": {
+      "description": "Ordner, der nach Hintergrundvideos durchsucht wird; standardmäßig ~/Videos, wenn leer",
+      "label": "Videoverzeichnis"
+    }
+  },
+  "stop": "Stop",
+  "title": "Video-Hintergrundbild"
+}
