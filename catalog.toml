@@ -1,7 +1,7 @@
 # This file is auto-generated. Do not edit manually.
 # Do not include it in your commit.
 # Official Noctalia plugins catalog.
-# Index of every plugin this source ships — the minimum needed to render, search,
+# Index of every plugin this source ships: the minimum needed to render, search,
 # and compat-check the list. The per-plugin plugin.toml stays authoritative; the
 # host re-reads it on enable. Keep one [[plugin]] row per plugin subdirectory.
 
@@ -9,6 +9,8 @@
 id = "noctalia/example"
 name = "Example"
 version = "1.3.0"
+updated_at = 1784513738
+added_at = 1781039692
 author = "noctalia"
 license = "MIT"
 icon = "puzzle"
@@ -20,6 +22,8 @@ tags = ["demo"]
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
 version = "1.2.0"
+updated_at = 1784208593
+added_at = 1781039692
 author = "noctalia"
 license = "MIT"
 icon = "video"
@@ -31,6 +35,8 @@ tags = ["recording", "video"]
 id = "noctalia/bongocat"
 name = "Bongo Cat"
 version = "1.1.4"
+updated_at = 1784476960
+added_at = 1781052621
 author = "noctalia"
 license = "MIT"
 icon = "cat"
@@ -42,6 +48,8 @@ tags = ["fun", "animation"]
 id = "noctalia/translator"
 name = "Translator"
 version = "1.0.5"
+updated_at = 1784208593
+added_at = 1781268478
 author = "noctalia"
 license = "MIT"
 icon = "language"
@@ -53,6 +61,8 @@ tags = ["language", "launcher"]
 id = "noctalia/timer"
 name = "Timer"
 version = "1.2.0"
+updated_at = 1784413877
+added_at = 1781407877
 author = "noctalia"
 license = "MIT"
 icon = "clock"
@@ -64,6 +74,8 @@ tags = ["countdown", "utility"]
 id = "noctalia/wallhaven"
 name = "Wallhaven"
 version = "1.0.8"
+updated_at = 1784290655
+added_at = 1782324517
 author = "noctalia"
 license = "MIT"
 icon = "photo"
@@ -75,6 +87,8 @@ tags = ["wallpaper"]
 id = "noctalia/mpvpaper"
 name = "Video Wallpaper"
 version = "1.0.6"
+updated_at = 1784299657
+added_at = 1782365051
 author = "noctalia"
 license = "MIT"
 icon = "movie"
@@ -86,6 +100,8 @@ tags = ["wallpaper", "video"]
 id = "noctalia/kaomoji"
 name = "Kaomoji"
 version = "1.0.1"
+updated_at = 1784208593
+added_at = 1782513915
 author = "noctalia"
 license = "MIT"
 icon = "mood-smile"
@@ -97,6 +113,8 @@ tags = ["emoticon", "launcher"]
 id = "noctalia/notes"
 name = "Notes"
 version = "1.0.1"
+updated_at = 1784208593
+added_at = 1783038137
 author = "noctalia"
 license = "MIT"
 icon = "notes"
@@ -108,6 +126,8 @@ tags = ["productivity"]
 id = "noctalia/bitwarden"
 name = "Bitwarden"
 version = "1.0.0"
+updated_at = 1784735852
+added_at = 1784735852
 author = "noctalia"
 license = "MIT"
 icon = "lock"
