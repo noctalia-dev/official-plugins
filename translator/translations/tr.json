@@ -1,0 +1,8 @@
+{
+	"settings": {
+		"target_lang": {
+			"label": "Varsayılan hedef dil",
+			"description": "Dil seçilmediğinde kullanılacak dil kodu (örn. en, fr, tr)."
+		}
+	}
+}
