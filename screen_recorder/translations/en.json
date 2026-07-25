@@ -57,15 +57,6 @@
     "hide_inactive": {
       "label": "Hide Widget When Idle"
     },
-    "quality": {
-      "label": "Quality",
-      "options": {
-        "high": "High",
-        "medium": "Medium",
-        "ultra": "Ultra",
-        "very_high": "Very High"
-      }
-    },
     "replay_duration": {
       "label": "Replay Seconds"
     },
@@ -102,6 +93,10 @@
         "vp8": "VP8",
         "vp9": "VP9"
       }
+    },
+    "video_qp": {
+      "description": "Lower values produce higher quality and larger files",
+      "label": "Video Quality (QP)"
     },
     "video_source": {
       "description": "GPU Screen Recorder capture mode; Focused records Noctalia's focused monitor",

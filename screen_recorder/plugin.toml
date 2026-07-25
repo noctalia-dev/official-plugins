@@ -68,16 +68,13 @@ options = [
 ]
 
 [[setting]]
-key = "quality"
-type = "select"
-label_key = "settings.quality.label"
-default = "very_high"
-options = [
-  { value = "medium", label_key = "settings.quality.options.medium" },
-  { value = "high", label_key = "settings.quality.options.high" },
-  { value = "very_high", label_key = "settings.quality.options.very_high" },
-  { value = "ultra", label_key = "settings.quality.options.ultra" },
-]
+key = "video_qp"
+type = "int"
+label_key = "settings.video_qp.label"
+description_key = "settings.video_qp.description"
+default = 25
+min = 0
+max = 51
 
 [[setting]]
 key = "resolution"

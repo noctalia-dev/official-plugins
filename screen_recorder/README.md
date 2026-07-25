@@ -56,7 +56,7 @@ Replay controls are available only when `replay_enabled` is true.
 | `filename_pattern` | `string` | `recording_%Y%m%d_%H%M%S` | Date-format filename pattern without extension. |
 | `frame_rate` | `int` | `60` | Capture frame rate from 1 to 240. |
 | `video_codec` | `select` | `h264` | Video codec: `h264`, `hevc`, `av1`, `vp8`, or `vp9`. |
-| `quality` | `select` | `very_high` | GPU Screen Recorder quality preset. |
+| `video_qp` | `int` | `25` | Constant quality level from 0–51; lower values produce higher quality and larger files. |
 | `resolution` | `string` | `original` | `original` or a size like `1920x1080`. |
 | `audio_source` | `select` | `default_output` | Audio source: output, input, both, or none. |
 | `audio_codec` | `select` | `opus` | Audio codec: `opus`, `aac`, or `flac`. |
