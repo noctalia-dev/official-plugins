@@ -394,7 +394,7 @@ local function copySecret(value, notifyKey)
   if type(value) ~= "string" or value == "" then
     return false
   end
-  noctalia.copyToClipboard(value, "text/plain")
+  noctalia.copyToClipboard(value, "text/plain;charset=utf-8")
   scheduleClipboardClear(value)
   if cfg("notify_on_copy") ~= false then
     noctalia.notify(noctalia.tr("title"), noctalia.tr(notifyKey or "copied"))
@@ -874,7 +874,7 @@ function update()
     if pendingClear.ticksLeft <= 0 then
       local current = noctalia.clipboardText()
       if current == pendingClear.text then
-        noctalia.copyToClipboard("", "text/plain")
+        noctalia.copyToClipboard("", "text/plain;charset=utf-8")
       end
       pendingClear = nil
     end
