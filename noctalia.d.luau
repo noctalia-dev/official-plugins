@@ -359,6 +359,11 @@ declare ui: {
   row: UiCtor,
   box: UiCtor,
   label: UiCtor,
+  -- Markdown block (plugin_api >= 20). Renders the text prop (headings,
+  -- lists, code blocks, tables) as a read-only block. The host re-parses
+  -- only when text or the surface scale changes, so streaming re-renders
+  -- with unchanged text are cheap.
+  markdown: UiCtor,
   glyph: UiCtor,
   image: UiCtor,
   separator: UiCtor,
@@ -366,10 +371,20 @@ declare ui: {
   progress: UiCtor,
   button: UiCtor,
   graph: UiCtor,
+  -- input also takes submitOnEnter (plugin_api >= 20): in a multiline
+  -- input, Enter then fires onSubmit and Shift+Enter inserts the newline
+  -- instead; Ctrl+Enter always submits. Default off (Enter inserts a
+  -- newline).
   input: UiCtor,
   select: UiCtor,
   slider: UiCtor,
   toggle: UiCtor,
+  -- scroll also takes (plugin_api >= 20): stickToBottom (bool) keeps the
+  -- view pinned to the bottom while content grows, until the user scrolls
+  -- away; onScroll receives (offset, maxOffset), both delivered as
+  -- strings; scrollToBottomRev (number) jumps to the bottom on the first
+  -- render that sees it and again whenever the value changes, applied
+  -- after the next layout pass so it reaches the new extent.
   scroll: UiCtor,
   -- Drag and drop (plugin panels only, plugin_api >= 5). dragSource props:
   -- dragType/payload (required strings), enabled, tooltip, previewAncestor
