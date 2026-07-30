@@ -1,6 +1,6 @@
 id = "noctalia/wallhaven"
 name = "Wallhaven"
-version = "1.0.9"
+version = "1.0.10"
 plugin_api = 9
 author = "noctalia"
 license = "MIT"
@@ -18,7 +18,7 @@ default = ""
 
 [[setting]]
 key = "download_dir"
-type = "string"
+type = "folder"
 label_key = "settings.download_dir.label"
 description_key = "settings.download_dir.description"
 default = ""

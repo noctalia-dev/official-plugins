@@ -25,7 +25,7 @@ Browse [Wallhaven](https://wallhaven.cc), download a wallpaper into your Noctali
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `api_key` | `string` | *(empty)* | Optional Wallhaven API key for higher rate limits and NSFW access. |
-| `download_dir` | `string` | *(empty)* | Optional download override; defaults to your configured wallpaper directory. |
+| `download_dir` | `folder` | *(empty)* | Optional download override; defaults to your configured wallpaper directory. |
 
 Thumbnail previews are cached under `$XDG_STATE_HOME/noctalia/wallhaven/thumbs` (`~/.local/state/noctalia/wallhaven/thumbs` by default).
 

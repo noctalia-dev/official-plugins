@@ -1,0 +1,31 @@
+# World Clock is a multi-timezone clock with a bar widget and an attached panel.
+# Add or remove IANA zones; the service keeps times ticking and publishes them
+# to every entry through noctalia.state.
+
+id = "noctalia/world_clock"
+name = "World Clock"
+version = "1.0.1"
+plugin_api = 19
+author = "noctalia"
+license = "MIT"
+dependencies = []
+tags = ["clock", "time", "utility"]
+icon = "world"
+description = "A world clock panel and bar widget for tracking multiple timezones."
+
+[[widget]]
+id = "bar"
+entry = "bar.luau"
+
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 340
+height = 342
+placement = "attached"
+position = "auto"
+open_near_click = true
+
+[[service]]
+id = "service"
+entry = "service.luau"

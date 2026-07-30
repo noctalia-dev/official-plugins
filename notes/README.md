@@ -53,7 +53,7 @@ noctalia msg panel-close                         # close the open panel
 
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
-| `notes_dir` | `string` | `~/Documents/Notes` | Where the note files live. Created on first open if missing. |
+| `notes_dir` | `folder` | `~/Documents/Notes` | Where the note files live. Created on first open if missing. |
 | `extension` | `string` | `md` | Extension for note files (without the dot). Only files with this extension are listed. |
 | `glyph` | `glyph` | `notes` | Bar widget icon. |
 

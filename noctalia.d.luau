@@ -96,13 +96,32 @@ export type NoctaliaString = {
 }
 
 export type SystemStats = {
+  -- Unix epoch milliseconds for the latest aggregate sample. Plugin API 16.
+  sampledAtMs: number?,
   -- Absent sensors are nil rather than 0, so "no probe" is distinguishable from "idle".
   cpu: { usagePercent: number, tempC: number? },
   ram: { usagePercent: number, usedMb: number, totalMb: number },
   swap: { usedMb: number, totalMb: number },
   gpu: { tempC: number?, usagePercent: number?, vramUsedBytes: number?, vramTotalBytes: number? },
-  net: { rxBytesPerSec: number, txBytesPerSec: number },
+  net: {
+    rxBytesPerSec: number,
+    txBytesPerSec: number,
+    interfaces: { [string]: { rxBytesPerSec: number, txBytesPerSec: number } },
+  },
   loadAvg: { number }, -- 1, 5 and 15 minute averages
+}
+
+export type DiskMount = {
+  path: string,
+  source: string,
+  filesystem: string,
+}
+
+export type DiskStats = {
+  usagePercent: number,
+  totalBytes: number,
+  freeBytes: number,
+  availableBytes: number,
 }
 
 export type Noctalia = {
@@ -141,6 +160,10 @@ export type Noctalia = {
   -- Panels.
   togglePanel: (panelId: string) -> (), -- "author/plugin:panel"
 
+  -- Open the settings window at this plugin's own settings, closing any open panel.
+  -- Does nothing when the plugin declares no settings. Requires plugin_api >= 15.
+  openSettings: () -> (),
+
   -- Dialogs. The callback receives the selected canonical #RRGGBB color, or nil
   -- when the dialog is cancelled.
   openColorPicker: (initialColor: string, onClose: (color: string?) -> ()) -> boolean,
@@ -153,19 +176,31 @@ export type Noctalia = {
   clipboardText: () -> string?, -- latest text clipboard content (nil when empty or non-text)
   getenv: (name: string) -> string?,
   expandPath: (path: string) -> string,
-  formatTime: (pattern: string, unixSeconds: number?) -> string,
+  formatTime: (pattern: string, unixSeconds: number?, timezone: string?) -> string,
+  -- [shell].time_format / date_format (e.g. "{:%H:%M}", "%A, %x"). Plugin API 19.
+  timeFormat: () -> string,
+  dateFormat: () -> string,
+  -- True when `name` is empty (system local) or names a zone in the active timezone database.
+  -- Plugin API 19.
+  isValidTimezone: (name: string) -> boolean,
   -- Wall-clock milliseconds since the Unix epoch. formatTime and os.time are both
   -- whole-second, so this is the only sub-second clock. Plugin API 12.
   nowMs: () -> number,
 
-  -- System monitor. Both return nil when [system.monitor] is disabled. Plugin API 12.
-  -- systemStats reads a snapshot and enables nothing on its own.
+  -- System monitor. systemStats and cpuCores return nil when [system.monitor] is disabled.
+  -- The first systemStats call opts this plugin into its optional CPU/GPU probes.
   systemStats: () -> SystemStats?,
   -- Per-core usage in /proc/stat order, nil until the first delta lands (up to a second
   -- after the first call). The first call opts this plugin into per-core sampling, which
   -- costs one extra /proc/stat read per second while it stays loaded. Offline cores are
   -- absent from /proc/stat, so the length can change and an index is not a core id.
   cpuCores: () -> { number }?,
+  -- Physical block-device-backed filesystems, deduped by source and sorted by mount path.
+  -- Pseudo filesystems, loop/squashfs mounts and boot mounts are excluded. Plugin API 16.
+  diskMounts: () -> { DiskMount },
+  -- Latest statvfs snapshot for an absolute or ~/ path. The first call retains each valid
+  -- path for sampling until the plugin unloads. Nil when unavailable. Plugin API 16.
+  diskStats: (path: string) -> DiskStats?,
 
   -- Tick rate: how often update() fires (clamped to >= 16ms).
   setUpdateInterval: (ms: number) -> (),
@@ -252,6 +287,47 @@ declare barWidget: {
   render: (tree: UiNode) -> (),
 }
 
+-- ── Gestures on a bar widget ─────────────────────────────────────────────────
+--
+-- What a bar widget does on a click or scroll is configuration, not code. The
+-- user binds gestures per widget instance:
+--
+--   [widget.my-widget.actions]
+--   right = "media toggle"
+--   scroll_up = "none"
+--
+-- A binding wins over your script: bind `right` and onRightClick stops firing
+-- for that instance. Gestures the user has not bound still reach your callbacks.
+-- The gesture keys are left, right, middle, back, forward, scroll_up,
+-- scroll_down, scroll_left and scroll_right. An action is an IPC command with
+-- its arguments ("media toggle"), `exec <command line>`, or `none`.
+--
+-- Declare your own defaults in plugin.toml (plugin_api 14+), and they show up in
+-- the settings editor as the widget's defaults, overridable like any other:
+--
+--   [[widget]]
+--   id = "my-widget"
+--   entry = "my-widget.luau"
+--
+--   [widget.actions]
+--   middle = "media toggle"
+--
+-- Middle click is the one to know about: every widget gets a built-in
+-- `middle = "settings-open-widget"` default, so onMiddleClick does NOT fire out
+-- of the box. Binding middle to an action does not help either - the action runs
+-- instead of your callback. What frees the button is binding it to nothing:
+--
+--   [widget.actions]
+--   middle = "none"
+--
+-- Declare that in your manifest if your widget implements onMiddleClick; users
+-- can do the same per instance. Consider whether you want it: middle click opens
+-- the widget's settings everywhere else in the shell, and a declared action is
+-- visible in the settings editor where a Luau callback is not.
+--
+-- Scroll has one extra gate: `enable_scroll = false` on the widget instance turns
+-- onScroll off entirely, independently of any binding.
+
 -- ── shortcut.* — [[shortcut]] quick-toggle tile ──────────────────────────────
 
 declare shortcut: {
@@ -325,6 +401,7 @@ declare panel: {
   render: (tree: UiNode) -> (),
   close: () -> (),
   setWantsSecondTicks: (wants: boolean) -> (),
+  setNeedsFrameTick: (needs: boolean) -> (),
 }
 
 -- ── Entry-point callbacks ────────────────────────────────────────────────────
@@ -334,17 +411,25 @@ declare panel: {
 --
 --   function update() end                       -- bar/desktop widget, service tick
 --   function onIpc(event, payload) end          -- any entry (payload: string?)
---   function onClick() / onRightClick() end     -- shortcut
---   function onScroll(axis, steps) end          -- bar widget scroll; axis is "vertical" | "horizontal",
---                                               -- steps is whole wheel detents (negative = up / left)
+--   function onClick() / onRightClick() end     -- shortcut, bar widget
+--   function onMiddleClick() end                -- bar widget (see "Gestures" below)
+--   function onHover(entered) end               -- bar widget pointer enter / leave
+--   function onScroll(axis, steps, startsGesture) end -- bar widget scroll; axis is "vertical" | "horizontal",
+--                                               -- steps is whole wheel detents (negative = up / left).
+--                                               -- startsGesture is true only on the first step of a flick
+--                                               -- in that direction: check it to step a list once per
+--                                               -- flick, ignore it to ramp a value per notch.
 --   function onQuery(text) / onActivate(id) end -- launcher provider
---   function onFrameTick(deltaMs) end           -- continuous animation (setNeedsFrameTick)
+--   function onFrameTick(deltaMs) end           -- desktop widget, or open panel (API 18+); continuous
+--                                               -- animation, after setNeedsFrameTick(true)
 --   function onAudioSpectrum(valuesCsv, stateCsv) end -- audio-reactive bar widget
 --   function onOpen(context) / onClose() end    -- panel lifecycle
 --   function onKey(chord, pressed) end          -- panel: a capture_keys chord, verbatim from the
 --                                               -- manifest; pressed is true on press, false on release
 --   function onConfigChanged() end              -- service: plugin settings changed; getConfig() now returns new values
---   function onExit(signal) end                  -- any entry teardown (0 normally, 2 for SIGINT, 15 for SIGTERM)
+--   function onEnable() end                     -- service: plugin explicitly enabled successfully (API 17+)
+--   function onExit(signal, reason) end          -- any entry teardown; signal is 0 normally, 2 for SIGINT, 15 for SIGTERM
+--                                               -- reason is "reload" | "disable" | "uninstall" | "shutdown" (API 17+)
 --
 -- These are intentionally NOT declared here: declaring them as globals makes
 -- luau-lsp treat your definition as overwriting a built-in.

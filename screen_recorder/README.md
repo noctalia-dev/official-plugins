@@ -17,7 +17,8 @@ Install `gpu-screen-recorder` on `PATH`, or install the Flatpak app
 `com.dec05eba.gpu_screen_recorder`. Portal capture also requires
 `xdg-desktop-portal` and one supported backend, such as
 `xdg-desktop-portal-wlr`, `xdg-desktop-portal-hyprland`,
-`xdg-desktop-portal-gnome`, or `xdg-desktop-portal-kde`.
+`xdg-desktop-portal-gnome`, `xdg-desktop-portal-kde`, or
+`niri-screenshare`.
 
 - **[gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/about/)** — Hardware-accelerated screen recording
 

@@ -312,7 +312,7 @@ local function checkPortalsIfNeededAsync(sourceOverride, callback)
         return
     end
 
-    local pending = 5
+    local pending = 6
     local hasPortal = false
     local hasBackend = false
 
@@ -346,6 +346,8 @@ local function checkPortalsIfNeededAsync(sourceOverride, callback)
     queue("backend", "xdg-desktop-portal-hyprland ")
     queue("backend", "xdg-desktop-portal-gnome ")
     queue("backend", "xdg-desktop-portal-kde ")
+    -- niri-screenshare (or similarly named) ScreenCast backends
+    queue("backend", "niri-screenshare ")
 end
 
 -- ── Recording controls ───────────────────────────────────────────────────
