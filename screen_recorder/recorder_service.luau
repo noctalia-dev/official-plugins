@@ -36,6 +36,10 @@ local function log(msg)
     noctalia.log(`screen_recorder: {msg}`)
 end
 
+local function scaledVideoQp(codec, qp)
+    return qp * (if codec == "vp8" then 2 elseif codec == "av1" or codec == "vp9" then 4 else 1)
+end
+
 -- Where gpu-screen-recorder's own stdout/stderr is captured so its failure reason
 -- can be echoed back through noctalia.log (the process is detached, so this file is
 -- the only way to see why it never started or died early).
@@ -260,7 +264,7 @@ local function buildRecordCommand(focusedOutputName, sourceOverride)
 
     local fps = cfg("frame_rate")
     local codec = cfg("video_codec")
-    local qp = cfg("video_qp")
+    local qp = scaledVideoQp(codec, cfg("video_qp"))
     local cursor = if cfg("show_cursor") then "yes" else "no"
     local cr = cfg("color_range")
     local restore = if cfg("restore_portal") then "-restore-portal-session yes" else ""
@@ -287,7 +291,7 @@ local function buildReplayCommand(focusedOutputName, sourceOverride)
     local storage = cfg("replay_storage")
     local fps = cfg("frame_rate")
     local codec = cfg("video_codec")
-    local qp = cfg("video_qp")
+    local qp = scaledVideoQp(codec, cfg("video_qp"))
     local cursor = if cfg("show_cursor") then "yes" else "no"
     local cr = cfg("color_range")
     local restore = if cfg("restore_portal") then "-restore-portal-session yes" else ""
