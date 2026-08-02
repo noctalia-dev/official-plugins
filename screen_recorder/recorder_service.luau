@@ -316,7 +316,7 @@ local function checkPortalsIfNeededAsync(sourceOverride, callback)
         return
     end
 
-    local pending = 6
+    local pending = 7
     local hasPortal = false
     local hasBackend = false
 
@@ -352,6 +352,8 @@ local function checkPortalsIfNeededAsync(sourceOverride, callback)
     queue("backend", "xdg-desktop-portal-kde ")
     -- niri-screenshare (or similarly named) ScreenCast backends
     queue("backend", "niri-screenshare ")
+    -- jay's built-in portal (embedded in the compositor process)
+    queue("backend", "jay ")
 end
 
 -- ── Recording controls ───────────────────────────────────────────────────
