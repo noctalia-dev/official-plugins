@@ -113,7 +113,7 @@ local function resetInputDigits()
   if remaining == 0 then
     inputDigits = ""
   else
-    inputDigits = tostring(remaining)
+    inputDigits = formattedTime
   end
   updateInputDigits()
 end
@@ -121,6 +121,7 @@ end
 function onOpen(_context)
   STATE = noctalia.state.get("timer.state")
   remaining = noctalia.state.get("timer.remaining")
+  formattedTime = noctalia.state.get("timer.formattedTime") or "0"
   resetInputDigits()
   render()
 end
