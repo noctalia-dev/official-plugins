@@ -113,7 +113,7 @@ local function resetInputDigits()
   if remaining == 0 then
     inputDigits = ""
   else
-    inputDigits = tostring(remaining)
+    inputDigits = formattedTime
   end
   updateInputDigits()
 end
