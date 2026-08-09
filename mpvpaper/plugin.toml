@@ -41,10 +41,15 @@ default = true
 
 [[setting]]
 key = "auto_pause"
-type = "bool"
+type = "select"
 label_key = "settings.auto_pause.label"
 description_key = "settings.auto_pause.description"
-default = true
+default = "full"
+options = [
+  { value = "off", label_key = "settings.auto_pause.options.off" },
+  { value = "max", label_key = "settings.auto_pause.options.max" },
+  { value = "full", label_key = "settings.auto_pause.options.full" },
+]
 
 [[setting]]
 key = "mpv_options"
