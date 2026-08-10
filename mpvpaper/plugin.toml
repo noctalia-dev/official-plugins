@@ -10,7 +10,7 @@
 
 id = "noctalia/mpvpaper"
 name = "Video Wallpaper"
-version = "1.0.7"
+version = "1.0.8"
 plugin_api = 9
 author = "noctalia"
 license = "MIT"
