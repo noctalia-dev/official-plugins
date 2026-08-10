@@ -204,7 +204,7 @@ local function listRow(file)
   -- Both row states keep the same leading text button so the row height (set
   -- by the text-button tier) never changes when the confirm controls swap in.
   local displayName = displayName(file)
-  local truncated = truncateText(displayName, 38)
+  local truncated = truncateText(displayName, 34)
   local title = {
     text = truncated,
     variant = "ghost",
