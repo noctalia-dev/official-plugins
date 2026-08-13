@@ -192,15 +192,25 @@ local function togglePin(file)
   render()
 end
 
+local function truncateText(text, maxLength)
+  if #text <= maxLength then
+    return text
+  end
+  return text:sub(1, maxLength - 3) .. "..."
+end
+
 local function listRow(file)
   local pinned = pins[file] == true
   -- Both row states keep the same leading text button so the row height (set
   -- by the text-button tier) never changes when the confirm controls swap in.
+  local displayName = displayName(file)
+  local truncated = truncateText(displayName, 34)
   local title = {
-    text = displayName(file),
+    text = truncated,
     variant = "ghost",
     contentAlign = "start",
     flexGrow = 1,
+    tooltip = displayName,
     onClick = function()
       openNote(file)
     end,
