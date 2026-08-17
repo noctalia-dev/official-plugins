@@ -65,6 +65,31 @@ export type WallpaperMask = {
   wallpaperPath: string,
 }
 
+export type PanelContextMenuAction = {
+  kind: "item"?, -- may be omitted for action rows
+  id: string,
+  label: string,
+  enabled: boolean?, -- defaults to true
+}
+
+export type PanelContextMenuHeader = {
+  kind: "header",
+  label: string,
+}
+
+export type PanelContextMenuSeparator = {
+  kind: "separator",
+}
+
+export type PanelContextMenuItem = PanelContextMenuAction | PanelContextMenuHeader | PanelContextMenuSeparator
+
+export type PanelContextMenuRequest = {
+  items: { PanelContextMenuItem },
+  onActivate: string,
+  context: (string | number | boolean)?,
+  maxVisible: number?, -- defaults to 12, valid range 1..30
+}
+
 -- A tooltip row: { key, value } or the positional array form { key, value }.
 export type TooltipRow = { key: string?, value: string? }
 
@@ -431,6 +456,10 @@ declare desktopWidget: {
 declare panel: {
   render: (tree: UiNode) -> (),
   close: () -> (),
+  -- Opens a native menu at the originating direct pointer callback. Returns
+  -- false outside a live pointer callback. onActivate receives
+  -- (actionId, context) in the panel script. Requires plugin_api >= 28.
+  openContextMenu: (request: PanelContextMenuRequest) -> boolean,
   setWantsSecondTicks: (wants: boolean) -> (),
   setNeedsFrameTick: (needs: boolean) -> (),
 }
