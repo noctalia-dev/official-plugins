@@ -67,6 +67,7 @@ Replay controls are available only when `replay_enabled` is true.
 | `replay_duration` | `int` | `30` | Replay buffer duration in seconds. |
 | `replay_storage` | `select` | `ram` | Stores replay data in RAM or on disk. |
 | `restore_portal` | `bool` | `false` | Asks GPU Screen Recorder to restore the portal session. |
+| `encoder` | `select` | `gpu` | `gpu` uses hardware encoding with a CPU fallback if it fails at runtime; `cpu` skips the hardware probe entirely, for GPUs with no video encoder at all (e.g. Asahi/Apple Silicon, some VMs). |
 
 ## IPC
 
