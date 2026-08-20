@@ -197,6 +197,17 @@ local function buildResolutionFlag()
     return if res ~= "original" then `-s {res}` else ""
 end
 
+-- "-fallback-cpu-encoding yes" is always included so a hardware encoder that
+-- fails at runtime (e.g. unsupported codec, driver bug) degrades to software
+-- encoding instead of aborting the recording. "-encoder cpu" additionally
+-- skips the hardware probe entirely, which is required on GPUs with no VAAPI/
+-- NVENC encoder at all (Asahi/Apple Silicon, some VMs) — probing there always
+-- fails and just delays startup.
+local function buildEncoderFlags()
+    local forceCpu = if cfg("encoder") == "cpu" then " -encoder cpu" else ""
+    return `-fallback-cpu-encoding yes{forceCpu}`
+end
+
 -- Capture modes a caller may request. An IPC override outside this set is
 -- discarded so an arbitrary payload can never reach the gpu-screen-recorder
 -- command line.
@@ -270,8 +281,9 @@ local function buildRecordCommand(focusedOutputName, sourceOverride)
     local restore = if cfg("restore_portal") then "-restore-portal-session yes" else ""
     local audioFlags = buildAudioFlags()
     local resFlag = buildResolutionFlag()
+    local encoderFlags = buildEncoderFlags()
 
-    local flags = `-w {source} -f {fps} -k {codec} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} {restore} -v no -o "{outputPath}"`
+    local flags = `-w {source} -f {fps} -k {codec} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} {restore} {encoderFlags} -v no -o "{outputPath}"`
 
     log(`starting recording: mode={selectedVideoSource(sourceOverride)} target={source} output={outputPath} flags=[{flags}]`)
 
@@ -297,8 +309,9 @@ local function buildReplayCommand(focusedOutputName, sourceOverride)
     local restore = if cfg("restore_portal") then "-restore-portal-session yes" else ""
     local audioFlags = buildAudioFlags()
     local resFlag = buildResolutionFlag()
+    local encoderFlags = buildEncoderFlags()
 
-    local flags = `-w {source} -c mp4 -f {fps} -k {codec} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} -r {duration} -replay-storage {storage} {restore} -v no -o "{dir}"`
+    local flags = `-w {source} -c mp4 -f {fps} -k {codec} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} -r {duration} -replay-storage {storage} {restore} {encoderFlags} -v no -o "{dir}"`
 
     log(`starting replay buffer: mode={selectedVideoSource(sourceOverride)} target={source} dir={dir} flags=[{flags}]`)
 
