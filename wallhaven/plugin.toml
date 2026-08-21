@@ -40,3 +40,7 @@ entry = "wallhaven.luau"
   type = "glyph"
   label_key = "settings.glyph.label"
   default = "photo"
+
+[[shortcut]]
+id = "shortcut"
+entry = "shortcut.luau"
