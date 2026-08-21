@@ -2,7 +2,7 @@
 -- Tile in the control center that opens the video wallpaper picker.
 
 local function render()
-    shortcut.setLabel("Video Wallpaper")
+    shortcut.setLabel(noctalia.tr("title"))
     shortcut.setIcon("movie")
 end
 
