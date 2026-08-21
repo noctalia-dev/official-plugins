@@ -13,7 +13,7 @@ drawn above it.
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/mpvpaper` |
-| Entries | Service: `service`; Panel: `picker`; bar widget: `mpvpaper` |
+| Entries | Service: `service`; Panel: `picker`; bar widget: `mpvpaper`; Shortcut: `shortcut` |
 
 ## Requirements
 
@@ -25,7 +25,7 @@ The plugin works on `wlr-layer-shell` compositors (Niri, Hyprland, Sway, Mango).
 ## Usage
 
 1. Set **Video directory** in the plugin settings (defaults to `~/Videos`).
-2. Add the **Video Wallpaper** bar widget, or open the picker with
+2. Add the **Video Wallpaper** bar widget, the control center shortcut, or open the picker with
 
    ```sh
    noctalia msg panel-toggle noctalia/mpvpaper:picker
