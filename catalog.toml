@@ -199,3 +199,16 @@ plugin_api = 25
 version = "1.0.0"
 updated_at = 1786549052
 rev = "4933b1c459459af3a0f9d14898b76ce0564d43b3"
+
+[[plugin]]
+id = "noctalia/wallpaper_depth_large"
+name = "Wallpaper Depth"
+version = "1.0.2"
+updated_at = 1786565714
+added_at = 1786549052
+author = "noctalia"
+license = "MIT"
+icon = "layers-subtract"
+description = "Generate depth masks that place desktop widgets behind wallpaper foregrounds. Uses the larger model for better results."
+plugin_api = 26
+tags = ["wallpaper", "desktop", "ai"]
