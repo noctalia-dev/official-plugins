@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bootstrap Depth Anything V2 Small and generate source-aligned wallpaper masks."""
+"""Bootstrap Depth Anything V2 Large and generate source-aligned wallpaper masks."""
 
 from __future__ import annotations
 
@@ -15,13 +15,13 @@ import tempfile
 import time
 import urllib.request
 
-MODEL_REVISION = "4472b7362082ad9968fee890ca0f1e5aca36b93d"
+MODEL_REVISION = "0306443f3d6bd5eab8723897d5201f2c8aac95de"
 MODEL_URL = (
-    "https://huggingface.co/onnx-community/depth-anything-v2-small/resolve/"
+    "https://huggingface.co/onnx-community/depth-anything-v2-large/resolve/"
     f"{MODEL_REVISION}/onnx/model.onnx?download=true"
 )
-MODEL_SHA256 = "afb6a5c28f3b6bf1618c6e43f02073ef9dfdc70e937502d51603e57b0a1df10c"
-MODEL_SIZE = 99_060_839
+MODEL_SHA256 = "a93aa89b5e92e30e0afbe0f7c3ec692b35cfca791ae9004a190fb0ca2010e905"
+MODEL_SIZE = 1_336_922_232
 INPUT_SIZE = 518
 MODEL_PATCH_SIZE = 14
 DEPTH_PIPELINE_VERSION = 2
@@ -149,7 +149,7 @@ def runtime_python(data_dir: Path) -> Path:
 
 
 def model_path(data_dir: Path) -> Path:
-    return data_dir / "models" / "depth-anything-v2-small" / "model.onnx"
+    return data_dir / "models" / "depth-anything-v2-large" / "model.onnx"
 
 
 def verify_model(path: Path) -> bool:
