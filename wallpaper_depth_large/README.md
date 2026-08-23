@@ -11,7 +11,7 @@ Wallpapers are never uploaded.
 
 | Field | Value |
 | --- | --- |
-| ID | `noctalia/wallpaper_depth` |
+| ID | `noctalia/wallpaper_depth_large` |
 | Entries | Service: `service`; panel: `manager` |
 
 ## Requirements
@@ -30,7 +30,7 @@ environment.
 1. Open the **Wallpaper Depth** panel, or toggle it from a terminal:
 
    ```sh
-   noctalia msg panel-toggle noctalia/wallpaper_depth:manager
+   noctalia msg panel-toggle noctalia/wallpaper_depth_large:manager
    ```
 
 2. Select **Install model** and wait for setup to finish.
