@@ -2,7 +2,7 @@
 
 noctalia.setUpdateInterval(1000)
 
-local MODEL_SIZE = 99060839
+local MODEL_SIZE = 1336922232
 local helperPath = noctalia.pluginDir() .. "/depth_helper.py"
 local dataDir = noctalia.pluginDataDir()
 if dataDir == nil then
