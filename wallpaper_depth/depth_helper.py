@@ -55,6 +55,95 @@ def atomic_json(path: Path, value: dict[str, object]) -> None:
     os.replace(temporary, path)
 
 
+def is_nixos() -> bool:
+    """NixOS has no FHS-style /lib, /usr/lib search path, so pip-installed
+    manylinux wheels (numpy/onnxruntime/Pillow) can fail to find shared
+    libraries such as libstdc++.so.6 at import time even though `pip install`
+    itself succeeds."""
+    if Path("/etc/NIXOS").exists():
+        return True
+    try:
+        os_release = Path("/etc/os-release").read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return any(line.strip() in ('ID=nixos', 'ID="nixos"') for line in os_release.splitlines())
+
+
+# stdenv.cc.cc.lib provides libstdc++.so.6 and libgcc_s.so.1 (onnxruntime)
+# and libgomp.so.1 (numpy's OpenBLAS threading); zlib covers Pillow/onnxruntime
+# fallbacks that aren't always vendored inside the wheel itself.
+NIX_LIBRARY_PACKAGES = ("stdenv.cc.cc.lib", "zlib")
+
+
+def nix_library_cache_path(data_dir: Path) -> Path:
+    return data_dir / "runtime" / "nix-library-path.json"
+
+
+def resolve_nix_library_path(data_dir: Path) -> str:
+    cache_path = nix_library_cache_path(data_dir)
+    try:
+        cached = json.loads(cache_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        cached = None
+    if (
+        isinstance(cached, dict)
+        and cached.get("packages") == list(NIX_LIBRARY_PACKAGES)
+        and isinstance(cached.get("libDirs"), list)
+    ):
+        lib_dirs = [Path(entry) for entry in cached["libDirs"]]
+        if lib_dirs and all(path.is_dir() for path in lib_dirs):
+            return os.pathsep.join(str(path) for path in lib_dirs)
+
+    store_paths: list[str] = []
+    for attribute in NIX_LIBRARY_PACKAGES:
+        try:
+            result = subprocess.run(
+                ["nix-build", "<nixpkgs>", "-A", attribute, "--no-out-link"],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+        except FileNotFoundError as error:
+            raise RuntimeError(
+                "nix-build was not found; cannot resolve NixOS runtime libraries "
+                "needed by numpy/onnxruntime/Pillow"
+            ) from error
+        if result.returncode != 0 or not result.stdout.strip():
+            raise RuntimeError(
+                f"nix-build could not resolve nixpkgs#{attribute}: "
+                f"{result.stderr.strip() or 'no output'}"
+            )
+        store_paths.append(result.stdout.strip().splitlines()[-1])
+
+    lib_dirs = [str(Path(path) / "lib") for path in store_paths]
+    atomic_json(
+        cache_path,
+        {"packages": list(NIX_LIBRARY_PACKAGES), "libDirs": lib_dirs, "resolvedAt": int(time.time())},
+    )
+    return os.pathsep.join(lib_dirs)
+
+
+def ensure_nixos_dynamic_linking(data_dir: Path) -> None:
+    """On NixOS, re-exec this interpreter with LD_LIBRARY_PATH patched so
+    pip-installed manylinux wheels can find libstdc++/libgomp/zlib. Every
+    subprocess spawned afterwards (venv creation, pip install, the runtime
+    readiness check, and the venv python that runs `generate`) inherits this
+    process's environment, so patching it once here is enough for the whole
+    plugin -- no changes to service.luau are needed."""
+    if os.environ.get("_WALLPAPER_DEPTH_NIXOS_PATCHED") == "1":
+        return
+    if not is_nixos():
+        return
+    lib_path = resolve_nix_library_path(data_dir)
+    existing = os.environ.get("LD_LIBRARY_PATH", "")
+    new_env = dict(os.environ)
+    new_env["LD_LIBRARY_PATH"] = f"{lib_path}{os.pathsep}{existing}" if existing else lib_path
+    new_env["_WALLPAPER_DEPTH_NIXOS_PATCHED"] = "1"
+    os.execve(sys.executable, [sys.executable] + sys.argv, new_env)
+
+
 def runtime_python(data_dir: Path) -> Path:
     return data_dir / "runtime" / ".venv" / "bin" / "python"
 
@@ -393,6 +482,7 @@ def main() -> int:
     args = parse_args()
     data_dir = args.data_dir.expanduser().resolve()
     try:
+        ensure_nixos_dynamic_linking(data_dir)
         if args.command == "setup":
             setup(data_dir)
         elif args.command == "status":
