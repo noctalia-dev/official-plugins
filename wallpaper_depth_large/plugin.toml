@@ -1,5 +1,5 @@
-id = "noctalia/wallpaper_depth"
-name = "Wallpaper Depth"
+id = "noctalia/wallpaper_depth_large"
+name = "Wallpaper Depth Large"
 version = "1.0.2"
 plugin_api = 26
 author = "noctalia"
@@ -7,7 +7,7 @@ license = "MIT"
 dependencies = ["python3"]
 tags = ["wallpaper", "desktop", "ai"]
 icon = "layers-subtract"
-description = "Generate depth masks that place desktop widgets behind wallpaper foregrounds."
+description = "Generate depth masks that place desktop widgets behind wallpaper foregrounds. Uses the large model for better results."
 
 [[setting]]
 key = "auto_generate"
