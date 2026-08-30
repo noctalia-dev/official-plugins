@@ -424,6 +424,13 @@ declare ui: {
   graph: UiCtor,
   input: UiCtor,
   select: UiCtor,
+  -- Slider props: min, max, step, value (numbers), enabled (bool), controlSize.
+  -- onChange reports the new value on every change (coalesced). onDragEnd fires
+  -- when the interaction ends — pointer release and keyboard adjustments
+  -- (arrows, PageUp/PageDown, Home, End); wheel scroll does not adjust plugin
+  -- sliders. `value` is re-applied only while not dragging, so re-rendering
+  -- mid-drag with a draft value is safe; commit on onDragEnd for a
+  -- draft-then-commit pattern.
   slider: UiCtor,
   toggle: UiCtor,
   scroll: UiCtor,
