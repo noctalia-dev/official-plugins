@@ -735,7 +735,6 @@ end
 
 function onOpen(_context)
   normalizePurityFilters()
-  page = 1
   fetchWallpapers()
 end
 
