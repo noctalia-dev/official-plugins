@@ -12,7 +12,7 @@ Wallpapers are never uploaded.
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/wallpaper_depth` |
-| Entries | Service: `service`; panel: `manager` |
+| Entries | Service: `service`; panel: `manager`; bar widget: `bar` |
 
 ## Requirements
 
@@ -26,6 +26,8 @@ NumPy, ONNX Runtime, and Pillow; it does not modify the system Python
 environment.
 
 ## Usage
+Add the **Wallpaper Depth** bar widget to open the plugin settings directly from
+the bar.
 
 1. Open the **Wallpaper Depth** panel, or toggle it from a terminal:
 
@@ -47,7 +49,7 @@ removes saved depth maps and masks; the plugin regenerates them when needed.
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `auto_generate` | `bool` | `true` | Regenerates masks when a wallpaper or mask parameter changes. |
-| `threshold` | `int` | `50` | Normalized depth cutoff from 0–100. Lower values place more of the scene in front of desktop widgets. |
+| `threshold` | `int` | `30` | Normalized depth cutoff from 0–100. Lower values place more of the scene in front of desktop widgets. |
 | `feather` | `int` | `8` | Soft-transition width around the depth cutoff, from 0–50. |
 
 ## How it works
