@@ -194,21 +194,23 @@ end
 
 local function listRow(file)
   local pinned = pins[file] == true
-  -- Both row states keep the same leading text button so the row height (set
-  -- by the text-button tier) never changes when the confirm controls swap in.
-  local title = {
-    text = displayName(file),
-    variant = "ghost",
-    contentAlign = "start",
-    flexGrow = 1,
-    onClick = function()
-      openNote(file)
-    end,
+  -- Label elides natively with maxLines=1; the row wrapper supplies the click target.
+  local titleChildren = {
+    ui.label({ text = displayName(file), maxLines = 1, flexGrow = 1 }),
   }
   if pinned then
-    title.glyph = "pinned"
+    table.insert(titleChildren, 1, ui.glyph({ name = "pinned", size = 14 }))
   end
-  local children = { ui.button(title) }
+  local children = {
+    ui.row({
+      flexGrow = 1,
+      gap = 6,
+      align = "center",
+      onClick = function()
+        openNote(file)
+      end,
+    }, titleChildren),
+  }
   if pendingDelete == file then
     for _, node in ipairs(deleteControls(file)) do
       table.insert(children, node)
@@ -239,13 +241,14 @@ local function listView()
   local rows = {
     -- The scratchpad is always present (created on first write) and not deletable from here.
     ui.row({ key = "scratchpad", gap = 6, align = "center" }, {
-      ui.button({
-        glyph = "pinned",
-        text = tr("scratchpad"),
-        variant = "ghost",
-        contentAlign = "start",
+      ui.row({
         flexGrow = 1,
+        gap = 6,
+        align = "center",
         onClick = "onOpenScratchpad",
+      }, {
+        ui.glyph({ name = "pinned", size = 14 }),
+        ui.label({ text = tr("scratchpad"), maxLines = 1, flexGrow = 1 }),
       }),
     }),
   }
