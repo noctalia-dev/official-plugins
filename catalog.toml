@@ -88,8 +88,8 @@ tags = ["countdown", "utility"]
 [[plugin]]
 id = "noctalia/wallhaven"
 name = "Wallhaven"
-version = "1.0.10"
-updated_at = 1785108641
+version = "1.1.0"
+updated_at = 1788065783
 added_at = 1782324517
 author = "noctalia"
 license = "MIT"
