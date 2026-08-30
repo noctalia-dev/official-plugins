@@ -47,6 +47,14 @@
       "description": "Defaults to ~/Videos/Recordings when empty",
       "label": "Output Directory"
     },
+    "encoder": {
+      "description": "CPU encoding always works but uses more power; GPU encoding requires a working hardware video encoder (VAAPI/NVENC) and isn't available on some systems (e.g. Asahi/Apple Silicon GPUs, some VMs)",
+      "label": "Encoder",
+      "options": {
+        "cpu": "CPU (software)",
+        "gpu": "GPU (hardware)"
+      }
+    },
     "filename_pattern": {
       "description": "Date-format pattern without extension; use %s for Unix timestamp",
       "label": "Filename Pattern"

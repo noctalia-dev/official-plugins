@@ -12,7 +12,7 @@
 
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.2.2"
+version = "1.3.0"
 plugin_api = 3
 author = "noctalia"
 license = "MIT"
@@ -184,6 +184,18 @@ type = "bool"
 label_key = "settings.restore_portal.label"
 default = false
 advanced = true
+
+[[setting]]
+key = "encoder"
+type = "select"
+label_key = "settings.encoder.label"
+description_key = "settings.encoder.description"
+default = "gpu"
+advanced = true
+options = [
+  { value = "gpu", label_key = "settings.encoder.options.gpu" },
+  { value = "cpu", label_key = "settings.encoder.options.cpu" },
+]
 
 # Headless background service: owns the recording / replay logic, runs for the
 # whole session, and bridges the "command" / "status" state channels.
