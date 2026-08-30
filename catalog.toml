@@ -184,8 +184,8 @@ tags = ["clock", "time", "utility"]
 [[plugin]]
 id = "noctalia/wallpaper_depth"
 name = "Wallpaper Depth"
-version = "1.0.2"
-updated_at = 1786565714
+version = "1.0.3"
+updated_at = 1788065046
 added_at = 1786549052
 author = "noctalia"
 license = "MIT"
