@@ -36,8 +36,8 @@ rev = "5082ed5f85e795513b8485e4cedc66d5a2c816ff"
 [[plugin]]
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.2.2"
-updated_at = 1786284782
+version = "1.2.3"
+updated_at = 1788104178
 added_at = 1781039692
 author = "noctalia"
 license = "MIT"
