@@ -12,7 +12,7 @@
 
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.2.2"
+version = "1.2.3"
 plugin_api = 3
 author = "noctalia"
 license = "MIT"
@@ -143,6 +143,42 @@ key = "hide_inactive"
 type = "bool"
 label_key = "settings.hide_inactive.label"
 default = false
+
+# Bar glyph per state. Defaults are the values the widget previously hardcoded,
+# so this changes nothing until someone sets one. Tabler carries filled variants
+# of most outline icons, so "video-filled" is the usual pick for `recording` if
+# you want the active state to read as solid rather than outline.
+[[setting]]
+key = "glyph_unavailable"
+type = "glyph"
+label_key = "settings.glyph_unavailable.label"
+description_key = "settings.glyph_unavailable.description"
+default = "video-off"
+
+[[setting]]
+key = "glyph_idle"
+type = "glyph"
+label_key = "settings.glyph_idle.label"
+default = "video"
+
+[[setting]]
+key = "glyph_pending"
+type = "glyph"
+label_key = "settings.glyph_pending.label"
+description_key = "settings.glyph_pending.description"
+default = "video"
+
+[[setting]]
+key = "glyph_recording"
+type = "glyph"
+label_key = "settings.glyph_recording.label"
+default = "video"
+
+[[setting]]
+key = "glyph_replaying"
+type = "glyph"
+label_key = "settings.glyph_replaying.label"
+default = "repeat"
 
 [[setting]]
 key = "replay_enabled"
