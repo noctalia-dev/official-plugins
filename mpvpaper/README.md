@@ -44,10 +44,10 @@ The plugin works on `wlr-layer-shell` compositors (Niri, Hyprland, Sway, Mango).
    Use **Stop** to restore Noctalia's own wallpaper on that output.
 
 4. To enable a **slideshow**, click the **Slideshow** button in the picker’s
-   header to expand the interval slider. Drag the slider to choose an interval
+   header to swap the controls for the interval slider. Drag the slider to choose an interval
    (in minutes) and release to commit; the service converts this to seconds and
    passes `--slideshow <seconds>` to mpvpaper, building a playlist from all
-   supported videos in that directory, starting at the file you selected.
+   supported videos in that directory, starting at the file you selected. Click the button again to return to the output controls.
 
 Assignments (including the last slideshow interval) persist across restarts. Supported
 files: `mp4`, `webm`, `mkv`, `mov`, `gif`.
@@ -84,11 +84,8 @@ You can control the video wallpaper externally via Noctalia's IPC mechanism. Rep
 
 A headless service natively supervises `mpvpaper` instances (one per output), either launching them directly or wrapping them in systemd transient scopes (`systemd-run`) for strict CPU and memory resource limits. The picker panel and bar widget are thin clients that drive the service through the plugin's shared state.
 
-When you set a slideshow interval, the service builds an `.m3u` playlist from all
-supported videos in the selected file’s directory and starts mpvpaper with that
-playlist and `--slideshow` enabled; the service then polls mpv over JSON IPC to
-track which file is currently shown, updating assignments and static wallpaper
-frames so the picker highlights the right tile and stop operations extract the
-correct frame.
+On startup, the service queries `mpvpaper --help` to detect feature support. If native `--auto-pause` is available, the plugin delegates window-occlusion pausing directly to mpvpaper for zero-overhead background suspending. On older versions, the plugin falls back to its own manual occlusion tracking via cgroups or signals.
+
+When you set a slideshow interval, the service builds an `.m3u` playlist from all supported videos in the selected file’s directory and starts `mpvpaper` with that playlist and `--slideshow` enabled. The service then polls `mpv` over JSON IPC (via `socat`) to track which file is currently shown. This syncs the UI assignments and static wallpaper frames, ensuring the picker highlights the right tile and stop operations extract the correct static frame.
 
 When the plugin is disabled or Noctalia exits, the service's `onExit` hook terminates every running `mpvpaper` instance — including frozen or paused ones — so no orphan processes remain.
