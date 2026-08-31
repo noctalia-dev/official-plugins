@@ -374,47 +374,16 @@ local function slideshowValueLabel(minutes)
   return tostring(minutes) .. "m"
 end
 
--- Compact toggle button meant to sit alongside the output/pause/stop controls.
--- It simply opens/closes the slider row; the slider itself is responsible for
--- committing values to the service.
 local function slideshowToggleButton()
   local current = slideshowDraftValue or slideshowMinutes
   return ui.button({
     text = tr("slideshow") .. ": " .. slideshowValueLabel(current),
-    glyph = slideshowExpanded and "chevron-up" or "chevron-down",
+    glyph = slideshowExpanded and "chevron-right" or "chevron-left",
     variant = "outline",
     onClick = function()
       slideshowExpanded = not slideshowExpanded
       render()
     end,
-  })
-end
-
--- Full-width slider row, only included in the layout while expanded.
--- Dragging updates a draft value immediately in the label; releasing the drag
--- commits the chosen minutes to the service and collapses any optimistic state
--- back into the authoritative `slideshowMinutes`.
-local function slideshowSliderRow()
-  local current = slideshowDraftValue or slideshowMinutes
-  return ui.row({ gap = 8, align = "center" }, {
-    ui.slider({
-      min = SLIDESHOW_MIN_MINUTES,
-      max = SLIDESHOW_MAX_MINUTES,
-      step = 1,
-      value = current,
-      flexGrow = 1,
-      onChange = function(value)
-        slideshowDraftValue = tonumber(value) or slideshowDraftValue or 0
-        render()
-      end,
-      onDragEnd = function(_)
-        local minutes = slideshowDraftValue or slideshowMinutes
-        slideshowDraftValue = nil
-        slideshowMinutes = minutes
-        setSlideshowInterval(minutes)
-        render()
-      end,
-    }),
   })
 end
 
@@ -449,7 +418,27 @@ render = function()
       ui.button({ glyph = "close", onClick = "onClose" }),
     }),
 
-    ui.row({ gap = 8, align = "center" }, {
+    slideshowExpanded and ui.row({ gap = 8, align = "center" }, {
+      ui.slider({
+        min = SLIDESHOW_MIN_MINUTES,
+        max = SLIDESHOW_MAX_MINUTES,
+        step = 1,
+        value = slideshowDraftValue or slideshowMinutes,
+        flexGrow = 1,
+        onChange = function(value)
+          slideshowDraftValue = tonumber(value) or slideshowDraftValue or 0
+          render()
+        end,
+        onDragEnd = function(_)
+          local minutes = slideshowDraftValue or slideshowMinutes
+          slideshowDraftValue = nil
+          slideshowMinutes = minutes
+          setSlideshowInterval(minutes)
+          render()
+        end,
+      }),
+      slideshowToggleButton(),
+    }) or ui.row({ gap = 8, align = "center" }, {
       ui.label({ text = tr("output"), fontSize = 12, color = "on_surface_variant" }),
       ui.select({
         key = "output",
@@ -464,10 +453,6 @@ render = function()
       slideshowToggleButton(),
     }),
   }
-
-  if slideshowExpanded then
-    table.insert(mainChildren, slideshowSliderRow())
-  end
 
   table.insert(mainChildren, ui.scroll({ flexGrow = 1, gap = 12 }, {
     videoGrid(),
