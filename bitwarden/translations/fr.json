@@ -1,0 +1,83 @@
+{
+  "copied": "Copié dans le presse-papiers",
+  "errors": {
+    "encode-failed": "Impossible d'encoder la requête de déverrouillage",
+    "field-empty": "Ce champ est vide pour cet item",
+    "generate-failed": "Impossible de générer un mot de passe",
+    "lock-failed": "Impossible de verrouiller le coffre",
+    "login-failed": "Impossible de se connecter à Bitwarden CLI",
+    "logout-failed": "Impossible de se déconnecter de Bitwarden CLI",
+    "password-required": "Saisissez votre mot de passe maître",
+    "request-failed": "Échec de la requête",
+    "sync-failed": "Impossible de synchroniser le coffre",
+    "vault-locked": "Le coffre est verrouillé"
+  },
+  "generated": "Mot de passe généré copié",
+  "generated-passphrase": "Phrase de passe générée copiée",
+  "launcher": {
+    "generate": "Générer un mot de passe",
+    "generate-passphrase": "Générer une phrase de passe",
+    "generate-passphrase-hint": "Copie une nouvelle phrase de passe",
+    "lock": "Verrouiller le coffre",
+    "login": "Se connecter",
+    "login-hint": "Se connecter avec une clé API personnelle",
+    "logout": "Se déconnecter",
+    "no-matches": "Aucun résultat trouvé",
+    "not-logged-in": "Non connecté à Bitwarden CLI",
+    "press-enter": "Appuyez sur Entrée pour copier",
+    "sync": "Synchroniser le coffre",
+    "sync-hint": "Récupère les dernières données du coffre depuis le serveur",
+    "try-different": "Essayez avec une recherche différente",
+    "unlock": "Déverrouiller le coffre",
+    "vault-locked": "Coffre verrouillé"
+  },
+  "locked": "Coffre verrouillé",
+  "logged-in": "Connecté, déverrouillez avec votre mot de passe maître",
+  "logged-out": "Déconnecté de Bitwarden CLI",
+  "panel": {
+    "client-id-label": "ID client",
+    "close": "Annuler",
+    "login": "Se connecter",
+    "password-label": "Mot de passe maître",
+    "unlock": "Déverouiller"
+  },
+  "settings": {
+    "clear_clipboard_seconds": {
+      "description": "Purge le presse-papier s'il retient toujours la valeur copiée après le nombre de secondes choisie (0 désactive le nettoyage)",
+      "label": "Vider le presse-papiers (en secondes)"
+    },
+    "copy_field": {
+      "label": "Copier le champ",
+      "options": {
+        "password": "Mot de passe",
+        "username": "Nom d'utilisateur"
+      }
+    },
+    "gen_length": {
+      "description": "Longueur des mots de passe générés",
+      "label": "Longueur de mot de passe"
+    },
+    "gen_lowercase": {
+      "description": "Inclure des lettres en minuscules dans les mots de passe générés",
+      "label": "Inclure des lettres en minuscules"
+    },
+    "gen_number": {
+      "description": "Inclure des chiffres dans les mots de passes générés",
+      "label": "Inclure des chiffres"
+    },
+    "gen_uppercase": {
+      "label": "Inclure des majuscules"
+    },
+    "vault_timeout": {
+      "options": {
+        "30": "30 minutes",
+        "60": "1 heure",
+        "240": "4 heures",
+        "on_restart": "Lors du redémarrage de Noctalia"
+      }
+    }
+  },
+  "synced": "Coffre synchronisé",
+  "title": "Bitwarden",
+  "unlocked": "Coffre déverouillé"
+}

@@ -1,0 +1,145 @@
+{
+  "copied": "已复制到剪贴板",
+  "errors": {
+    "api-key-required": "请输入客户端 ID 和客户端密钥",
+    "encode-failed": "无法编码解锁请求",
+    "field-empty": "此项目的该字段为空",
+    "generate-failed": "无法生成密码",
+    "invalid-response": "bw serve 返回的响应无效",
+    "lock-failed": "无法锁定密码库",
+    "login-failed": "无法登录 Bitwarden CLI",
+    "logout-failed": "无法退出 Bitwarden CLI",
+    "password-required": "请输入主密码",
+    "request-failed": "请求失败",
+    "sync-failed": "无法同步密码库",
+    "vault-locked": "密码库已锁定"
+  },
+  "generated": "已复制生成的密码",
+  "generated-passphrase": "已复制生成的密码短语",
+  "launcher": {
+    "generate": "生成密码",
+    "generate-hint": "生成并复制新密码（长度和字符集由设置控制）",
+    "generate-passphrase": "生成密码短语",
+    "generate-passphrase-hint": "生成并复制新的密码短语",
+    "lock": "锁定密码库",
+    "lock-hint": "锁定本地 bw serve 会话",
+    "login": "登录",
+    "login-hint": "使用个人 API 密钥登录",
+    "logout": "退出登录",
+    "logout-hint": "停止 bw serve 并退出 Bitwarden CLI",
+    "no-matches": "无匹配项",
+    "not-logged-in": "尚未登录 Bitwarden CLI",
+    "press-enter": "按 Enter 复制",
+    "serve-down": "无法连接到 bw serve",
+    "serve-down-hint": "启动本地 API，并解锁密码库",
+    "start-serve": "启动 bw serve",
+    "sync": "同步密码库",
+    "sync-hint": "从服务器获取最新的密码库数据",
+    "try-different": "请尝试其他搜索词",
+    "unlock": "解锁密码库",
+    "unlock-hint": "打开主密码输入窗口",
+    "vault-locked": "密码库已锁定"
+  },
+  "locked": "密码库已锁定",
+  "logged-in": "已登录，请使用主密码解锁",
+  "logged-out": "已退出 Bitwarden CLI",
+  "panel": {
+    "client-id-label": "客户端 ID",
+    "client-id-placeholder": "用户…",
+    "client-secret-label": "客户端密钥",
+    "client-secret-placeholder": "客户端密钥",
+    "close": "取消",
+    "login": "登录",
+    "login-blurb": "在网页密码库中，前往“设置 → 安全 → 密钥 → 查看 API 密钥”。或者在终端中运行一次 bw login。",
+    "password-label": "主密码",
+    "password-placeholder": "主密码",
+    "unlock": "解锁"
+  },
+  "settings": {
+    "auto_serve": {
+      "description": "无法访问 bw serve 时，自动在 127.0.0.1 上启动",
+      "label": "自动启动 Serve"
+    },
+    "clear_clipboard_seconds": {
+      "description": "如果剪贴板中仍保留复制的内容，则在指定秒数后清除（设为时 0 禁用）",
+      "label": "清除剪贴板（秒）"
+    },
+    "copy_field": {
+      "description": "选择启动器结果时复制的字段",
+      "label": "复制字段",
+      "options": {
+        "password": "密码",
+        "totp": "TOTP",
+        "uri": "URI",
+        "username": "用户名"
+      }
+    },
+    "gen_length": {
+      "description": "生成密码的长度",
+      "label": "密码长度"
+    },
+    "gen_lowercase": {
+      "description": "生成密码时包含小写字母",
+      "label": "包含小写字母"
+    },
+    "gen_number": {
+      "description": "生成密码时包含数字",
+      "label": "包含数字"
+    },
+    "gen_passphrase_capitalize": {
+      "description": "生成密码短语时将每个单词的首字母大写",
+      "label": "单词首字母大写"
+    },
+    "gen_passphrase_include_number": {
+      "description": "在生成的密码短语中添加一个数字",
+      "label": "密码短语包含数字"
+    },
+    "gen_passphrase_separator": {
+      "description": "密码短语中各单词之间的分隔符（例如 - 或空格）",
+      "label": "密码短语分隔符"
+    },
+    "gen_passphrase_words": {
+      "description": "生成的密码短语所包含的单词数",
+      "label": "密码短语单词数"
+    },
+    "gen_special": {
+      "description": "生成密码时包含特殊字符",
+      "label": "包含特殊字符"
+    },
+    "gen_uppercase": {
+      "description": "生成密码时包含大写字母",
+      "label": "包含大写字母"
+    },
+    "notify_on_copy": {
+      "description": "复制密码库字段或生成的密码后显示通知",
+      "label": "复制后通知"
+    },
+    "serve_port": {
+      "description": "bw serve 使用的本地端口（仅监听 127.0.0.1）",
+      "label": "Serve 端口"
+    },
+    "server_url": {
+      "description": "用于登录的 Bitwarden 服务器 URL（空 = 美国云服务）。例如：https://vault.bitwarden.eu",
+      "label": "服务器 URL"
+    },
+    "vault_timeout": {
+      "description": "本地 bw serve 密码库何时自动锁定：闲置超时后、Noctalia 重启时，或永不自动锁定（保持解锁，直到手动锁定、退出登录或 bw serve 停止，例如系统重启）。",
+      "label": "密码库超时",
+      "options": {
+        "30": "30 分钟",
+        "60": "1 小时",
+        "240": "4 小时",
+        "custom": "自定义",
+        "never": "永不（直到 bw serve 停止）",
+        "on_restart": "Noctalia 重启时"
+      }
+    },
+    "vault_timeout_custom_minutes": {
+      "description": "“密码库超时”设为“自定义”时，闲置多少分钟后自动锁定",
+      "label": "自定义超时（分钟）"
+    }
+  },
+  "synced": "密码库已同步",
+  "title": "Bitwarden",
+  "unlocked": "密码库已解锁"
+}

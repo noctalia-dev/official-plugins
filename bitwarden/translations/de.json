@@ -1,0 +1,145 @@
+{
+  "copied": "In Zwischenablage kopiert",
+  "errors": {
+    "api-key-required": "Client-ID und Client-Secret eingeben",
+    "encode-failed": "Entsperrungsanfrage konnte nicht kodiert werden",
+    "field-empty": "Dieses Feld ist für dieses Element leer",
+    "generate-failed": "Passwort konnte nicht generiert werden",
+    "invalid-response": "Ungültige Antwort von bw serve",
+    "lock-failed": "Tresor konnte nicht gesperrt werden",
+    "login-failed": "Anmeldung bei Bitwarden CLI fehlgeschlagen",
+    "logout-failed": "Abmeldung von Bitwarden CLI fehlgeschlagen",
+    "password-required": "Master-Passwort eingeben",
+    "request-failed": "Anfrage fehlgeschlagen",
+    "sync-failed": "Tresor konnte nicht synchronisiert werden",
+    "vault-locked": "Tresor ist gesperrt"
+  },
+  "generated": "Generiertes Passwort kopiert",
+  "generated-passphrase": "Generierte Passphrase kopiert",
+  "launcher": {
+    "generate": "Passwort generieren",
+    "generate-hint": "Neues Passwort kopieren (Länge/Zeichensatz in Einstellungen)",
+    "generate-passphrase": "Passphrase generieren",
+    "generate-passphrase-hint": "Neue Passphrase kopieren",
+    "lock": "Tresor sperren",
+    "lock-hint": "Lokale bw-serve-Sitzung sperren",
+    "login": "Anmelden",
+    "login-hint": "Mit persönlichem API-Schlüssel anmelden",
+    "logout": "Abmelden",
+    "logout-hint": "Serve beenden und von Bitwarden CLI abmelden",
+    "no-matches": "Keine Treffer",
+    "not-logged-in": "Nicht bei Bitwarden CLI angemeldet",
+    "press-enter": "Enter drücken zum Kopieren",
+    "serve-down": "bw serve ist nicht erreichbar",
+    "serve-down-hint": "Lokale API starten, dann entsperren",
+    "start-serve": "bw serve starten",
+    "sync": "Tresor synchronisieren",
+    "sync-hint": "Neueste Tresordaten vom Server abrufen",
+    "try-different": "Andere Suche versuchen",
+    "unlock": "Tresor entsperren",
+    "unlock-hint": "Passwortabfrage öffnen",
+    "vault-locked": "Tresor gesperrt"
+  },
+  "locked": "Tresor gesperrt",
+  "logged-in": "Angemeldet, mit Master-Passwort entsperren",
+  "logged-out": "Von Bitwarden CLI abgemeldet",
+  "panel": {
+    "client-id-label": "Client-ID",
+    "client-id-placeholder": "user.…",
+    "client-secret-label": "Client-Secret",
+    "client-secret-placeholder": "Client-Secret",
+    "close": "Abbrechen",
+    "login": "Anmelden",
+    "login-blurb": "Im Web-Tresor: Einstellungen → Sicherheit → Schlüssel → API-Schlüssel anzeigen. Alternativ einmalig bw login in einem Terminal ausführen.",
+    "password-label": "Master-Passwort",
+    "password-placeholder": "Master-Passwort",
+    "unlock": "Entsperren"
+  },
+  "settings": {
+    "auto_serve": {
+      "description": "Starte bw serve auf 127.0.0.1, wenn es nicht bereits erreichbar ist",
+      "label": "Serve automatisch starten"
+    },
+    "clear_clipboard_seconds": {
+      "description": "Lösche die Zwischenablage nach dieser Anzahl von Sekunden, wenn sie noch den kopierten Wert enthält (0 deaktiviert das Löschen)",
+      "label": "Zwischenablage leeren (Sekunden)"
+    },
+    "copy_field": {
+      "description": "Welches Feld beim Aktivieren eines Launcher-Ergebnisses kopiert wird",
+      "label": "Feld kopieren",
+      "options": {
+        "password": "Passwort",
+        "totp": "TOTP",
+        "uri": "URI",
+        "username": "Benutzername"
+      }
+    },
+    "gen_length": {
+      "description": "Länge generierter Passwörter",
+      "label": "Passwortlänge"
+    },
+    "gen_lowercase": {
+      "description": "Schließe Kleinbuchstaben in generierten Passwörtern ein",
+      "label": "Kleinbuchstaben einschließen"
+    },
+    "gen_number": {
+      "description": "Schließe Ziffern in generierten Passwörtern ein",
+      "label": "Zahlen einschließen"
+    },
+    "gen_passphrase_capitalize": {
+      "description": "Schreibe jedes Wort in generierten Passphrasen groß",
+      "label": "Passphrasen-Wörter großschreiben"
+    },
+    "gen_passphrase_include_number": {
+      "description": "Hänge eine Zahl an generierte Passphrasen an",
+      "label": "Zahl in Passphrase einschließen"
+    },
+    "gen_passphrase_separator": {
+      "description": "Trennzeichen zwischen Passphrasen-Wörtern (z. B. - oder Leerzeichen)",
+      "label": "Passphrasen-Trennzeichen"
+    },
+    "gen_passphrase_words": {
+      "description": "Anzahl der Wörter in generierten Passphrasen",
+      "label": "Passphrasen-Wörter"
+    },
+    "gen_special": {
+      "description": "Schließe Sonderzeichen in generierten Passwörtern ein",
+      "label": "Sonderzeichen einschließen"
+    },
+    "gen_uppercase": {
+      "description": "Schließe Großbuchstaben in generierten Passwörtern ein",
+      "label": "Großbuchstaben einschließen"
+    },
+    "notify_on_copy": {
+      "description": "Zeige eine Benachrichtigung, nachdem ein Tresor-Feld oder generiertes Geheimnis kopiert wurde",
+      "label": "Benachrichtigung beim Kopieren"
+    },
+    "serve_port": {
+      "description": "Lokaler Port für bw serve (nur an 127.0.0.1 gebunden)",
+      "label": "Serve-Port"
+    },
+    "server_url": {
+      "description": "Bitwarden-Server-URL für die Anmeldung (leer = Standard-US-Cloud); Beispiel: https://vault.bitwarden.eu",
+      "label": "Serve-URL"
+    },
+    "vault_timeout": {
+      "description": "Sperre den lokalen bw-serve-Tresor automatisch nach Inaktivität, beim Neustart von Noctalia oder nie (bleibt entsperrt bis zum Sperren/Abmelden oder Beenden von serve, z. B. Neustart)",
+      "label": "Tresor-Timeout",
+      "options": {
+        "30": "30 Minuten",
+        "60": "1 Stunde",
+        "240": "4 Stunden",
+        "custom": "Benutzerdefiniert",
+        "never": "Nie (bis serve stoppt)",
+        "on_restart": "Bei Noctalia-Neustart"
+      }
+    },
+    "vault_timeout_custom_minutes": {
+      "description": "Inaktivitätsminuten vor automatischer Sperrung, wenn Tresor-Timeout auf Benutzerdefiniert gesetzt ist",
+      "label": "Benutzerdefiniertes Timeout (Minuten)"
+    }
+  },
+  "synced": "Tresor synchronisiert",
+  "title": "Bitwarden",
+  "unlocked": "Tresor entsperrt"
+}

@@ -17,26 +17,26 @@
   "generated": "Generated password copied",
   "generated-passphrase": "Generated passphrase copied",
   "launcher": {
-    "generate": "Generate password",
+    "generate": "Generate Password",
     "generate-hint": "Copy a new password (settings control length/charset)",
-    "generate-passphrase": "Generate passphrase",
+    "generate-passphrase": "Generate Passphrase",
     "generate-passphrase-hint": "Copy a new passphrase",
-    "lock": "Lock vault",
+    "lock": "Lock Vault",
     "lock-hint": "Lock the local bw serve session",
-    "login": "Log in",
+    "login": "Log In",
     "login-hint": "Log in with your personal API key",
-    "logout": "Log out",
+    "logout": "Log Out",
     "logout-hint": "Stop serve and log out of the Bitwarden CLI",
-    "no-matches": "No matches",
+    "no-matches": "No Matches",
     "not-logged-in": "Not logged in to Bitwarden CLI",
     "press-enter": "Press Enter to copy",
-    "serve-down": "bw serve is not reachable",
+    "serve-down": "bw serve Not Reachable",
     "serve-down-hint": "Start the local API, then unlock",
     "start-serve": "Start bw serve",
-    "sync": "Sync vault",
+    "sync": "Sync Vault",
     "sync-hint": "Pull latest vault data from the server",
     "try-different": "Try a different search",
-    "unlock": "Unlock vault",
+    "unlock": "Unlock Vault",
     "unlock-hint": "Open the password prompt",
     "vault-locked": "Vault locked"
   },
@@ -49,7 +49,7 @@
     "client-secret-label": "Client Secret",
     "client-secret-placeholder": "Client secret",
     "close": "Cancel",
-    "login": "Log in",
+    "login": "Log In",
     "login-blurb": "From the web vault: Settings → Security → Keys → View API key. You can also run bw login once in a terminal instead.",
     "password-label": "Master password",
     "password-placeholder": "Master password",
@@ -61,7 +61,7 @@
       "label": "Auto-Start Serve"
     },
     "clear_clipboard_seconds": {
-      "description": "Clear the clipboard after this many seconds if it still holds the copied value. 0 disables clearing",
+      "description": "Clear the clipboard after this many seconds if it still holds the copied value (0 disables clearing)",
       "label": "Clear Clipboard (Seconds)"
     },
     "copy_field": {
@@ -92,7 +92,7 @@
     },
     "gen_passphrase_include_number": {
       "description": "Append a number to generated passphrases",
-      "label": "Include Number In Passphrase"
+      "label": "Include Number in Passphrase"
     },
     "gen_passphrase_separator": {
       "description": "Separator between passphrase words (e.g. - or space)",
@@ -112,7 +112,7 @@
     },
     "notify_on_copy": {
       "description": "Show a notification after copying a vault field or generated secret",
-      "label": "Notify On Copy"
+      "label": "Notify on Copy"
     },
     "serve_port": {
       "description": "Local port for bw serve (bound to 127.0.0.1 only)",
@@ -130,8 +130,8 @@
         "60": "1 hour",
         "240": "4 hours",
         "custom": "Custom",
-        "never": "Never (until serve stops)",
-        "on_restart": "On Noctalia restart"
+        "never": "Never (Until Serve Stops)",
+        "on_restart": "On Noctalia Restart"
       }
     },
     "vault_timeout_custom_minutes": {

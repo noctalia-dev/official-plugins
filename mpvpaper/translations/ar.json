@@ -1,0 +1,57 @@
+{
+  "all_outputs": "جميع الشاشات",
+  "empty": "لم يتم العثور على فيديوهات في المجلد المُحدد",
+  "not_installed": "لم يتم تثبيت mpvpaper",
+  "output": "الشاشة",
+  "pause": "إيقاف مؤقت",
+  "resume": "استئناف",
+  "settings": {
+    "allowed_cpus": {
+      "label": "وحدات CPU المسموح بها"
+    },
+    "auto_pause": {
+      "description": "إيقاف التشغيل مؤقتًا عند تغطية خلفية الشاشة بنافذة ملء الشاشة (‏mpvpaper --auto-pause)",
+      "label": "الإيقاف المؤقت عند التغطية"
+    },
+    "cpu_quota": {
+      "label": "حصة CPU"
+    },
+    "cpu_weight": {
+      "label": "أولوية CPU"
+    },
+    "extract_last_frame": {
+      "description": "استخراج إطار من الفيديو تلقائيًا لاستخدامه كخلفية ثابتة عند إيقاف التشغيل",
+      "label": "الإطار الاحتياطي الثابت"
+    },
+    "glyph": {
+      "label": "Glyph"
+    },
+    "hardware_decode": {
+      "description": "استخدام فك ترميز الفيديو عبر GPU (‏mpv hwdec=auto)",
+      "label": "فك الترميز عبر العتاد"
+    },
+    "memory_max": {
+      "label": "الحد الأقصى للذاكرة"
+    },
+    "mpv_options": {
+      "description": "خيارات mpv إضافية مفصولة بمسافات، مثل ‎panscan=1.0 video-zoom=0.1‎",
+      "label": "خيارات mpv إضافية"
+    },
+    "mute": {
+      "label": "كتم الصوت"
+    },
+    "nice": {
+      "label": "قيمة جيدة\n"
+    },
+    "run_as_systemd": {
+      "description": "تشغيل الخلفية ضمن نطاق مؤقت لـ systemd لفرض حدود صارمة على الموارد",
+      "label": "التشغيل كخدمة systemd"
+    },
+    "video_directory": {
+      "description": "المجلد الذي يتم فحصه بحثًا عن فيديوهات الخلفية؛ يكون الإعداد الافتراضي هو ‎~/Videos‎ عند تركه فارغًا",
+      "label": "مجلد الفيديوهات"
+    }
+  },
+  "stop": "إيقاف",
+  "title": "خلفية الفيديو"
+}

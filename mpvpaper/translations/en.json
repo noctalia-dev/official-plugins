@@ -5,8 +5,6 @@
   "output": "Output",
   "pause": "Pause",
   "resume": "Resume",
-  "slideshow": "Slideshow",
-  "slideshow_off": "Off",
   "settings": {
     "allowed_cpus": {
       "label": "Allowed CPUs"
@@ -15,9 +13,9 @@
       "description": "Pause playback while a window covers the wallpaper (experimental: may not work on all compositors)",
       "label": "Pause When Covered",
       "options": {
-        "off": "Off",
         "full": "Fullscreen",
-        "max": "Maximized"
+        "max": "Maximized",
+        "off": "Off"
       }
     },
     "cpu_quota": {
@@ -59,6 +57,8 @@
       "label": "Video Directory"
     }
   },
+  "slideshow": "Slideshow",
+  "slideshow_off": "Off",
   "stop": "Stop",
   "title": "Video Wallpaper"
 }

@@ -1,0 +1,14 @@
+{
+  "ipc": {
+    "duplicate_zone": "已添加时区：{zone}",
+    "empty_list": "未配置时区",
+    "invalid_zone": "未知时区：{zone}",
+    "missing_zone": "列表中没有此时区：{zone}"
+  },
+  "title": "世界时钟",
+  "ui": {
+    "add_placeholder": "Europe/Berlin",
+    "drag_tooltip": "拖动排序",
+    "empty": "暂无时区。请添加一个 IANA 时区。"
+  }
+}

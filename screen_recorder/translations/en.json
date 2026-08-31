@@ -58,8 +58,8 @@
       "label": "Glyph: Idle"
     },
     "glyph_pending": {
-      "label": "Glyph: Starting",
-      "description": "Shown while a recording or replay buffer is starting."
+      "description": "Shown while a recording or replay buffer is starting.",
+      "label": "Glyph: Starting"
     },
     "glyph_recording": {
       "label": "Glyph: Recording"
@@ -68,11 +68,20 @@
       "label": "Glyph: Replay Buffer"
     },
     "glyph_unavailable": {
-      "label": "Glyph: Unavailable",
-      "description": "Shown when gpu-screen-recorder is not installed."
+      "description": "Shown when gpu-screen-recorder is not installed.",
+      "label": "Glyph: Unavailable"
     },
     "hide_inactive": {
       "label": "Hide Widget When Idle"
+    },
+    "quality": {
+      "label": "Quality",
+      "options": {
+        "high": "High",
+        "medium": "Medium",
+        "ultra": "Ultra",
+        "very_high": "Very High"
+      }
     },
     "replay_duration": {
       "label": "Replay Seconds"

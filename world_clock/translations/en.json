@@ -1,14 +1,14 @@
 {
+  "ipc": {
+    "duplicate_zone": "Timezone already added: {zone}",
+    "empty_list": "No timezones configured",
+    "invalid_zone": "Unknown timezone: {zone}",
+    "missing_zone": "Timezone not in the list: {zone}"
+  },
   "title": "World Clock",
   "ui": {
-    "empty": "No timezones yet. Add an IANA zone.",
     "add_placeholder": "Europe/Berlin",
-    "drag_tooltip": "Drag to reorder"
-  },
-  "ipc": {
-    "invalid_zone": "Unknown timezone: {zone}",
-    "duplicate_zone": "Timezone already added: {zone}",
-    "missing_zone": "Timezone not in the list: {zone}",
-    "empty_list": "No timezones configured"
+    "drag_tooltip": "Drag to reorder",
+    "empty": "No timezones yet. Add an IANA zone below."
   }
 }

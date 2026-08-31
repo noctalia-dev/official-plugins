@@ -1,0 +1,145 @@
+{
+  "copied": "Copiado para a área de transferência",
+  "errors": {
+    "api-key-required": "Insira o ID do cliente e o segredo do cliente",
+    "encode-failed": "Não foi possível codificar a solicitação de desbloqueio",
+    "field-empty": "Esse campo está vazio para este item",
+    "generate-failed": "Não foi possível gerar uma senha",
+    "invalid-response": "Resposta inválida do bw serve",
+    "lock-failed": "Não foi possível bloquear o cofre",
+    "login-failed": "Não foi possível fazer login no Bitwarden CLI",
+    "logout-failed": "Não foi possível fazer logout do Bitwarden CLI",
+    "password-required": "Insira sua senha principal",
+    "request-failed": "Falha na requisição",
+    "sync-failed": "Não foi possível sincronizar o cofre",
+    "vault-locked": "O cofre está bloqueado"
+  },
+  "generated": "Senha gerada copiada",
+  "generated-passphrase": "Frase secreta gerada copiada",
+  "launcher": {
+    "generate": "Gerar Senha",
+    "generate-hint": "Copiar uma nova senha (as configurações controlam o comprimento e os caracteres)",
+    "generate-passphrase": "Gerar Frase Secreta",
+    "generate-passphrase-hint": "Copiar uma nova frase secreta",
+    "lock": "Bloquear Cofre",
+    "lock-hint": "Bloquear a sessão local do bw serve",
+    "login": "Fazer Login",
+    "login-hint": "Fazer login com sua chave de API pessoal",
+    "logout": "Fazer Logout",
+    "logout-hint": "Parar o serve e fazer logout do Bitwarden CLI",
+    "no-matches": "Nenhuma Correspondência",
+    "not-logged-in": "Não está logado no Bitwarden CLI",
+    "press-enter": "Pressione Enter para copiar",
+    "serve-down": "bw serve Não Acessível",
+    "serve-down-hint": "Iniciar a API local e desbloquear",
+    "start-serve": "Iniciar bw serve",
+    "sync": "Sincronizar Cofre",
+    "sync-hint": "Baixar os dados mais recentes do cofre do servidor",
+    "try-different": "Tente uma busca diferente",
+    "unlock": "Desbloquear cofre",
+    "unlock-hint": "Abrir o prompt de senha",
+    "vault-locked": "Cofre bloqueado"
+  },
+  "locked": "Cofre bloqueado",
+  "logged-in": "Logado, desbloquear com sua senha principal",
+  "logged-out": "Logout do Bitwarden CLI realizado",
+  "panel": {
+    "client-id-label": "ID do Cliente",
+    "client-id-placeholder": "usuário.…",
+    "client-secret-label": "Segredo do Cliente",
+    "client-secret-placeholder": "Segredo do cliente",
+    "close": "Cancelar",
+    "login": "Fazer Login",
+    "login-blurb": "No cofre web: Configurações → Segurança → Chaves → Ver chave da API. Você também pode executar bw login uma vez no terminal.",
+    "password-label": "Senha principal",
+    "password-placeholder": "Senha principal",
+    "unlock": "Desbloquear"
+  },
+  "settings": {
+    "auto_serve": {
+      "description": "Iniciar bw serve em 127.0.0.1 quando não estiver acessível",
+      "label": "Iniciar Serve Automaticamente"
+    },
+    "clear_clipboard_seconds": {
+      "description": "Apagar a área de transferência após este número de segundos se ainda estiver com o valor copiado. (0 desativa)",
+      "label": "Limpar Área de Transferência (segundos)"
+    },
+    "copy_field": {
+      "description": "Qual campo copiar ao ativar um resultado do launcher",
+      "label": "Copiar Campo",
+      "options": {
+        "password": "Senha",
+        "totp": "TOTP",
+        "uri": "URI",
+        "username": "Nome de Usuário"
+      }
+    },
+    "gen_length": {
+      "description": "Comprimento das senhas geradas",
+      "label": "Comprimento da Senha"
+    },
+    "gen_lowercase": {
+      "description": "Incluir letras minúsculas nas senhas geradas",
+      "label": "Incluir Minúsculas"
+    },
+    "gen_number": {
+      "description": "Incluir dígitos nas senhas geradas",
+      "label": "Incluir Números"
+    },
+    "gen_passphrase_capitalize": {
+      "description": "Capitalizar cada palavra nas frases secretas geradas",
+      "label": "Capitalizar Palavras da Frase Secreta"
+    },
+    "gen_passphrase_include_number": {
+      "description": "Adicionar um número às frases secretas geradas",
+      "label": "Incluir Número na Frase Secreta"
+    },
+    "gen_passphrase_separator": {
+      "description": "Separador entre as palavras da frase secreta (ex.: - ou espaço)",
+      "label": "Separador da Frase Secreta"
+    },
+    "gen_passphrase_words": {
+      "description": "Número de palavras nas frases secretas geradas",
+      "label": "Palavras da Frase Secreta"
+    },
+    "gen_special": {
+      "description": "Incluir caracteres especiais nas senhas geradas",
+      "label": "Incluir Caracteres Especiais"
+    },
+    "gen_uppercase": {
+      "description": "Incluir letras maiúsculas nas senhas geradas",
+      "label": "Incluir Maiúsculas"
+    },
+    "notify_on_copy": {
+      "description": "Exibir uma notificação após copiar um campo do cofre ou um segredo gerado",
+      "label": "Notificar ao Copiar"
+    },
+    "serve_port": {
+      "description": "Porta local para o bw serve (vinculado apenas a 127.0.0.1)",
+      "label": "Porta do Serve"
+    },
+    "server_url": {
+      "description": "URL do servidor do Bitwarden para login (vazio = nuvem padrão dos EUA). Exemplo: https://vault.bitwarden.eu",
+      "label": "URL do Servidor"
+    },
+    "vault_timeout": {
+      "description": "Bloquear automaticamente o cofre local do bw serve após inatividade, quando o Noctalia reiniciar, ou nunca (permanece desbloqueado até você bloquear/fazer logout ou o serve parar, ex.: reinicialização)",
+      "label": "Tempo Limite do Cofre",
+      "options": {
+        "30": "30 minutos",
+        "60": "1 hora",
+        "240": "4 horas",
+        "custom": "Personalizado",
+        "never": "Nunca (Até o Serve Parar)",
+        "on_restart": "Ao Reiniciar o Noctalia"
+      }
+    },
+    "vault_timeout_custom_minutes": {
+      "description": "Minutos de inatividade antes do bloqueio automático quando o Tempo Limite do Cofre for Personalizado",
+      "label": "Tempo Limite Personalizado (minutos)"
+    }
+  },
+  "synced": "Cofre sincronizado",
+  "title": "Bitwarden",
+  "unlocked": "Cofre desbloqueado"
+}

@@ -1,0 +1,14 @@
+{
+  "ipc": {
+    "duplicate_zone": "Saat dilimi zaten ekli: {zone}",
+    "empty_list": "Saat dilimleri ayarlanmadı",
+    "invalid_zone": "Bilinmeyen saat dilimi: {zone}",
+    "missing_zone": "Saat dilimi listede yok: {zone}"
+  },
+  "title": "Dünya Saatleri",
+  "ui": {
+    "add_placeholder": "Avrupa/Berlin",
+    "drag_tooltip": "Sıralamak için sürükle",
+    "empty": "Henüz bir saat dilimi yok. Aşağıdan bir IANA dilimi ekleyin."
+  }
+}

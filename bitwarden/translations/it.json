@@ -1,0 +1,124 @@
+{
+  "copied": "Copiato negli appunti",
+  "errors": {
+    "api-key-required": "Inserisci sia client id che il client secret",
+    "encode-failed": "Impossibile codificare la richiesta di sblocco",
+    "field-empty": "Il campo è vuoto per questo oggetto",
+    "generate-failed": "Impossibile generare una password",
+    "invalid-response": "Risposta invalida dal servizio bw",
+    "lock-failed": "Impossibile bloccare il vault",
+    "login-failed": "Impossibile accedere alla CLI di Bitwarden",
+    "logout-failed": "Impossibile disconnettersi dalla CLI di Bitwarden",
+    "password-required": "Inserisci la tua master password",
+    "request-failed": "Richiesta fallita",
+    "sync-failed": "Impossibile sincronizzare il vault",
+    "vault-locked": "Il vault è bloccato"
+  },
+  "generated": "Password generata copiata",
+  "generated-passphrase": "Passphrase generata copiata",
+  "launcher": {
+    "generate": "Genera password",
+    "generate-hint": "Copia una nuova password (nei settings si impostano lunghezza/set di caratteri)",
+    "generate-passphrase": "Genera passphrase",
+    "generate-passphrase-hint": "Copia una nuova passphrase",
+    "lock": "Blocca vault",
+    "lock-hint": "Blocca il servizio locale di bw",
+    "login": "Login",
+    "login-hint": "Accedi con la tua chiave API personale",
+    "logout": "Logout",
+    "logout-hint": "Interrompi il servizio ed esci dalla CLI di Bitwarden",
+    "no-matches": "Nessuna corrispondenza",
+    "not-logged-in": "Non hai effettuato l'accesso alla CLI di Bitwarden",
+    "press-enter": "Premere Invio per copiare",
+    "serve-down": "il servizio bw non è raggiungibile",
+    "serve-down-hint": "Avvia l'API locale, quindi sblocca",
+    "start-serve": "Avvia il servizio bw",
+    "sync": "Sincronizza il vault",
+    "sync-hint": "Estrai i dati più recenti del vault dal server",
+    "try-different": "Prova una ricerca diversa",
+    "unlock": "Sblocca vault",
+    "unlock-hint": "Apri la richiesta password",
+    "vault-locked": "Vault bloccato"
+  },
+  "locked": "Vault bloccato",
+  "logged-in": "Loggato, sblocca con la tua password principale",
+  "logged-out": "Disconnesso dalla CLI di Bitwarden",
+  "panel": {
+    "client-id-label": "Client ID",
+    "client-id-placeholder": "user...",
+    "client-secret-label": "Client Secret",
+    "client-secret-placeholder": "Client Secret",
+    "close": "Cancella",
+    "login": "Login",
+    "login-blurb": "Dal vault web: Impostazioni → Sicurezza → Chiavi → Visualizza chiave API. Puoi anche eseguire bw login una volta in un terminale.",
+    "password-label": "Master password",
+    "password-placeholder": "Master password",
+    "unlock": "Sblocca"
+  },
+  "settings": {
+    "auto_serve": {
+      "description": "Avvia il servizio bw su 127.0.0.1 quando non è già raggiungibile",
+      "label": "Avvio automatico servizio"
+    },
+    "clear_clipboard_seconds": {
+      "description": "Cancella gli appunti dopo questo numero di secondi se contiene ancora il valore copiato. 0 disabilita la cancellazione",
+      "label": "Cancella appunti (secondi)"
+    },
+    "copy_field": {
+      "description": "Quale campo copiare quando si attiva un risultato nel launcher",
+      "label": "Copia campo",
+      "options": {
+        "password": "Password",
+        "totp": "TOTP",
+        "uri": "URI",
+        "username": "Username"
+      }
+    },
+    "gen_length": {
+      "description": "Lunghezza password generate",
+      "label": "Lunghezza password"
+    },
+    "gen_lowercase": {
+      "description": "Includi minuscole nelle password generate",
+      "label": "Includi minuscole"
+    },
+    "gen_number": {
+      "description": "Includere numeri nelle password generate",
+      "label": "Includi numeri"
+    },
+    "gen_passphrase_capitalize": {
+      "description": "Scrivi in ​​maiuscolo ogni parola nelle passphrase generate",
+      "label": "Parole passphrase maiuscole"
+    },
+    "gen_passphrase_include_number": {
+      "description": "Aggiungi un numero alle passphrase generate",
+      "label": "Includi numeri nella passphrase"
+    },
+    "gen_passphrase_separator": {
+      "label": "Separatore passphrase"
+    },
+    "gen_passphrase_words": {
+      "label": "Parole passphrase"
+    },
+    "serve_port": {
+      "label": "Porta servizio"
+    },
+    "server_url": {
+      "label": "URL server"
+    },
+    "vault_timeout": {
+      "label": "Timeout vault",
+      "options": {
+        "30": "30 minuti",
+        "60": "1 ora",
+        "240": "4 ore",
+        "custom": "Custom",
+        "never": "Mai (fino allo stop del servizio)",
+        "on_restart": "Al riavvio di Noctalia"
+      }
+    }
+  },
+  "synced": "Vault sincronizzato",
+  "title": "Bitwarden",
+  "unlocked": "Vault sbloccato"
+}

@@ -1,0 +1,22 @@
+{
+  "settings": {
+    "color": {
+      "description": "Couleur d'accent pour le temps et la barre de progression",
+      "label": "Couleur"
+    },
+    "duration": {
+      "description": "Durée du minuteur en secondes",
+      "label": "Durée (secondes)"
+    },
+    "show_progress": {
+      "label": "Afficher la barre de progression"
+    }
+  },
+  "ui": {
+    "notify_body": "Le temps est écoulé!",
+    "notify_title": "Minuteur",
+    "pause": "Pause",
+    "reset": "Réinitialiser",
+    "start": "Lancer"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "ipc": {
+    "duplicate_zone": "Zeitzone bereits hinzugefügt: {zone}",
+    "empty_list": "Keine Zeitzonen konfiguriert",
+    "invalid_zone": "Unbekannte Zeitzone: {zone}",
+    "missing_zone": "Zeitzone nicht in der Liste: {zone}"
+  },
+  "title": "Weltzeituhr",
+  "ui": {
+    "add_placeholder": "Europe/Berlin",
+    "drag_tooltip": "Zum Neuanordnen ziehen",
+    "empty": "Noch keine Zeitzonen. IANA-Zone hinzufügen."
+  }
+}

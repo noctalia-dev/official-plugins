@@ -1,0 +1,25 @@
+{
+  "bad_extension": "Paramètre d'extension de fichier invalide – utilisation de md",
+  "confirm_delete": "Supprimer ?",
+  "counts": "{words} mots · {chars} caractères",
+  "editor_placeholder": "Écrivez votre note...",
+  "empty": "Pas encore de notes – créez en une avec le +",
+  "launcher": {
+    "home_subtitle": "Parcourir toutes les notes",
+    "new_title": "Nouvelle note",
+    "open_subtitle": "Ouvrir la note"
+  },
+  "rename_exists": "Une note avec ce nom existe déjà",
+  "save_failed": "Échec de l'enregistrement de la note",
+  "saved": "Enregistré",
+  "settings": {
+    "extension": {
+      "label": "Extension de fichier"
+    },
+    "notes_dir": {
+      "description": "L'emplacement où les notes sont enregistrées",
+      "label": "Répertoire des notes"
+    }
+  },
+  "title": "Notes"
+}

@@ -1,0 +1,11 @@
+{
+  "ipc": {
+    "duplicate_zone": "Fuseau horaire déjà ajouté : {zone}",
+    "empty_list": "Pas de fuseaux horaires configurés",
+    "invalid_zone": "Fuseau horaire inconnu : {zone}",
+    "missing_zone": "Le fuseau horaire n'est pas dans la liste : {zone}"
+  },
+  "ui": {
+    "drag_tooltip": "Cliquer et faire glisser pour réorganiser"
+  }
+}

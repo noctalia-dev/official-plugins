@@ -1,0 +1,20 @@
+{
+  "not_installed": "mpvpaper n'est pas installé",
+  "output": "Sortie",
+  "pause": "Pause",
+  "settings": {
+    "extract_last_frame": {
+      "description": "Extraire automatiquement une image de la vidéo pour l'utiliser en tant que fond d'écran statique lorsque la lecture est arrêtée"
+    },
+    "hardware_decode": {
+      "label": "Décodage matériel"
+    },
+    "mute": {
+      "label": "Couper l'audio"
+    },
+    "video_directory": {
+      "label": "Répertoire de vidéos"
+    }
+  },
+  "title": "Fond d'écran vidéo"
+}

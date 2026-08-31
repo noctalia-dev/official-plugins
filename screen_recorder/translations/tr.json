@@ -1,0 +1,100 @@
+{
+  "notify": {
+    "launch-failed": "gpu-screen-recorder çalıştırılamadı",
+    "no-monitor": "Odaktaki monitör algılanamadı",
+    "portal-not-running": "xdg-desktop-portal şuanda çalışmıyor",
+    "recording-failed": "Kayıt başarısız",
+    "recording-saved": "Ekran kaydı kaydedildi",
+    "recording-stopped-early": "gpu-screen-recorder kaydetmeden kapandı. Detaylar için Noctalia log'larını kontrol edin.",
+    "replay-active": "Tekrar oynatma arabelleği aktif",
+    "replay-failed": "Tekrar oynatma başarısız",
+    "replay-saved": "Tekrar oynatma kaydedildi",
+    "replay-stopped": "Tekrar oynatma arabelleği durduruldu"
+  },
+  "settings": {
+    "audio_bitrate": {
+      "description": "0 = otomatik (Opus/FLAC için 128, AAC için 160); küçük dosylar için azaltın",
+      "label": "Ses bitrate'i (kbps)"
+    },
+    "audio_codec": {
+      "label": "Ses Kodeki",
+      "options": {
+        "aac": "AAC",
+        "flac": "FLAC",
+        "opus": "Opus"
+      }
+    },
+    "audio_source": {
+      "label": "Ses Kaynağı",
+      "options": {
+        "both": "Çıkış + Mikrofon",
+        "default_input": "Mikrofon",
+        "default_output": "Sistem Çıkışı",
+        "none": "Ses Yok"
+      }
+    },
+    "color_range": {
+      "label": "Renk Aralığı",
+      "options": {
+        "full": "Tümü",
+        "limited": "Sınırlı"
+      }
+    },
+    "copy_to_clipboard": {
+      "label": "Dizini Panoya Kopyala"
+    },
+    "directory": {
+      "description": "Boşken varsayılan ~/Videos/Recordings dizinini kullanır",
+      "label": "Çıkış Dizini"
+    },
+    "filename_pattern": {
+      "description": "Dosya eklentisiz veri-format şablonu; Unix zaman damgası için %s kullanın",
+      "label": "Dosya İsmi Şablonu"
+    },
+    "frame_rate": {
+      "label": "Kare Sayısı"
+    },
+    "hide_inactive": {
+      "label": "Boştayken Aracı Gizle"
+    },
+    "quality": {
+      "label": "Kalite",
+      "options": {
+        "high": "Yüksek",
+        "medium": "Orta",
+        "ultra": "Düşük",
+        "very_high": "Çok Yüksek"
+      }
+    },
+    "replay_storage": {
+      "options": {
+        "disk": "Disk",
+        "ram": "RAM"
+      }
+    },
+    "resolution": {
+      "description": "\"original\" veya GENİŞLİKxYÜKSEKLİK, ör. 1920x1080"
+    },
+    "show_cursor": {
+      "label": "İmleci Göster"
+    },
+    "video_codec": {
+      "label": "Video Kodeği",
+      "options": {
+        "av1": "AV1",
+        "h264": "H.264",
+        "hevc": "HEVC",
+        "vp8": "VP8",
+        "vp9": "VP9"
+      }
+    },
+    "video_source": {
+      "label": "Video Kaynağı"
+    }
+  },
+  "shortcut": {
+    "record-screen": "Ekran Kaydı",
+    "recording": "Kayıtta",
+    "replay-buffer": "Tekrar Oynatma Önbelleği"
+  }
+}

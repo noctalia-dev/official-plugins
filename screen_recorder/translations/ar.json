@@ -1,0 +1,120 @@
+{
+  "notify": {
+    "launch-failed": "تعذر تشغيل gpu-screen-recorder",
+    "no-monitor": "تعذر اكتشاف الشاشة النشطة",
+    "portal-not-running": "xdg-desktop-portal لا يعمل",
+    "recording-failed": "فشل التسجيل",
+    "recording-saved": "تم حفظ التسجيل",
+    "recording-stopped-early": "تم إنهاء تشغيل برنامج gpu-screen-recorder دون حفظ. راجع سجل Noctalia للحصول على التفاصيل.",
+    "replay-active": "مخزن إعادة التشغيل نشط",
+    "replay-failed": "فشل إعادة التشغيل",
+    "replay-saved": "تم حفظ إعادة التشغيل",
+    "replay-stopped": "تم إيقاف مخزن إعادة التشغيل"
+  },
+  "settings": {
+    "audio_bitrate": {
+      "description": "0 = تلقائي (128 لـ Opus/FLAC، و160 لـ AAC)؛ اخفضه للحصول على ملفات أصغر",
+      "label": "معدل بت الصوت (kbps)"
+    },
+    "audio_codec": {
+      "label": "ترميز الصوت",
+      "options": {
+        "aac": "AAC",
+        "flac": "FLAC",
+        "opus": "Opus"
+      }
+    },
+    "audio_source": {
+      "label": "مصدر الصوت",
+      "options": {
+        "both": "المخرجات + الميكروفون",
+        "default_input": "الميكروفون",
+        "default_output": "مخرجات النظام",
+        "none": "بدون صوت"
+      }
+    },
+    "color_range": {
+      "label": "نطاق الألوان",
+      "options": {
+        "full": "كامل",
+        "limited": "محدود"
+      }
+    },
+    "copy_to_clipboard": {
+      "label": "نسخ المسار إلى الحافظة"
+    },
+    "directory": {
+      "description": "الافتراضي هو ~/Videos/Recordings عند تركه فارغًا",
+      "label": "مجلد الإخراج"
+    },
+    "filename_pattern": {
+      "description": "نمط تنسيق التاريخ بدون الامتداد؛ استخدم %s للطابع الزمني Unix",
+      "label": "نمط اسم الملف"
+    },
+    "frame_rate": {
+      "label": "معدل الإطارات"
+    },
+    "hide_inactive": {
+      "label": "إخفاء الودجت عند الخمول"
+    },
+    "quality": {
+      "label": "الجودة",
+      "options": {
+        "high": "عالية",
+        "medium": "متوسطة",
+        "ultra": "فائقة",
+        "very_high": "عالية جدًا"
+      }
+    },
+    "replay_duration": {
+      "label": "ثواني إعادة التشغيل"
+    },
+    "replay_enabled": {
+      "label": "تفعيل مخزن إعادة التشغيل"
+    },
+    "replay_filename_pattern": {
+      "description": "نمط تنسيق التاريخ لإعادات التشغيل المحفوظة بدون الامتداد؛ استخدم %s للطابع الزمني Unix",
+      "label": "نمط اسم ملف إعادة التشغيل"
+    },
+    "replay_storage": {
+      "label": "تخزين إعادة التشغيل",
+      "options": {
+        "disk": "القرص",
+        "ram": "RAM"
+      }
+    },
+    "resolution": {
+      "description": "”original“ أو WIDTHxHEIGHT، على سبيل المثال 1920x1080",
+      "label": "الدقة"
+    },
+    "restore_portal": {
+      "label": "استعادة جلسة البوابة"
+    },
+    "show_cursor": {
+      "label": "إظهار المؤشر"
+    },
+    "video_codec": {
+      "label": "ترميز الفيديو",
+      "options": {
+        "av1": "AV1",
+        "h264": "H.264",
+        "hevc": "HEVC",
+        "vp8": "VP8",
+        "vp9": "VP9"
+      }
+    },
+    "video_source": {
+      "description": "وضع التسجيل في «GPU Screen Recorder»؛ التسجيل المركّز: يسجل الشاشة التي تركز عليها «Noctalia»",
+      "label": "مصدر الفيديو",
+      "options": {
+        "focused": "مركّز",
+        "portal": "البوابة"
+      }
+    }
+  },
+  "shortcut": {
+    "record-screen": "تسجيل الشاشة",
+    "recording": "التسجيل",
+    "replay-buffer": "مخزن إعادة التشغيل"
+  }
+}

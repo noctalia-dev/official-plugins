@@ -8,8 +8,10 @@
   "download_failed": "Échec du téléchargement",
   "empty": "Aucun fond d'écran trouvé.",
   "error": "Échec de la requête",
+  "filter_aspect_ratio": "Format d'image",
   "filter_categories": "Catégories",
   "filter_purity": "Contenu",
+  "filter_resolution": "Résolution",
   "filter_sort": "Tri",
   "loading": "Chargement des fonds d'écran…",
   "purity_nsfw": "NSFW",
@@ -19,7 +21,7 @@
   "search_placeholder": "Rechercher des tags (ex. nature, ville de nuit)",
   "settings": {
     "api_key": {
-      "description": "Clé API Wallhaven facultative pour des limites plus élevées et l'accès NSFW.",
+      "description": "Clé API Wallhaven facultative pour des limites d'accès plus élevées et l'accès au contenu NSFW.",
       "label": "Clé API"
     },
     "download_dir": {
@@ -39,5 +41,7 @@
       "views": "Vues"
     }
   },
+  "sort_asc": "Ascendant",
+  "sort_desc": "Descendant",
   "title": "Wallhaven"
 }
