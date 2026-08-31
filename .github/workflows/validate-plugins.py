@@ -56,6 +56,7 @@ ALLOWED_TAGS = {
     "system",
     "theming",
     "time",
+    "umbriel",
     "utility",
     "video",
     "void",
