@@ -5,13 +5,20 @@
   "output": "Output",
   "pause": "Pause",
   "resume": "Resume",
+  "slideshow": "Slideshow",
+  "slideshow_off": "Off",
   "settings": {
     "allowed_cpus": {
       "label": "Allowed CPUs"
     },
     "auto_pause": {
-      "description": "Pause playback while a fullscreen window covers the wallpaper (mpvpaper --auto-pause)",
-      "label": "Pause When Covered"
+      "description": "Pause playback while a window covers the wallpaper (experimental: may not work on all compositors)",
+      "label": "Pause When Covered",
+      "options": {
+        "off": "Off",
+        "full": "Fullscreen",
+        "max": "Maximized"
+      }
     },
     "cpu_quota": {
       "label": "CPU Quota"
