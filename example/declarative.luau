@@ -15,7 +15,7 @@ local function render()
   local container = barWidget.isVertical() and ui.column or ui.row
   barWidget.render(container({ gap = 6, align = "center" }, {
     ui.glyph({ name = "sparkles", size = 14, color = "secondary" }),
-    -- A filled rounded badge — something the imperative setText/setGlyph API
+    -- A filled rounded badge - something the imperative setText/setGlyph API
     -- cannot draw. "secondary/0.25" is the secondary role at 25% alpha, so the
     -- pill stays theme-aware while the text on it remains fully opaque.
     ui.row({ fill = "secondary/0.25", radius = 8, paddingH = 6, align = "center" }, {

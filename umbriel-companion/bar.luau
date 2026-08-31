@@ -1,5 +1,5 @@
 --!nonstrict
--- Umbriel Companion bar widget — the focused workspace's layout, at a glance.
+-- Umbriel Companion bar widget - the focused workspace's layout, at a glance.
 --
 -- Click opens the panel; a scroll flick cycles scrolling → dwindle → master.
 -- Every compositor call goes through the service, so several bars on several

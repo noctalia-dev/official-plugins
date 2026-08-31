@@ -1,5 +1,5 @@
 --!nonstrict
--- Wallpaper Depth bar widget — left click opens the panel; right click opens settings.
+-- Wallpaper Depth bar widget - left click opens the panel; right click opens settings.
 
 local function render()
   barWidget.setGlyph("layers-subtract")

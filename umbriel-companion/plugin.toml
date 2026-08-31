@@ -1,4 +1,4 @@
-# Umbriel Companion — runtime layout control for the Umbriel compositor.
+# Umbriel Companion - runtime layout control for the Umbriel compositor.
 #
 # Umbriel picks a layout per workspace (scrolling, dwindle, master) and pushes the
 # workspace list, layout mode included, over its IPC event stream. One [[service]]

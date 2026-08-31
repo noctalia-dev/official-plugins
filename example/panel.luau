@@ -1,5 +1,5 @@
 --!nonstrict
--- Reference [[panel]] entry — a settings-style panel of interactive controls.
+-- Reference [[panel]] entry - a settings-style panel of interactive controls.
 --
 -- Panels describe their UI declaratively, exactly like desktop widgets: build a
 -- tree with the ui.* constructors and hand it to panel.render(). The host diffs
@@ -16,14 +16,14 @@
 --
 -- Layout notes:
 --   * a Flex (column/row/scroll) centers its children on the cross axis by
---     default — pass align = "stretch" so controls fill the panel width.
+--     default - pass align = "stretch" so controls fill the panel width.
 --   * panel size is host-owned: declare width/height on the [[panel]] manifest
 --     entry, so the surface is the same size on every open.
 --
 -- Stateful controls follow a controlled/uncontrolled split:
---   * toggle / slider / select are value-driven — pass the current value each
+--   * toggle / slider / select are value-driven - pass the current value each
 --     render; the callback reports the user's new value.
---   * input is uncontrolled — `value` seeds the field once; the host owns the
+--   * input is uncontrolled - `value` seeds the field once; the host owns the
 --     text buffer afterward, so re-rendering never clobbers what the user typed.
 --     Observe edits via onChange (live) / onSubmit (Enter).
 
@@ -48,7 +48,7 @@ local function render()
   -- The panel surface already insets its content (Style::panelPadding), so this
   -- adds gaps between rows, not its own outer padding.
   panel.render(ui.column({ flexGrow = 1, gap = 16 }, {
-    -- Header: title on the left, close button pinned to the top right —
+    -- Header: title on the left, close button pinned to the top right -
     -- matching the built-in panels (no divider rule).
     ui.row({ align = "center", justify = "space_between", gap = 8 }, {
       ui.label({ text = "Example Panel", fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
@@ -62,7 +62,7 @@ local function render()
         ui.label({ text = enabled and "Enabled" or "Disabled", flexGrow = 1 }),
       })),
 
-      section(`Volume — {volume}%`, ui.slider({
+      section(`Volume - {volume}%`, ui.slider({
         min = 0, max = 100, step = 1, value = volume, onChange = "onVolume",
       })),
 

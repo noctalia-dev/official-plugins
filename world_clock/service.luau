@@ -1,5 +1,5 @@
 --!nonstrict
--- World Clock service — owns the timezone list and publishes live times.
+-- World Clock service - owns the timezone list and publishes live times.
 --
 -- Persistence: pluginDataDir()/zones.json (ordered IANA zone names).
 -- State: world_clock.zones = { { id, label, time, offset }, ... }

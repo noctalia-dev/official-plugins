@@ -1,7 +1,7 @@
-# GPU Screen Recorder — records the screen with gpu-screen-recorder and manages a
+# GPU Screen Recorder - records the screen with gpu-screen-recorder and manages a
 # replay buffer. The recording logic runs in a headless [[service]] for the whole
 # session; the bar [[widget]] and control-center [[shortcut]] are thin clients that
-# mirror the recorder's "status" and drive it through the "command" channel — so a
+# mirror the recorder's "status" and drive it through the "command" channel - so a
 # recording can be started even with no widget placed.
 #
 # Click mapping (widget): left = toggle recording, right = replay toggle/save,

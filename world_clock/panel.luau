@@ -1,5 +1,5 @@
 --!nonstrict
--- World Clock panel — list of configured timezones with live times.
+-- World Clock panel - list of configured timezones with live times.
 -- Add IANA zones (e.g. Europe/Berlin); remove with trash; reorder via drag grip.
 
 local DRAG_TYPE = "world-clock-zone"

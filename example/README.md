@@ -19,7 +19,7 @@ configurable label and glyph, counts clicks, reads `data.txt`, and watches the
 shared `tick` state published by the `ticker` service.
 
 Add the `declarative` widget to see the same service tick rendered as a
-`ui.*` tree via `barWidget.render()` — a glyph, the live counter in a filled
+`ui.*` tree via `barWidget.render()` - a glyph, the live counter in a filled
 rounded badge (impossible with the imperative API), and an inline `ui.button`
 whose click is handled separately from the widget-level `onClick`. Simple
 widgets can keep using `setText`/`setGlyph`; `render()` is the declarative

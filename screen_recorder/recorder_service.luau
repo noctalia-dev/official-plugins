@@ -1,5 +1,5 @@
 --!nonstrict
--- GPU Screen Recorder — headless service.
+-- GPU Screen Recorder - headless service.
 -- Owns all recording / replay-buffer logic and runs for the whole session, so a
 -- recording can be started from the control-center shortcut with no bar widget
 -- placed. The widget and shortcut are thin clients: they read the published
@@ -153,7 +153,7 @@ local function shellQuote(value)
 end
 
 -- notifyIfMissing: when the recorder ended on its own (not a user stop) and no
--- output file exists, gpu-screen-recorder died early — surface its captured output.
+-- output file exists, gpu-screen-recorder died early - surface its captured output.
 local function notifyRecordingSavedIfPresent(notifyIfMissing)
     local savedPath = outputPath
     if savedPath == "" then return end

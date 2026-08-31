@@ -1,5 +1,5 @@
 --!nonstrict
--- Umbriel Companion service — the only entry that talks to the compositor.
+-- Umbriel Companion service - the only entry that talks to the compositor.
 --
 -- Umbriel pushes its workspace list, layout mode included, over the IPC event
 -- stream. `umbriel subscribe workspaces` is that stream on stdout, one JSON

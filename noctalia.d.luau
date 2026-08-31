@@ -5,7 +5,7 @@
 -- (noctalia.*, barWidget.*, shortcut.*, launcher.*, desktopWidget.*, panel.*,
 -- ui.*) and the entry-point callbacks the host calls (update, onIpc, onClick, …)
 -- so authors get autocomplete and typo diagnostics. Annotations are a runtime
--- no-op — the Luau VM compiles them away — so this file changes nothing about
+-- no-op - the Luau VM compiles them away - so this file changes nothing about
 -- how a plugin runs; it only feeds the editor.
 --
 -- See README.md ("Editor setup") for how to point luau-lsp at this file.
@@ -108,7 +108,7 @@ export type LauncherResult = {
 
 -- Noctalia provides Luau's built-in `require(path: string): any` for explicit relative `.luau` modules.
 
--- ── noctalia.* — shared across every entry type ──────────────────────────────
+-- ── noctalia.* - shared across every entry type ──────────────────────────────
 
 export type NoctaliaState = {
   set: (key: string, value: any) -> (),
@@ -179,7 +179,7 @@ export type Noctalia = {
   runStream: (cmd: string, onLine: (line: string) -> ()) -> boolean,
   runInTerminal: (cmd: string) -> boolean,
   commandExists: (name: string) -> boolean,
-  -- processMatches(onResult, needle1, needle2, …) — onResult(true) iff a running
+  -- processMatches(onResult, needle1, needle2, …) - onResult(true) iff a running
   -- process command line matches all needles.
   processMatches: (onResult: (matched: boolean) -> (), ...string) -> boolean,
   flatpakAppInstalled: (appId: string) -> boolean,
@@ -196,8 +196,8 @@ export type Noctalia = {
   -- path matches nothing. Requires plugin_api >= 26.
   getSetting: (path: string) -> any,
 
-  -- App icons. Resolves an app id (desktop-entry id / StartupWMClass) — or a
-  -- raw icon name when no entry matches — to an icon file path via the host's
+  -- App icons. Resolves an app id (desktop-entry id / StartupWMClass) - or a
+  -- raw icon name when no entry matches - to an icon file path via the host's
   -- XDG icon-theme resolver, for use with ui.image. sizePx is the intended
   -- on-screen pixel size; nil when nothing resolves.
   appIconPath: (appIdOrIconName: string, sizePx: number?) -> string?,
@@ -318,7 +318,7 @@ export type UiNode = {
   children: { UiNode },
 }
 
--- ── barWidget.* — [[widget]] presentation ────────────────────────────────────
+-- ── barWidget.* - [[widget]] presentation ────────────────────────────────────
 
 declare barWidget: {
   setText: (text: string) -> (),
@@ -383,7 +383,7 @@ declare barWidget: {
 -- Scroll has one extra gate: `enable_scroll = false` on the widget instance turns
 -- onScroll off entirely, independently of any binding.
 
--- ── shortcut.* — [[shortcut]] quick-toggle tile ──────────────────────────────
+-- ── shortcut.* - [[shortcut]] quick-toggle tile ──────────────────────────────
 
 declare shortcut: {
   setLabel: (label: string) -> (),
@@ -392,7 +392,7 @@ declare shortcut: {
   setEnabled: (enabled: boolean) -> (),
 }
 
--- ── ui.* — declarative control tree (bar widgets, desktop widgets, panels) ───
+-- ── ui.* - declarative control tree (bar widgets, desktop widgets, panels) ───
 
 type UiCtor = (props: { [string]: any }?, children: { UiNode }?) -> UiNode
 
@@ -426,7 +426,7 @@ declare ui: {
   select: UiCtor,
   -- Slider props: min, max, step, value (numbers), enabled (bool), controlSize.
   -- onChange reports the new value on every change (coalesced). onDragEnd fires
-  -- when the interaction ends — pointer release and keyboard adjustments
+  -- when the interaction ends - pointer release and keyboard adjustments
   -- (arrows, PageUp/PageDown, Home, End); wheel scroll does not adjust plugin
   -- sliders. `value` is re-applied only while not dragging, so re-rendering
   -- mid-drag with a draft value is safe; commit on onDragEnd for a
@@ -443,14 +443,14 @@ declare ui: {
   dropZone: UiCtor,
 }
 
--- ── launcher.* — [[launcher_provider]] results ───────────────────────────────
+-- ── launcher.* - [[launcher_provider]] results ───────────────────────────────
 
 declare launcher: {
   setResults: (query: string, results: { LauncherResult }) -> (),
   setQuery: (text: string) -> (), -- set input to this provider's prefix + text (stays in provider); "" resets to root
 }
 
--- ── desktopWidget.* — [[desktop_widget]] declarative UI ──────────────────────
+-- ── desktopWidget.* - [[desktop_widget]] declarative UI ──────────────────────
 
 declare desktopWidget: {
   render: (tree: UiNode) -> (),
@@ -458,7 +458,7 @@ declare desktopWidget: {
   setNeedsFrameTick: (needs: boolean) -> (),
 }
 
--- ── panel.* — [[panel]] declarative UI ───────────────────────────────────────
+-- ── panel.* - [[panel]] declarative UI ───────────────────────────────────────
 
 declare panel: {
   render: (tree: UiNode) -> (),
@@ -473,7 +473,7 @@ declare panel: {
 
 -- ── Entry-point callbacks ────────────────────────────────────────────────────
 --
--- Your entry defines the globals the host calls, as plain global functions — the
+-- Your entry defines the globals the host calls, as plain global functions - the
 -- host only calls a callback if the entry defines it:
 --
 --   function update() end                       -- bar/desktop widget, service tick

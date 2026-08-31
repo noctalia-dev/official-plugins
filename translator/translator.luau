@@ -1,7 +1,7 @@
 --!nonstrict
 -- Translator launcher provider.
 --
--- Usage from the launcher: `/tr <lang> <text>` — e.g. `/tr es hello world`.
+-- Usage from the launcher: `/tr <lang> <text>` - e.g. `/tr es hello world`.
 -- If the first word is not a language, the whole query is translated to the
 -- configured default target. Press Enter on a result to copy it to the clipboard.
 -- Translation uses Google Translate's public `translate_a/single` endpoint.
@@ -83,7 +83,7 @@ local function fetchGoogle(text, target, onDone)
   local url = `https://translate.google.com/translate_a/single?client=gtx&sl=auto&tl={noctalia.string.urlEncode(target)}&dt=t&q={noctalia.string.urlEncode(text)}`
   noctalia.http({ url = url }, function(res)
     if not res.ok then
-      onDone(nil, "Connection error — is the network up?")
+      onDone(nil, "Connection error - is the network up?")
       return
     end
     local translated = parseGoogle(res.body)
@@ -103,7 +103,7 @@ local function resultRow(translated, target)
   return {
     id = translated,
     title = translated,
-    subtitle = `Translation ({target}) — press Enter to copy`,
+    subtitle = `Translation ({target}) - press Enter to copy`,
     glyph = "language",
     presentation = "detail",
   }
@@ -112,7 +112,7 @@ end
 function onQuery(query)
   local text = noctalia.string.trim(query)
   if text == "" then
-    launcher.setResults(query, { hintRow("Translate text", "Type: <lang> <text> — e.g. es hello", "language") })
+    launcher.setResults(query, { hintRow("Translate text", "Type: <lang> <text> - e.g. es hello", "language") })
     return
   end
 
