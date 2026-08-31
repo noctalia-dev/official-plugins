@@ -19,6 +19,17 @@ local function send(action)
     noctalia.state.set("command", { action = action, focusedOutputName = noctalia.focusedOutputName() })
 end
 
+-- Glyph per state, configurable. The fallback passed to each lookup is the
+-- value this widget used before the settings existed, so an unset or blank
+-- glyph keeps the previous appearance.
+local function glyphFor(key, fallback)
+    local configured = noctalia.getConfig(key)
+    if type(configured) == "string" and configured ~= "" then
+        return configured
+    end
+    return fallback
+end
+
 local function applyStatus(status)
     if type(status) == "table" then
         state = status.state or "idle"
@@ -28,29 +39,29 @@ local function applyStatus(status)
     local hideInactive = noctalia.getConfig("hide_inactive")
 
     if not available then
-        barWidget.setGlyph("video-off")
+        barWidget.setGlyph(glyphFor("glyph_unavailable", "video-off"))
         barWidget.setGlyphColor("on_surface_variant")
         barWidget.setVisible(not hideInactive)
         return
     end
 
     if state == "recording" then
-        barWidget.setGlyph("video")
+        barWidget.setGlyph(glyphFor("glyph_recording", "video"))
         barWidget.setGlyphColor("error")
         barWidget.setColor("error")
         barWidget.setVisible(true)
     elseif table.find(PENDING_STATES, state) then
-        barWidget.setGlyph("video")
+        barWidget.setGlyph(glyphFor("glyph_pending", "video"))
         barWidget.setGlyphColor("primary")
         barWidget.setColor("primary")
         barWidget.setVisible(true)
     elseif state == "replaying" then
-        barWidget.setGlyph("repeat")
+        barWidget.setGlyph(glyphFor("glyph_replaying", "repeat"))
         barWidget.setGlyphColor("secondary")
         barWidget.setColor("secondary")
         barWidget.setVisible(true)
     else
-        barWidget.setGlyph("video")
+        barWidget.setGlyph(glyphFor("glyph_idle", "video"))
         barWidget.setGlyphColor("on_surface")
         barWidget.setVisible(not hideInactive)
     end

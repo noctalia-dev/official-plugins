@@ -7,12 +7,12 @@ Browse [Wallhaven](https://wallhaven.cc), download a wallpaper into your Noctali
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/wallhaven` |
-| Entries | Panel: `browser`; bar widget: `wallhaven` |
+| Entries | Panel: `browser`; bar widget: `wallhaven`; shortcut: `shortcut` |
 
 ## Usage
 
 1. Enable the plugin in Settings → Plugins.
-2. Add the `wallhaven` bar widget, or run:
+2. Add the `wallhaven` bar widget, the control center shortcut, or run:
 
    ```sh
    noctalia msg panel-toggle noctalia/wallhaven:browser

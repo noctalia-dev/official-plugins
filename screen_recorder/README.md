@@ -15,10 +15,7 @@ Control Center.
 
 Install `gpu-screen-recorder` on `PATH`, or install the Flatpak app
 `com.dec05eba.gpu_screen_recorder`. Portal capture also requires
-`xdg-desktop-portal` and one supported backend, such as
-`xdg-desktop-portal-wlr`, `xdg-desktop-portal-hyprland`,
-`xdg-desktop-portal-gnome`, `xdg-desktop-portal-kde`, or
-`niri-screenshare`.
+`xdg-desktop-portal` with any backend that provides the ScreenCast interface.
 
 - **[gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/about/)** — Hardware-accelerated screen recording
 
@@ -66,6 +63,11 @@ Replay controls are available only when `replay_enabled` is true.
 | `color_range` | `select` | `limited` | Uses limited or full color range. |
 | `copy_to_clipboard` | `bool` | `false` | Copies the saved recording URI to the clipboard. |
 | `hide_inactive` | `bool` | `false` | Hides the bar widget while idle. |
+| `glyph_unavailable` | `glyph` | `video-off` | Bar glyph when gpu-screen-recorder is not installed. |
+| `glyph_idle` | `glyph` | `video` | Bar glyph when idle. |
+| `glyph_pending` | `glyph` | `video` | Bar glyph while a recording or replay buffer is starting. |
+| `glyph_recording` | `glyph` | `video` | Bar glyph while recording. |
+| `glyph_replaying` | `glyph` | `repeat` | Bar glyph while the replay buffer is running. |
 | `replay_enabled` | `bool` | `false` | Enables replay-buffer controls. |
 | `replay_duration` | `int` | `30` | Replay buffer duration in seconds. |
 | `replay_storage` | `select` | `ram` | Stores replay data in RAM or on disk. |

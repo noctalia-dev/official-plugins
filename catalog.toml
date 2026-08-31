@@ -36,8 +36,8 @@ rev = "5082ed5f85e795513b8485e4cedc66d5a2c816ff"
 [[plugin]]
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.2.1"
-updated_at = 1784987970
+version = "1.2.3"
+updated_at = 1788104178
 added_at = 1781039692
 author = "noctalia"
 license = "MIT"
@@ -75,8 +75,8 @@ tags = ["language", "launcher"]
 [[plugin]]
 id = "noctalia/timer"
 name = "Timer"
-version = "1.2.0"
-updated_at = 1784413877
+version = "1.2.1"
+updated_at = 1786284978
 added_at = 1781407877
 author = "noctalia"
 license = "MIT"
@@ -88,8 +88,8 @@ tags = ["countdown", "utility"]
 [[plugin]]
 id = "noctalia/wallhaven"
 name = "Wallhaven"
-version = "1.0.10"
-updated_at = 1785108641
+version = "1.2.0"
+updated_at = 1788106747
 added_at = 1782324517
 author = "noctalia"
 license = "MIT"
@@ -107,8 +107,8 @@ rev = "71baaa6ce6f0bfa093257dd0bedc7f39269a0650"
 [[plugin]]
 id = "noctalia/mpvpaper"
 name = "Video Wallpaper"
-version = "1.0.7"
-updated_at = 1784946285
+version = "1.1.0"
+updated_at = 1788065185
 added_at = 1782365051
 author = "noctalia"
 license = "MIT"
@@ -139,8 +139,8 @@ tags = ["emoticon", "launcher"]
 [[plugin]]
 id = "noctalia/notes"
 name = "Notes"
-version = "1.0.3"
-updated_at = 1785108641
+version = "1.0.4"
+updated_at = 1788106663
 added_at = 1783038137
 author = "noctalia"
 license = "MIT"
@@ -180,3 +180,35 @@ icon = "world"
 description = "A world clock panel and bar widget for tracking multiple timezones."
 plugin_api = 19
 tags = ["clock", "time", "utility"]
+
+[[plugin]]
+id = "noctalia/wallpaper_depth"
+name = "Wallpaper Depth"
+version = "1.0.4"
+updated_at = 1788066297
+added_at = 1786549052
+author = "noctalia"
+license = "MIT"
+icon = "layers-subtract"
+description = "Generate depth masks that place desktop widgets behind wallpaper foregrounds."
+plugin_api = 26
+tags = ["wallpaper", "desktop", "ai"]
+
+[[plugin.release]]
+plugin_api = 25
+version = "1.0.0"
+updated_at = 1786549052
+rev = "4933b1c459459af3a0f9d14898b76ce0564d43b3"
+
+[[plugin]]
+id = "noctalia/umbriel-companion"
+name = "Umbriel Companion"
+version = "1.0.0"
+updated_at = 1788152189
+added_at = 1788152189
+author = "noctalia"
+license = "MIT"
+icon = "layout-columns"
+description = "Switch the focused workspace layout and drive Umbriel window actions from the bar."
+plugin_api = 28
+tags = ["umbriel", "bar", "panel", "utility"]

@@ -1,0 +1,53 @@
+id = "noctalia/wallpaper_depth"
+name = "Wallpaper Depth"
+version = "1.0.4"
+plugin_api = 26
+author = "noctalia"
+license = "MIT"
+dependencies = ["python3"]
+tags = ["wallpaper", "desktop", "ai"]
+icon = "layers-subtract"
+description = "Generate depth masks that place desktop widgets behind wallpaper foregrounds."
+
+[[setting]]
+key = "auto_generate"
+type = "bool"
+label_key = "settings.auto_generate.label"
+description_key = "settings.auto_generate.description"
+default = true
+
+[[setting]]
+key = "threshold"
+type = "int"
+label_key = "settings.threshold.label"
+description_key = "settings.threshold.description"
+default = 30
+min = 0
+max = 100
+step = 1
+
+[[setting]]
+key = "feather"
+type = "int"
+label_key = "settings.feather.label"
+description_key = "settings.feather.description"
+default = 8
+min = 0
+max = 50
+step = 1
+
+[[widget]]
+id = "bar"
+entry = "bar.luau"
+
+[[service]]
+id = "service"
+entry = "service.luau"
+
+[[panel]]
+id = "manager"
+entry = "panel.luau"
+width = 500
+height = 660
+placement = "attached"
+position = "auto"

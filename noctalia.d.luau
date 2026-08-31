@@ -60,6 +60,36 @@ export type Output = {
   focused: boolean,
 }
 
+export type WallpaperMask = {
+  path: string,
+  wallpaperPath: string,
+}
+
+export type PanelContextMenuAction = {
+  kind: "item"?, -- may be omitted for action rows
+  id: string,
+  label: string,
+  enabled: boolean?, -- defaults to true
+}
+
+export type PanelContextMenuHeader = {
+  kind: "header",
+  label: string,
+}
+
+export type PanelContextMenuSeparator = {
+  kind: "separator",
+}
+
+export type PanelContextMenuItem = PanelContextMenuAction | PanelContextMenuHeader | PanelContextMenuSeparator
+
+export type PanelContextMenuRequest = {
+  items: { PanelContextMenuItem },
+  onActivate: string,
+  context: (string | number | boolean)?,
+  maxVisible: number?, -- defaults to 12, valid range 1..30
+}
+
 -- A tooltip row: { key, value } or the positional array form { key, value }.
 export type TooltipRow = { key: string?, value: string? }
 
@@ -140,10 +170,12 @@ export type DiskStats = {
 export type Noctalia = {
   log: (msg: string) -> (),
 
-  -- Subprocess. With no callback, runAsync is a detached fire-and-forget launch.
-  -- With a callback it runs async and delivers a CommandResult; timeoutMs is
-  -- clamped to [50, 60000].
-  runAsync: (cmd: string, onResult: ((result: CommandResult) -> ())?, timeoutMs: number?) -> boolean,
+  -- Subprocess. A string runs through /bin/sh -c; an argv table executes the
+  -- program directly, so dynamic values remain single arguments. With no
+  -- callback, runAsync is a detached fire-and-forget launch. With a callback
+  -- it delivers a CommandResult; timeoutMs is clamped to [50, 60000].
+  -- The argv-table form requires plugin_api >= 24.
+  runAsync: (cmdOrArgv: string | { string }, onResult: ((result: CommandResult) -> ())?, timeoutMs: number?) -> boolean,
   runStream: (cmd: string, onLine: (line: string) -> ()) -> boolean,
   runInTerminal: (cmd: string) -> boolean,
   commandExists: (name: string) -> boolean,
@@ -157,6 +189,12 @@ export type Noctalia = {
   focusedOutputName: () -> string?,
   outputs: () -> { Output },
   isDarkMode: () -> boolean,
+  -- Read any effective shell config value by dotted path, e.g.
+  -- getSetting("shell.offline_mode"), getSetting("bar.main.position"),
+  -- getSetting("widget.clock"). Tables/arrays convert to Lua tables; array
+  -- indices inside the path are zero-based ("bar.order[0]"). nil when the
+  -- path matches nothing. Requires plugin_api >= 26.
+  getSetting: (path: string) -> any,
 
   -- App icons. Resolves an app id (desktop-entry id / StartupWMClass) — or a
   -- raw icon name when no entry matches — to an icon file path via the host's
@@ -169,6 +207,10 @@ export type Noctalia = {
   setWallpaperEnabled: (connector: string, enabled: boolean) -> (),
   setWallpaper: (connectorOrPath: string, path: string?) -> (),
   wallpaperDirectory: () -> string?,
+  -- Source-aligned output mask. 0 keeps desktop widgets visible; 255 erases
+  -- them to reveal the wallpaper. Requires plugin_api >= 25.
+  wallpaperPath: (connector: string) -> string?,
+  setWallpaperMask: (connector: string, mask: WallpaperMask?) -> (),
 
   -- Panels.
   togglePanel: (panelId: string) -> (), -- "author/plugin:panel"
@@ -382,6 +424,13 @@ declare ui: {
   graph: UiCtor,
   input: UiCtor,
   select: UiCtor,
+  -- Slider props: min, max, step, value (numbers), enabled (bool), controlSize.
+  -- onChange reports the new value on every change (coalesced). onDragEnd fires
+  -- when the interaction ends — pointer release and keyboard adjustments
+  -- (arrows, PageUp/PageDown, Home, End); wheel scroll does not adjust plugin
+  -- sliders. `value` is re-applied only while not dragging, so re-rendering
+  -- mid-drag with a draft value is safe; commit on onDragEnd for a
+  -- draft-then-commit pattern.
   slider: UiCtor,
   toggle: UiCtor,
   scroll: UiCtor,
@@ -414,6 +463,10 @@ declare desktopWidget: {
 declare panel: {
   render: (tree: UiNode) -> (),
   close: () -> (),
+  -- Opens a native menu at the originating direct pointer callback. Returns
+  -- false outside a live pointer callback. onActivate receives
+  -- (actionId, context) in the panel script. Requires plugin_api >= 28.
+  openContextMenu: (request: PanelContextMenuRequest) -> boolean,
   setWantsSecondTicks: (wants: boolean) -> (),
   setNeedsFrameTick: (needs: boolean) -> (),
 }

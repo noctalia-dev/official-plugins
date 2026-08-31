@@ -316,42 +316,18 @@ local function checkPortalsIfNeededAsync(sourceOverride, callback)
         return
     end
 
-    local pending = 6
-    local hasPortal = false
-    local hasBackend = false
-
-    local function finish(kind, matched)
-        if matched then
-            if kind == "portal" then
-                hasPortal = true
-            elseif kind == "backend" then
-                hasBackend = true
-            end
-        end
-
-        pending -= 1
-        if pending == 0 then
-            log(`portal check: portal={hasPortal} backend={hasBackend}`)
-            callback(hasPortal and hasBackend)
-        end
+    -- Only verify xdg-desktop-portal itself is running. Which backend services
+    -- ScreenCast (wlr, hyprland, gnome, kde, umbriel, jay, niri-screenshare,
+    -- …) is the portal's problem to route; if none can, gpu-screen-recorder
+    -- surfaces the error and logGsrTail echoes it.
+    local ok = noctalia.processMatches(function(matched)
+        log(`portal check: portal={matched}`)
+        callback(matched)
+    end, "xdg-desktop-portal ")
+    if not ok then
+        log("portal check: processMatches unavailable")
+        callback(false)
     end
-
-    local function queue(kind, token)
-        local ok = noctalia.processMatches(function(matched)
-            finish(kind, matched)
-        end, token)
-        if not ok then
-            finish(kind, false)
-        end
-    end
-
-    queue("portal", "xdg-desktop-portal ")
-    queue("backend", "xdg-desktop-portal-wlr ")
-    queue("backend", "xdg-desktop-portal-hyprland ")
-    queue("backend", "xdg-desktop-portal-gnome ")
-    queue("backend", "xdg-desktop-portal-kde ")
-    -- niri-screenshare (or similarly named) ScreenCast backends
-    queue("backend", "niri-screenshare ")
 end
 
 -- ── Recording controls ───────────────────────────────────────────────────

@@ -10,7 +10,7 @@
 
 id = "noctalia/mpvpaper"
 name = "Video Wallpaper"
-version = "1.0.8"
+version = "1.1.1"
 plugin_api = 9
 author = "noctalia"
 license = "MIT"
@@ -140,3 +140,8 @@ entry = "widget.luau"
   type = "glyph"
   label_key = "settings.glyph.label"
   default = "movie"
+
+# Control center shortcut that opens the picker.
+[[shortcut]]
+id = "shortcut"
+entry = "shortcut.luau"
