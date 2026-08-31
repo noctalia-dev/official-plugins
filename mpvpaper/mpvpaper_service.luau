@@ -26,6 +26,8 @@ local lastPresent = {}      -- Map of connector -> true (monitors seen last tick
 local isPaused = {}         -- Map of connector -> true (paused monitors)
 local currentPath = {}      -- Map of connector -> file mpv is actually showing right now (slideshow only)
 local available = false     -- Is mpvpaper binary installed?
+local mpvpaperSupportsAutoMode = false -- resolved at boot, before any launch
+local socatAvailable = nil
 
 -- Slideshow interval in seconds, set exclusively from the picker's slider (no
 -- manifest setting backs this anymore). 0 means disabled. Persisted to disk so
@@ -35,10 +37,6 @@ local slideshowOverride = 0
 -- ==============================================================================
 -- ── HELPERS ────────────────────────────────────────────────────────────────
 -- ==============================================================================
-
-local function ts()
-  return os.date("%H:%M:%S")
-end
 
 local function cfg(key)
   return noctalia.getConfig(key)
@@ -158,14 +156,41 @@ local function mpvOptions(connector)
   return table.concat(parts, " ")
 end
 
+local function probeAutoModeSupport(callback)
+  noctalia.runAsync("mpvpaper --help", function(result)
+    mpvpaperSupportsAutoMode = type(result) == "table"
+      and type(result.stdout) == "string"
+      and result.stdout:find("--auto%-mode") ~= nil
+    if callback then callback() end
+  end)
+end
+
+local function normalizedAutoPauseMode()
+  local mode = cfg("auto_pause")
+  if mode == true then return "full" end   -- legacy boolean schema
+  if mode == false then return "off" end   -- legacy boolean schema
+  if type(mode) == "string" then return mode end
+  return "off"
+end
+
+local function autoPauseFlag()
+  local mode = normalizedAutoPauseMode()
+  if mode == "off" then return "" end
+
+  if mpvpaperSupportsAutoMode then
+    if mode == "max" then return "--auto-pause --auto-mode MAX" end
+    if mode == "full" then return "--auto-pause --auto-mode FULL" end
+  end
+
+  -- mpvpaper ≤ 1.8 fallback: only plain --auto-pause exists.
+  return "--auto-pause"
+end
+
 -- Builds mpvpaper flags from config, including auto-pause modes and slideshow.
 -- When a slideshow interval is present, we append `--slideshow <seconds>` so
 -- mpvpaper cycles through the playlist built for that connector.
 local function mpvpaperFlags()
-  local options = ""
-  local mode = cfg("auto_pause")
-  if mode == "max" then options =  "--auto-pause  --auto-mode MAX" end
-  if mode == "full" then options = "--auto-pause --auto-mode FULL" end
+  local options = autoPauseFlag()
 
   local interval = slideshowInterval()
   if interval then
@@ -270,11 +295,20 @@ local function buildSlideshowPlaylist(connector, selectedPath)
       table.insert(files, dir .. "/" .. name)
     end
   end
+
+  if #files == 0 then
+    noctalia.log("mpvpaper: slideshow directory has no video files, falling back to single file: " .. dir)
+    return selectedPath
+  end
+
   table.sort(files)
 
   local startIdx = 1
   for i, f in ipairs(files) do
-    if f == selectedPath then startIdx = i break end
+    if f == selectedPath then 
+      startIdx = i
+      break 
+    end
   end
   local ordered = {}
   for i = 0, #files - 1 do
@@ -323,11 +357,9 @@ end
 -- state in sync with mpv's internal playlist position.
 local function refreshCurrentFile(connector)
   queryCurrentFile(connector, function(current)
-    -- print(ts() .. "mpvpaper: poll tick, connector=" .. connector .. " current=" .. tostring(current) .. " tracked=" .. tostring(currentPath[connector]))
     if type(current) ~= "string" or current == "" then return end
     if currentPath[connector] == current then return end
 
-    print(ts() .. "mpvpaper: DETECTED CHANGE connector=" .. connector .. " " .. tostring(currentPath[connector]) .. " -> " .. current)
     currentPath[connector] = current
     assignments[connector] = current
     persist()
@@ -376,7 +408,6 @@ end
 -- When a slideshow is active, we start mpvpaper against the generated
 -- playlist; when it is disabled, we just point it at the single file.
 local function startMpvpaper(connector, path)
-  print(ts() .. "mpvpaper: startMpvpaper called connector=" .. connector .. " path=" .. tostring(path))
   -- Temporarily set the cached thumbnail as the background to prevent black screens during startup.
   local thumb = CACHE_DIR .. "/" .. path:gsub("[^%w]", "_") .. ".jpg"
   local target = resolveTarget(connector, path)
@@ -519,11 +550,22 @@ local function applyAll()
   end
 end
 
+local function ensureSocatChecked()
+  if socatAvailable == nil then
+    socatAvailable = noctalia.commandExists("socat")
+    if not socatAvailable then
+      noctalia.log("mpvpaper: socat not found — slideshow static-frame sync disabled")
+    end
+  end
+  return socatAvailable
+end
+
 -- Polls mpv over IPC for the currently displayed file while a slideshow is
 -- active, keeping `assignments` and the static wallpaper texture in sync.
 function update()
   if not available then return end
   if not slideshowInterval() then return end
+  if not ensureSocatChecked() then return end
   for connector in pairs(assignments) do
     refreshCurrentFile(connector)
   end
@@ -657,8 +699,10 @@ loadSlideshowOverride()
 
 available = noctalia.commandExists("mpvpaper")
 if available then
-  lastPresent = presentOutputs()
-  applyAll()
+  probeAutoModeSupport(function()
+    lastPresent = presentOutputs()
+    applyAll()
+  end)
 else
   noctalia.notifyError("Video Wallpaper", "mpvpaper is not installed")
 end
