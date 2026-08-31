@@ -1,0 +1,64 @@
+# Umbriel Companion — runtime layout control for the Umbriel compositor.
+#
+# Umbriel picks a layout per workspace (scrolling, dwindle, master) and pushes the
+# workspace list, layout mode included, over its IPC event stream. One [[service]]
+# holds `umbriel subscribe workspaces` open, republishes each line as a snapshot on
+# the "umbriel.state" channel, and runs the actions requested on "umbriel.request".
+#
+# bar     -> layout glyph of the focused workspace; click opens the panel,
+#            scroll cycles the layout
+# panel   -> layout picker, layout-specific actions, focused-window actions,
+#            and a workspace switcher
+# service -> the only entry that shells out to `umbriel`
+
+id = "noctalia/umbriel-companion"
+name = "Umbriel Companion"
+version = "1.0.0"
+plugin_api = 28
+author = "noctalia"
+license = "MIT"
+dependencies = ["umbriel"]
+tags = ["umbriel", "bar", "panel", "utility"]
+icon = "layout-columns"
+description = "Switch the focused workspace layout and drive Umbriel window actions from the bar."
+
+# No plugin-level settings: the service is driven by the event stream, so there is
+# no interval to tune.
+
+[[widget]]
+id = "bar"
+entry = "bar.luau"
+
+  [[widget.setting]]
+  key = "show_layout_name"
+  type = "bool"
+  label_key = "settings.show_layout_name.label"
+  description_key = "settings.show_layout_name.description"
+  default = false
+
+  [[widget.setting]]
+  key = "show_workspace_name"
+  type = "bool"
+  label_key = "settings.show_workspace_name.label"
+  description_key = "settings.show_workspace_name.description"
+  default = false
+
+  [[widget.setting]]
+  key = "scroll_cycles_layout"
+  type = "bool"
+  label_key = "settings.scroll_cycles_layout.label"
+  description_key = "settings.scroll_cycles_layout.description"
+  default = true
+
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 380
+height = 660
+placement = "attached"
+position = "auto"
+open_near_click = true
+
+[[service]]
+id = "service"
+entry = "service.luau"

@@ -1,0 +1,58 @@
+{
+  "title": "Umbriel",
+  "layout": {
+    "scrolling": "Scrolling",
+    "dwindle": "Dwindle",
+    "master": "Master",
+    "unknown": "Unknown"
+  },
+  "tooltip": {
+    "workspace": "Workspace",
+    "layout": "Layout",
+    "waiting": "Waiting for the workspace event stream"
+  },
+  "panel": {
+    "unavailable": "Umbriel is not running, or the umbriel command is not on PATH.",
+    "target": "Focused workspace",
+    "no_workspace": "No focused workspace.",
+    "no_workspaces": "No workspaces reported.",
+    "master_count": "Master windows",
+    "master_decrease": "Move the bottom master window to the stack",
+    "master_increase": "Move the top stack window to master",
+    "center_column": "Center column",
+    "window_section": "Focused window",
+    "width": "Width",
+    "width_tooltip": "Set width to {percent}%",
+    "float": "Toggle floating",
+    "pin": "Toggle pinned",
+    "fullscreen": "Toggle fullscreen",
+    "maximize": "Toggle maximize",
+    "center_window": "Center floating window",
+    "workspaces": "Workspaces",
+    "row_tooltip": "Click to switch, right-click for move actions",
+    "switch": "Switch to this workspace",
+    "move_window": "Move window here",
+    "move_column": "Move column here",
+    "settings": "Plugin settings"
+  },
+  "notify": {
+    "action_failed": "Umbriel rejected {action}"
+  },
+  "error": {
+    "stream_failed": "Could not start `umbriel subscribe workspaces`."
+  },
+  "settings": {
+    "show_layout_name": {
+      "label": "Show layout name",
+      "description": "Print the layout next to the bar glyph on a horizontal bar."
+    },
+    "show_workspace_name": {
+      "label": "Show workspace name",
+      "description": "Print the focused workspace name next to the bar glyph on a horizontal bar."
+    },
+    "scroll_cycles_layout": {
+      "label": "Scroll cycles the layout",
+      "description": "Scroll over the widget to cycle scrolling, dwindle, and master on the focused workspace."
+    }
+  }
+}
