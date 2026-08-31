@@ -1,10 +1,10 @@
 {
-  "bad_extension": "Geçersiz dosya uzantısı — md kullanılıyor",
+  "bad_extension": "Geçersiz dosya uzantısı - md kullanılıyor",
   "confirm_delete": "Silinsin mi?",
   "counts": "{words} kelime · {chars} karakter",
   "editing": "Düzenleniyor…",
   "editor_placeholder": "Notunuzu yazın…",
-  "empty": "Henüz not yok — + ile bir tane oluşturun",
+  "empty": "Henüz not yok - + ile bir tane oluşturun",
   "launcher": {
     "append_title": "Karalama defterine ekle",
     "appended": "Karalama defterine ekledi",

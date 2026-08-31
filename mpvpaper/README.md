@@ -5,7 +5,7 @@ Animated and video wallpapers for Noctalia, powered by
 
 Noctalia does not decode video itself. This plugin runs `mpvpaper`, which draws its own
 `wlr-layer-shell` background surface, and asks Noctalia to drop its wallpaper on the
-outputs you assign a video to — so the video shows through, with the bar and dock still
+outputs you assign a video to - so the video shows through, with the bar and dock still
 drawn above it.
 
 In addition to single-file wallpapers, the plugin can run **directory slideshows**:
@@ -89,3 +89,4 @@ On startup, the service queries `mpvpaper --help` to detect feature support. If 
 When you set a slideshow interval, the service builds an `.m3u` playlist from all supported videos in the selected file’s directory and starts `mpvpaper` with that playlist and `--slideshow` enabled. The service then polls `mpv` over JSON IPC (via `socat`) to track which file is currently shown. This syncs the UI assignments and static wallpaper frames, ensuring the picker highlights the right tile and stop operations extract the correct static frame.
 
 When the plugin is disabled or Noctalia exits, the service's `onExit` hook terminates every running `mpvpaper` instance — including frozen or paused ones — so no orphan processes remain.
+A headless service natively supervises `mpvpaper` instances (one per output), either launching them directly or wrapping them in systemd transient scopes (`systemd-run`) for strict CPU and memory resource limits. The picker panel and bar widget are thin clients that drive the service through the plugin's shared state. When the plugin is disabled or Noctalia exits, the service's `onExit` hook terminates every running `mpvpaper` instance - including frozen or paused ones - so no orphan processes remain.

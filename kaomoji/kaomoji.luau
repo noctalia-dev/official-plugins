@@ -3,12 +3,12 @@
 --
 -- Type `/kao` in the launcher to list every kaomoji; the launcher's category
 -- filter bar (declared as [[launcher_provider.category]] in plugin.toml) narrows
--- them by category — each result row carries a `category` matching one of those
+-- them by category - each result row carries a `category` matching one of those
 -- labels. Type after the prefix to search by tag. Press Enter on a kaomoji to
 -- copy it to the clipboard.
 --
 -- The bundled database.json is a curated, compact subset (categories + entries)
--- so it parses well within the script load budget — the full upstream catalogue
+-- so it parses well within the script load budget - the full upstream catalogue
 -- is far too large to decode inside the launcher.
 
 -- Safety bound, kept above the curated database size so the unfiltered list

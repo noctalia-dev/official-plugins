@@ -1,5 +1,5 @@
 --!nonstrict
--- Countdown timer service — the headless [[service]] entry.
+-- Countdown timer service - the headless [[service]] entry.
 --
 -- The service owns the timer state and handles the countdown logic.
 -- It publishes state changes to other entries via noctalia.state,

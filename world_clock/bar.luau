@@ -1,5 +1,5 @@
 --!nonstrict
--- World Clock bar widget — icon that opens the panel.
+-- World Clock bar widget - icon that opens the panel.
 
 local function render()
   barWidget.render(ui.glyph({ name = "world" }))

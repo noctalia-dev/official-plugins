@@ -40,7 +40,7 @@ entry = "hello.luau"
   default = true
 
 # Second bar widget: the same service tick rendered declaratively via
-# barWidget.render() (ui.* tree) instead of imperative setText/setGlyph —
+# barWidget.render() (ui.* tree) instead of imperative setText/setGlyph -
 # including an inline ui.button whose click stays separate from the
 # widget-level onClick.
 [[widget]]

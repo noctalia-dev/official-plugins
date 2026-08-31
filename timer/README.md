@@ -1,7 +1,7 @@
 # Timer
 
-Timer is a countdown timer with three UI surfaces — a bar widget, a panel, and
-a desktop widget — that are all thin clients of one headless service. They
+Timer is a countdown timer with three UI surfaces - a bar widget, a panel, and
+a desktop widget - that are all thin clients of one headless service. They
 share a single countdown through Noctalia's plugin state, so starting, pausing,
 or resetting from any surface updates them all live.
 
