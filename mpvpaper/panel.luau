@@ -553,3 +553,10 @@ end)
 noctalia.state.watch("paused", function(_)
   render()
 end)
+
+noctalia.state.watch("slideshowOverride", function(value)
+  if type(value) ~= "number" then return end
+  if slideshowDraftValue ~= nil then return end -- don't fight an in-progress drag
+  slideshowMinutes = math.floor(value / SECONDS_PER_MINUTE)
+  render()
+end)

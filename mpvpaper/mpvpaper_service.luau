@@ -33,6 +33,7 @@ local socatAvailable = nil
 -- manifest setting backs this anymore). 0 means disabled. Persisted to disk so
 -- it survives a service restart.
 local slideshowOverride = 0
+local pendingSlideshowInterval = nil -- seconds waiting to be applied, or nil
 
 -- ==============================================================================
 -- ── HELPERS ────────────────────────────────────────────────────────────────
@@ -564,6 +565,15 @@ end
 -- active, keeping `assignments` and the static wallpaper texture in sync.
 function update()
   if not available then return end
+
+  if pendingSlideshowInterval ~= nil then
+    slideshowOverride = pendingSlideshowInterval
+    pendingSlideshowInterval = nil
+    persistSlideshowOverride()
+    noctalia.state.set("slideshowOverride", slideshowOverride)
+    applyAll()
+  end
+
   if not slideshowInterval() then return end
   if not ensureSocatChecked() then return end
   for connector in pairs(assignments) do
@@ -683,10 +693,8 @@ end)
 -- The slider sends seconds via `slideshowCommand`, which we store and then
 -- reapply all assignments so every output picks up the new interval.
 noctalia.state.watch("slideshowCommand", function(cmd)
-  slideshowOverride = cmd.interval
-  persistSlideshowOverride()
-  noctalia.state.set("slideshowOverride", slideshowOverride)
-  applyAll()
+  if type(cmd) ~= "table" or type(cmd.interval) ~= "number" then return end
+  pendingSlideshowInterval = cmd.interval
 end)
 
 -- ==============================================================================
