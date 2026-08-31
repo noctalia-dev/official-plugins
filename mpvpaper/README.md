@@ -62,6 +62,7 @@ You can control the video wallpaper externally via Noctalia's IPC mechanism. Rep
 - `noctalia msg plugin noctalia/mpvpaper:service all clear <connector>` - Stops the wallpaper on the specified monitor and extracts a frame as a static wallpaper (when enabled).
 - `noctalia msg plugin noctalia/mpvpaper:service all clear-all` - Stops all active video wallpapers.
 - `noctalia msg plugin noctalia/mpvpaper:service all slideshow <minutes>` - Changes the slideshow interval to the value in minutes
+
 ## Settings
 
 | Setting | Type | Default | Description |
@@ -69,7 +70,7 @@ You can control the video wallpaper externally via Noctalia's IPC mechanism. Rep
 | `video_directory` | `folder` | *(empty)* | Folder scanned for wallpaper videos; defaults to `~/Videos` when empty. |
 | `mute` | `bool` | `true` | Starts video wallpapers muted. |
 | `hardware_decode` | `bool` | `true` | Uses `mpv` hardware decoding. |
-| `auto_pause` | `select` | `"full"` | Automatically pauses or stops playback while a window covers the wallpaper (`off`, `maximized`, or `fullscreen`). |
+| `auto_pause` | `select` | `"full"` | Automatically pauses playback while a window covers the wallpaper (`off`, `maximized`, or `fullscreen`). Experimental upstream; behavior varies by compositor — see the [mpvpaper man page](https://github.com/GhostNaN/mpvpaper/blob/master/mpvpaper.man). |
 | `mpv_options` | `string` | *(empty)* | Additional space-separated `mpv` options (forwarded via `-o`), e.g. `panscan=1.0 video-zoom=0.1`. |
 | `run_as_systemd` | `bool` | `false` | Runs instances inside systemd transient scopes (`systemd-run`) for resource control. |
 | `extract_last_frame` | `bool` | `true` | Extracts a static frame to use as a wallpaper when video playback is stopped or paused. |
@@ -84,7 +85,7 @@ You can control the video wallpaper externally via Noctalia's IPC mechanism. Rep
 
 A headless service natively supervises `mpvpaper` instances (one per output), either launching them directly or wrapping them in systemd transient scopes (`systemd-run`) for strict CPU and memory resource limits. The picker panel and bar widget are thin clients that drive the service through the plugin's shared state.
 
-On startup, the service queries `mpvpaper --help` to detect feature support. If native `--auto-pause` is available, the plugin delegates window-occlusion pausing directly to mpvpaper for zero-overhead background suspending. On older versions, the plugin falls back to its own manual occlusion tracking via cgroups or signals.
+On startup, the service queries `mpvpaper --help` to detect whether the binary supports the newer `--auto-mode` flag (mpvpaper 1.9+). When supported, the configured auto-pause mode is passed through as `--auto-pause --auto-mode FULL|MAX`. On older versions, only the plain `--auto-pause` flag exists, so the plugin degrades to fullscreen-only auto-pausing instead of failing to launch.
 
 When you set a slideshow interval, the service builds an `.m3u` playlist from all supported videos in the selected file’s directory and starts `mpvpaper` with that playlist and `--slideshow` enabled. The service then polls `mpv` over JSON IPC (via `socat`) to track which file is currently shown. This syncs the UI assignments and static wallpaper frames, ensuring the picker highlights the right tile and stop operations extract the correct static frame.
 

@@ -267,7 +267,7 @@ local function updateStaticWallpaper(connector, videoPath)
   noctalia.runAsync("mkdir -p " .. shellQuote(CACHE_DIR), function()
     local cmd = "ffmpeg -y -ss 1 -i " .. shellQuote(videoPath) .. " -frames:v 1 -q:v 2 " .. shellQuote(outPath)
     noctalia.runAsync(cmd, function(result)
-      if type(result) == "table" and result.exit_code == 0 and noctalia.fileExists(outPath) then
+      if type(result) == "table" and result.exitCode == 0 and noctalia.fileExists(outPath) then
         forEachOutput(connector, function(name)
           noctalia.setWallpaper(name, outPath)
         end)

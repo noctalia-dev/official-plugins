@@ -12,7 +12,7 @@
       "label": "Allowed CPUs"
     },
     "auto_pause": {
-      "description": "Pause or stop playback while a window covers the wallpaper",
+      "description": "Pause playback while a window covers the wallpaper (experimental: may not work on all compositors)",
       "label": "Pause When Covered",
       "options": {
         "off": "Off",
