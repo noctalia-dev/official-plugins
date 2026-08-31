@@ -521,11 +521,6 @@ end
 
 function onRowHover(state, key)
   hoveredKey = (state == "true") and key or nil
-  -- if state == "true" then
-  --   hoveredKey = file
-  -- elseif hoveredKey == file then
-  --   hoveredKey = nil
-  -- end
   render()
 end
 
