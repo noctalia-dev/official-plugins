@@ -199,3 +199,16 @@ plugin_api = 25
 version = "1.0.0"
 updated_at = 1786549052
 rev = "4933b1c459459af3a0f9d14898b76ce0564d43b3"
+
+[[plugin]]
+id = "noctalia/umbriel-companion"
+name = "Umbriel Companion"
+version = "1.0.0"
+updated_at = 1788152189
+added_at = 1788152189
+author = "noctalia"
+license = "MIT"
+icon = "layout-columns"
+description = "Switch the focused workspace layout and drive Umbriel window actions from the bar."
+plugin_api = 28
+tags = ["umbriel", "bar", "panel", "utility"]
