@@ -1,14 +1,14 @@
 --!nonstrict
--- GPU Screen Recorder — bar widget (thin presentation client).
+-- GPU Screen Recorder - bar widget (thin presentation client).
 --
 -- The recording logic lives in the [[service]] (recorder_service.luau), which runs
 -- for the whole session. This widget only reflects the published "status" and
 -- drives the recorder by writing to the "command" channel.
 --
 -- Click mapping:
---   Left click   — start/stop recording
---   Right click  — toggle replay buffer, or save replay (when one is running)
---   Middle click — save replay buffer
+--   Left click   - start/stop recording
+--   Right click  - toggle replay buffer, or save replay (when one is running)
+--   Middle click - save replay buffer
 
 local state = "idle" -- idle | pending | recording | replay_pending | replaying
 local available = false

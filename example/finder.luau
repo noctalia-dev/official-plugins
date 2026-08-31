@@ -25,7 +25,7 @@ local function categoryRows()
     table.insert(rows, {
       id = "category:" .. name,
       title = name,
-      subtitle = "Browse " .. name .. " — press Enter to open",
+      subtitle = "Browse " .. name .. " - press Enter to open",
       glyph = "folder",
     })
   end
@@ -40,7 +40,7 @@ local function itemRows(category, filter)
       table.insert(rows, {
         id = item,
         title = item,
-        subtitle = category .. " — press Enter to copy",
+        subtitle = category .. " - press Enter to copy",
         glyph = "tag",
       })
     end

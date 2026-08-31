@@ -1,5 +1,5 @@
 --!nonstrict
--- Umbriel Companion panel — layout control for the focused workspace.
+-- Umbriel Companion panel - layout control for the focused workspace.
 --
 -- Umbriel applies `workspace-set-layout` to the active workspace of the focused
 -- output, so the header names that workspace instead of leaving the target
@@ -194,7 +194,7 @@ local function workspaceRows()
     local selector = selectorOf(workspace)
     table.insert(rows, ui.button({
       key = `ws-{workspace.id}`,
-      text = `{workspace.name} — {layoutLabel(workspace.layout)}`,
+      text = `{workspace.name} - {layoutLabel(workspace.layout)}`,
       glyph = LAYOUT_GLYPHS[workspace.layout] or "layout-board",
       contentAlign = "start",
       selected = workspace.focused == true,

@@ -29,7 +29,7 @@ local function render()
     barWidget.setGlyph(glyph)
   end
   barWidget.setText(label)
-  barWidget.setTooltip(`{noctalia.trp("clicks", clicks)} — {dataNote} — service tick {tick}`)
+  barWidget.setTooltip(`{noctalia.trp("clicks", clicks)} - {dataNote} - service tick {tick}`)
 end
 
 -- Live updates from the plugin's background service (ticker.luau).
@@ -58,7 +58,7 @@ function onIpc(event, payload)
     -- Async: the request runs off-thread and the callback fires when it lands.
     noctalia.http({ url = payload }, function(res)
       if res.ok then
-        noctalia.notify(noctalia.tr("title"), `HTTP {res.status} — {#res.body} bytes`)
+        noctalia.notify(noctalia.tr("title"), `HTTP {res.status} - {#res.body} bytes`)
       else
         noctalia.notify(noctalia.tr("title"), "HTTP request failed")
       end

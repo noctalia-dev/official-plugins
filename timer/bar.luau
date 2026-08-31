@@ -1,5 +1,5 @@
 --!nonstrict
--- Timer bar widget — the [[widget]] entry for the status bar.
+-- Timer bar widget - the [[widget]] entry for the status bar.
 --
 -- The bar widget displays the timer's current state: an hourglass
 -- icon when idle, or the formatted countdown when running. Click
