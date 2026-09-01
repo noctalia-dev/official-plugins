@@ -1,11 +1,11 @@
 --!nonstrict
 -- Umbriel Companion service - the only entry that talks to the compositor.
 --
--- Umbriel pushes its workspace list, layout mode included, over the IPC event
--- stream. `umbriel subscribe workspaces` is that stream on stdout, one JSON
--- object per line, so the service holds it open and republishes each line as a
--- snapshot the UI entries read. No timer, no polling: the bar glyph changes in
--- the same breath as the keybind that changed the layout.
+-- Umbriel pushes its workspace list and active submap over the IPC event stream.
+-- `umbriel subscribe workspaces,submap` is that stream on stdout, one JSON object
+-- per line, so the service holds it open and republishes each line as a snapshot
+-- the UI entries read. No timer, no polling: the bar changes in the same breath
+-- as the keybind that changed either value.
 --
 --   noctalia.runStream(cmd, onLine)   long-lived child, one callback per line
 --   noctalia.state.set("umbriel.state", snapshot)     one snapshot, one re-render
@@ -18,8 +18,12 @@ local COMMAND_TIMEOUT_MS = 2000
 local available = noctalia.getenv("UMBRIEL_SOCKET") ~= nil and noctalia.commandExists("umbriel")
 
 local streaming = false
+local workspaces = {}
+local submap = ""
+local submapReady = false
+local streamError = nil
 
-local function publish(workspaces, err)
+local function publish()
   local focused = nil
   for _, workspace in ipairs(workspaces) do
     if workspace.focused == true then
@@ -32,7 +36,9 @@ local function publish(workspaces, err)
     available = available,
     workspaces = workspaces,
     focused = focused,
-    error = err,
+    submap = submap,
+    submap_ready = submapReady,
+    error = streamError,
   })
 end
 
@@ -41,14 +47,22 @@ local function onLine(line)
   if type(decoded) ~= "table" then
     return
   end
-  -- The stream reports its own rejection on the first line and then closes; every
-  -- other line is a workspaces snapshot.
+  -- The stream reports its own rejection on the first line and then closes;
+  -- every other line is one subscribed state snapshot.
   if type(decoded.err) == "string" then
-    publish({}, decoded.err)
+    streamError = decoded.err
+    publish()
     return
   end
   if decoded.event == "workspaces" and type(decoded.data) == "table" then
-    publish(decoded.data, nil)
+    workspaces = decoded.data
+    streamError = nil
+    publish()
+  elseif decoded.event == "submap" and (decoded.data == nil or type(decoded.data) == "string") then
+    submap = decoded.data or ""
+    submapReady = true
+    streamError = nil
+    publish()
   end
 end
 
@@ -56,9 +70,10 @@ local function startStream()
   if not available or streaming then
     return
   end
-  streaming = noctalia.runStream("umbriel subscribe workspaces", onLine)
+  streaming = noctalia.runStream("umbriel subscribe workspaces,submap", onLine)
   if not streaming then
-    publish({}, noctalia.tr("error.stream_failed"))
+    streamError = noctalia.tr("error.stream_failed")
+    publish()
   end
 end
 
@@ -83,7 +98,7 @@ end
 
 local function runAction(action)
   noctalia.runAsync({ "umbriel", "msg", action }, function(result)
-    -- Nothing to refresh on success: a change to the workspace list arrives on the
+    -- Nothing to refresh on success: any resulting state change arrives on the
     -- stream by itself.
     if result.exitCode ~= 0 or result.timedOut then
       local reason = noctalia.string.trim(result.stderr)
@@ -103,5 +118,5 @@ noctalia.state.watch("umbriel.request", function(value)
   end
 end)
 
-publish({}, nil)
+publish()
 startStream()
