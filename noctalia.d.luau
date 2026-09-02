@@ -409,6 +409,8 @@ type UiCtor = (props: { [string]: any }?, children: { UiNode }?) -> UiNode
 -- tree no longer contains does nothing. onClick on row/column/box/image makes
 -- the node a click target that also joins the tab order (Enter/Space); a node
 -- with only onHover passes clicks through to an enclosing click target.
+-- graph takes neither; it tracks the pointer with onPointerMove/onPointerLeave
+-- and accepts no clicks (see graph below).
 declare ui: {
   column: UiCtor,
   row: UiCtor,
@@ -421,6 +423,16 @@ declare ui: {
   spacer: UiCtor,
   progress: UiCtor,
   button: UiCtor,
+  -- Graph props: values/values2 (arrays of 0-1 numbers), color/color2,
+  -- lineWidth, fillOpacity, width, height. onPointerMove reports the pointer
+  -- normalized to the graph's box as two strings ("0.0000".."1.0000", 0,0 at
+  -- the top-left, so y grows downward); onPointerLeave takes no arguments.
+  -- Positions are coalesced per graph and both edges share that stream, so the
+  -- newest event always wins and a leave never arrives ahead of a position it
+  -- followed. A graph that is dropped, rewired, or reset while hovered still
+  -- reports its leave, but only to a named handler: a function handler from the
+  -- render that dropped the graph is already superseded. Requires
+  -- plugin_api >= 29.
   graph: UiCtor,
   input: UiCtor,
   select: UiCtor,
