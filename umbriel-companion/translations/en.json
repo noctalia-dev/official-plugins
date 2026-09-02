@@ -1,6 +1,6 @@
 {
   "error": {
-    "stream_failed": "Could not start `umbriel subscribe workspaces`."
+    "stream_failed": "Could not start `umbriel subscribe workspaces,submap`."
   },
   "layout": {
     "dwindle": "Dwindle",
@@ -36,6 +36,14 @@
     "workspaces": "Workspaces"
   },
   "settings": {
+    "display_mode": {
+      "description": "Choose whether the bar shows the focused workspace layout or the active keybind submap.",
+      "label": "Bar display",
+      "options": {
+        "layout": "Layout",
+        "submap": "Submap"
+      }
+    },
     "scroll_cycles_layout": {
       "description": "Scroll over the widget to cycle scrolling, dwindle, and master on the focused workspace.",
       "label": "Scroll cycles the layout"
@@ -49,9 +57,14 @@
       "label": "Show workspace name"
     }
   },
+  "submap": {
+    "default": "Default"
+  },
   "title": "Umbriel",
   "tooltip": {
     "layout": "Layout",
+    "submap": "Submap",
+    "waiting_submap": "Waiting for the submap event stream",
     "waiting": "Waiting for the workspace event stream",
     "workspace": "Workspace"
   }

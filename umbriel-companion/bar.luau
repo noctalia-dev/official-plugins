@@ -1,5 +1,5 @@
 --!nonstrict
--- Umbriel Companion bar widget - the focused workspace's layout, at a glance.
+-- Umbriel Companion bar widget - the focused layout or active submap, at a glance.
 --
 -- Click opens the panel; a scroll flick cycles scrolling → dwindle → master.
 -- Every compositor call goes through the service, so several bars on several
@@ -17,14 +17,43 @@ local LAYOUT_KEYS = {
   master = "layout.master",
 }
 
-local snapshot = { available = false, workspaces = {} }
+local snapshot = { available = false, workspaces = {}, submap_ready = false }
 local hasTooltip = false
 
 local function layoutLabel(layout)
   return noctalia.tr(LAYOUT_KEYS[layout] or "layout.unknown")
 end
 
-local function updateTooltip(focused, explainEmpty)
+local function submapLabel(submap)
+  if type(submap) == "string" and submap ~= "" then
+    return submap
+  end
+  return noctalia.tr("submap.default")
+end
+
+local function updateTooltip(focused, explainEmpty, showSubmap)
+  if showSubmap then
+    if snapshot.submap_ready ~= true then
+      local detail = noctalia.tr("tooltip.waiting_submap")
+      if type(snapshot.error) == "string" and snapshot.error ~= "" then
+        detail = snapshot.error
+      end
+      barWidget.setTooltip(detail)
+      hasTooltip = true
+      return
+    end
+    local rows = {
+      { key = noctalia.tr("tooltip.submap"), value = submapLabel(snapshot.submap) },
+    }
+    if focused ~= nil then
+      table.insert(rows, 1, { key = noctalia.tr("tooltip.workspace"), value = `{focused.output} · {focused.name}` })
+      table.insert(rows, { key = noctalia.tr("tooltip.layout"), value = layoutLabel(focused.layout) })
+    end
+    barWidget.setTooltip(rows)
+    hasTooltip = true
+    return
+  end
+
   if focused == nil then
     -- A visible widget with no data has a reason: the stream failed to start, or
     -- the compositor answered and nothing is focused yet. Say which on hover
@@ -64,8 +93,10 @@ local function render()
 
   local focused = snapshot.focused
   local layout = focused ~= nil and focused.layout or nil
-  local glyph = ui.glyph({ name = LAYOUT_GLYPHS[layout] or "layout-board" })
-  updateTooltip(focused, true)
+  local showSubmap = noctalia.getConfig("display_mode") == "submap"
+  local glyphName = showSubmap and "keyboard" or (LAYOUT_GLYPHS[layout] or "layout-board")
+  local glyph = ui.glyph({ name = glyphName })
+  updateTooltip(focused, true, showSubmap)
 
   -- A vertical bar has no room for labels, so it stays a single glyph.
   if barWidget.isVertical() then
@@ -74,7 +105,9 @@ local function render()
   end
 
   local children = { glyph }
-  if focused ~= nil and noctalia.getConfig("show_layout_name") == true then
+  if showSubmap and snapshot.submap_ready == true then
+    table.insert(children, ui.label({ text = submapLabel(snapshot.submap), fontWeight = "medium" }))
+  elseif not showSubmap and focused ~= nil and noctalia.getConfig("show_layout_name") == true then
     table.insert(children, ui.label({ text = layoutLabel(layout), fontWeight = "medium" }))
   end
   if focused ~= nil and noctalia.getConfig("show_workspace_name") == true then

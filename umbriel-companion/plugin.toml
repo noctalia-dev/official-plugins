@@ -1,26 +1,26 @@
 # Umbriel Companion - runtime layout control for the Umbriel compositor.
 #
-# Umbriel picks a layout per workspace (scrolling, dwindle, master) and pushes the
-# workspace list, layout mode included, over its IPC event stream. One [[service]]
-# holds `umbriel subscribe workspaces` open, republishes each line as a snapshot on
-# the "umbriel.state" channel, and runs the actions requested on "umbriel.request".
+# Umbriel pushes workspace layouts and the active keybind submap over its IPC
+# event stream. One [[service]] holds both subscriptions open, republishes each
+# line as a snapshot on the "umbriel.state" channel, and runs the actions
+# requested on "umbriel.request".
 #
-# bar     -> layout glyph of the focused workspace; click opens the panel,
-#            scroll cycles the layout
+# bar     -> focused layout or active submap; click opens the panel, scroll
+#            cycles the layout
 # panel   -> layout picker, layout-specific actions, focused-window actions,
 #            and a workspace switcher
 # service -> the only entry that shells out to `umbriel`
 
 id = "noctalia/umbriel-companion"
 name = "Umbriel Companion"
-version = "1.0.0"
+version = "1.1.0"
 plugin_api = 28
 author = "noctalia"
 license = "MIT"
 dependencies = ["umbriel"]
 tags = ["umbriel", "bar", "panel", "utility"]
 icon = "layout-columns"
-description = "Switch the focused workspace layout and drive Umbriel window actions from the bar."
+description = "Show Umbriel layout or submap state and drive workspace and window actions from the bar."
 
 # No plugin-level settings: the service is driven by the event stream, so there is
 # no interval to tune.
@@ -30,11 +30,23 @@ id = "bar"
 entry = "bar.luau"
 
   [[widget.setting]]
+  key = "display_mode"
+  type = "select"
+  label_key = "settings.display_mode.label"
+  description_key = "settings.display_mode.description"
+  default = "layout"
+  options = [
+    { value = "layout", label_key = "settings.display_mode.options.layout" },
+    { value = "submap", label_key = "settings.display_mode.options.submap" },
+  ]
+
+  [[widget.setting]]
   key = "show_layout_name"
   type = "bool"
   label_key = "settings.show_layout_name.label"
   description_key = "settings.show_layout_name.description"
   default = false
+  visible_when = { key = "display_mode", values = ["layout"] }
 
   [[widget.setting]]
   key = "show_workspace_name"
