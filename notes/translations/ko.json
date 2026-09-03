@@ -1,0 +1,22 @@
+{
+  "bad_extension": "파일 확장 설정이 유효하지 않음 – md를 사용합니다",
+  "confirm_delete": "삭제할까요?",
+  "editing": "편집 중...",
+  "editor_placeholder": "노트를 입력하세요...",
+  "empty": "생성된 메모 없음 – +를 눌러 생성하세요",
+  "launcher": {
+    "home_title": "노트 열기",
+    "new_title": "새 노트"
+  },
+  "save_failed": "노트 저장에 실패했습니다",
+  "saved": "저장됨",
+  "settings": {
+    "extension": {
+      "label": "파일 확장자"
+    },
+    "notes_dir": {
+      "label": "노트 디렉토리"
+    }
+  },
+  "title": "노트"
+}

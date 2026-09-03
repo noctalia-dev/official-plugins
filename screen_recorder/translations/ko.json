@@ -1,0 +1,40 @@
+{
+  "notify": {
+    "portal-not-running": "xdg-desktop-portal이 실행 중이지 않습니다",
+    "recording-failed": "녹화 실패",
+    "recording-saved": "녹화 저장됨",
+    "recording-stopped-early": "gpu-screen-recorder가 저장되지 않은 상태로 종료되었습니다. 자세한 내용은 Noctalia 로그를 확인하세요."
+  },
+  "settings": {
+    "audio_bitrate": {
+      "label": "오디오 비트레이트 (kbps)"
+    },
+    "audio_codec": {
+      "label": "오디오 코덱",
+      "options": {
+        "aac": "AAC",
+        "flac": "FLAC",
+        "opus": "Opus"
+      }
+    },
+    "audio_source": {
+      "label": "오디오 소스",
+      "options": {
+        "both": "출력 + 마이크",
+        "default_input": "마이크",
+        "default_output": "시스템 출력",
+        "none": "오디오 없음"
+      }
+    },
+    "color_range": {
+      "label": "색상 범위",
+      "options": {
+        "full": "전체",
+        "limited": "제한"
+      }
+    },
+    "copy_to_clipboard": {
+      "label": "경로가 클립보드에 복사되었습니다"
+    }
+  }
+}

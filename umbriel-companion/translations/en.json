@@ -1,6 +1,6 @@
 {
   "error": {
-    "stream_failed": "Could not start `umbriel subscribe workspaces,submap`."
+    "stream_failed": "Could not start `umbriel subscribe workspaces`."
   },
   "layout": {
     "dwindle": "Dwindle",
@@ -64,8 +64,8 @@
   "tooltip": {
     "layout": "Layout",
     "submap": "Submap",
-    "waiting_submap": "Waiting for the submap event stream",
     "waiting": "Waiting for the workspace event stream",
+    "waiting_submap": "Waiting for the submap event stream",
     "workspace": "Workspace"
   }
 }

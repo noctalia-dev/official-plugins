@@ -1,0 +1,33 @@
+{
+  "all_outputs": "모든 출력",
+  "empty": "설정된 디렉토리에서 동영상 파일을 찾을 수 없습니다",
+  "not_installed": "mpvpaper가 설치되지 않음",
+  "output": "출력",
+  "pause": "일시 정지",
+  "resume": "재개",
+  "settings": {
+    "auto_pause": {
+      "options": {
+        "full": "전체 화면",
+        "max": "최대화",
+        "off": "꺼짐"
+      }
+    },
+    "hardware_decode": {
+      "label": "하드웨어 디코딩"
+    },
+    "memory_max": {
+      "label": "최대 메모리"
+    },
+    "mute": {
+      "label": "오디오 음소거"
+    },
+    "video_directory": {
+      "label": "동영상 디렉토리"
+    }
+  },
+  "slideshow": "슬라이드 쇼",
+  "slideshow_off": "꺼짐",
+  "stop": "정지",
+  "title": "동영상 배경화면"
+}

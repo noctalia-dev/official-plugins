@@ -1,0 +1,14 @@
+{
+  "ipc": {
+    "duplicate_zone": "시간대가 이미 추가되어 있습니다: {zone}",
+    "empty_list": "시간대가 구성되지 않음",
+    "invalid_zone": "알 수 없는 시간대: {zone}",
+    "missing_zone": "목록에 없는 시간대: {zone}"
+  },
+  "title": "세계 시계",
+  "ui": {
+    "add_placeholder": "유럽/베를린",
+    "drag_tooltip": "드래그하여 재정렬",
+    "empty": "시간대가 아직 없습니다. 아래에 IANA 시간대를 추가하세요."
+  }
+}

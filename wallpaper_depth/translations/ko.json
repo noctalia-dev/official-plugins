@@ -1,0 +1,12 @@
+{
+  "panel": {
+    "settings": "설정",
+    "setup": {
+      "checking": "로컬 모델 확인",
+      "disclosure": "설치 과정에서 격리된 Python 환경을 생성하고 Apache-2.0 라이선스의 99MB 크기 Depth Anything V2 Small 모델을 Hugging Face에서 다운로드합니다. 배경화면은 업로드되지 않습니다.",
+      "error": "설치 실패",
+      "install": "모델 설치",
+      "missing": "설치 필요"
+    }
+  }
+}
