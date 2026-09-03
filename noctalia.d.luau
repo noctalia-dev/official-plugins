@@ -1,5 +1,5 @@
 --!strict
--- Type definitions for the Noctalia plugin API (plugin_api 29).
+-- Type definitions for the Noctalia plugin API (plugin_api 30).
 --
 -- luau-lsp *definition file*: it declares the host-injected globals (noctalia.*,
 -- barWidget.*, shortcut.*, launcher.*, desktopWidget.*, panel.*, ui.*) so authors
