@@ -95,6 +95,46 @@ local function fetchGoogle(text, target, onDone)
   end)
 end
 
+local function fetchDeepL(text, target, onDone)
+  local key = noctalia.getConfig("deepl_api_key")
+
+  -- validate API key
+  if type(key) ~= "string" or noctalia.string.trim(key) == "" then
+    onDone(nil, "DeepL API Key is not present")
+    return
+  end
+
+  local url = "https://api.deepl.com/v2/translate"
+  if key:match(":fx$") then
+    url = "https://api-free.deepl.com/v2/translate"
+  end
+
+  local headers = {
+    "Authorization: DeepL-Auth-Key " .. key,
+    "Content-Type: application/json",
+  }
+
+  local body = noctalia.json.encode({
+    text = {text},
+    target_lang = string.upper(target)
+  }
+  )
+
+  noctalia.http({ method = "POST", url = url, headers = headers, body = body }, function(res)
+    if not res.ok then
+      onDone(nil, "DeepL connection error (check API key)")
+      return
+    end
+
+    local decoded = noctalia.json.decode(res.body)
+    if decoded and decoded.translations and type(decoded.translations[1]) == "table" then
+      onDone(decoded.translations[1].text, nil)
+    else
+      onDone(nil, "Translation error")
+    end
+  end)
+end
+
 local function hintRow(title, subtitle, glyph)
   return { id = title, title = title, subtitle = subtitle, glyph = glyph }
 end
@@ -151,7 +191,12 @@ function onQuery(query)
   launcher.setResults(query, { hintRow("Translating…", content, "loader") })
   if not pending[key] then
     pending[key] = true
-    fetchGoogle(content, target, function(translated, err)
+    local provider = noctalia.getConfig("provider")
+    local fetchProvider = fetchGoogle
+    if provider == "deepl" then
+      fetchProvider = fetchDeepL
+    end
+    fetchProvider(content, target, function(translated, err)
       pending[key] = nil
       if translated then
         cache[key] = translated

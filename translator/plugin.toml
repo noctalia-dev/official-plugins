@@ -16,7 +16,7 @@ entry = "translator.luau"
 prefix = "tr"
 glyph = "language"
 include_in_global_search = false
-debounce_ms = 300  # wait for typing to settle before calling Google
+debounce_ms = 300                # wait for typing to settle before calling Google
 
 
 [[setting]]
@@ -25,3 +25,20 @@ type = "string"
 label_key = "settings.target_lang.label"
 description_key = "settings.target_lang.description"
 default = "en"
+
+[[setting]]
+key = "provider"
+type = "select"
+label_key = "Translation Service Provider"
+default = "google"
+options = [
+  { value = "google", label_key = "Google Translate" },
+  { value = "deepl", label_key = "DeepL" },
+]
+
+[[setting]]
+key = "deepl_api_key"
+type = "string"
+label_key = "DeepL API Key"
+description_key = "Required only if DeepL is selected above"
+default = ""
