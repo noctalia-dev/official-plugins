@@ -80,7 +80,7 @@ local function parseGoogle(body)
 end
 
 local function fetchGoogle(text, target, onDone)
-  local url = `https://translate.google.com/translate_a/single?client=gtx&sl=auto&tl={noctalia.string.urlEncode(target)}&dt=t&q={noctalia.string.urlEncode(text)}`
+  local url = `https://translate.googleapis.com/translate_a/single?client=dict-chrome-ex&sl=auto&tl={noctalia.string.urlEncode(target)}&dt=t&q={noctalia.string.urlEncode(text)}`
   noctalia.http({ url = url }, function(res)
     if not res.ok then
       onDone(nil, "Connection error - is the network up?")
