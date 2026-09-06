@@ -4,10 +4,7 @@
 -- Usage from the launcher: `/tr <lang> <text>` - e.g. `/tr es hello world`.
 -- If the first word is not a language, the whole query is translated to the
 -- configured default target. Press Enter on a result to copy it to the clipboard.
--- Translation uses Google Translate's public `translate_a/single` endpoint.
-
-local DEFAULT_TARGET = noctalia.getConfig("target_lang")
-DEFAULT_TARGET = if type(DEFAULT_TARGET) == "string" and DEFAULT_TARGET ~= "" then DEFAULT_TARGET else "en"
+-- Translation uses Google Translate's public `translate_a/single` endpoint or DeepL's `v2/translate` endpoint.
 
 -- Common language aliases → ISO code. Any other 2–3 letter token is passed
 -- through to Google as-is, so uncommon languages still work.
@@ -88,22 +85,19 @@ local function parseGoogle(body)
 end
 
 local function fetchGoogle(text, target, onDone)
-  local url =
-    `https://translate.google.com/translate_a/single?client=gtx&sl=auto&tl={noctalia.string.urlEncode(target)}&dt=t&q={noctalia.string.urlEncode(
-      text
-    )}`
+  -- stylua: ignore 
   local url = `https://translate.googleapis.com/translate_a/single?client=dict-chrome-ex&sl=auto&tl={noctalia.string.urlEncode(target)}&dt=t&q={noctalia.string.urlEncode(text)}`
   noctalia.http({ url = url }, function(res)
     if not res.ok or (res.status and res.status >= 400) then
-      local error_msg = "Translation error"
+      local errorMsg = "Translation error"
 
       if res.status == 400 then
-        error_msg = "Invalid target language code"
+        errorMsg = "Invalid target language code"
       elseif res.status == 429 then
-        error_msg = "Rate limit exceeded: Please slow down"
+        errorMsg = "Rate limit exceeded: Please slow down"
       end
 
-      onDone(nil, error_msg)
+      onDone(nil, errorMsg)
       return
     end
     local translated = parseGoogle(res.body)
@@ -116,51 +110,51 @@ local function fetchGoogle(text, target, onDone)
 end
 
 local function fetchDeepL(text, target, onDone)
-  local api_key = noctalia.getConfig("deepl_api_key")
+  local apiKey = noctalia.getConfig("deepl_api_key")
 
   -- validate API key
-  if type(api_key) ~= "string" or noctalia.string.trim(api_key) == "" then
+  if type(apiKey) ~= "string" or noctalia.string.trim(apiKey) == "" then
     onDone(nil, "DeepL API Key is not present")
     return
   end
 
   local url = "https://api.deepl.com/v2/translate"
-  if api_key:match(":fx$") then
+  if apiKey:match(":fx$") then
     url = "https://api-free.deepl.com/v2/translate"
   end
 
   local headers = {
-    "Authorization: DeepL-Auth-Key " .. api_key,
+    "Authorization: DeepL-Auth-Key " .. apiKey,
     "Content-Type: application/json",
   }
 
-  local target_lang = string.upper(target)
+  local targetLang = string.upper(target)
 
   -- DeepL uses NB for Norwegian Bokmål, and doesn't support NO
-  if target_lang == "NO" then
-    target_lang = "NB"
+  if targetLang == "NO" then
+    targetLang = "NB"
   end
 
   local body = noctalia.json.encode({
     text = { text },
-    target_lang = target_lang,
+    target_lang = targetLang,
   })
 
   noctalia.http({ method = "POST", url = url, headers = headers, body = body }, function(res)
     if not res.ok or (res.status and res.status >= 400) then
-      local error_msg = "Translation error"
+      local errorMsg = "Translation error"
 
       if res.status == 400 then
-        error_msg = "Invalid target language code"
+        errorMsg = "Invalid target language code"
       elseif res.status == 403 then
-        error_msg = "Authorization failed: Invalid DeepL API key"
+        errorMsg = "Authorization failed: Invalid DeepL API key"
       elseif res.status == 429 then
-        error_msg = "Rate limit exceeded: Please slow down"
+        errorMsg = "Rate limit exceeded: Please slow down"
       elseif res.status == 456 then
-        error_msg = "Quota exceeded: DeepL limit reached"
+        errorMsg = "Quota exceeded: DeepL limit reached"
       end
 
-      onDone(nil, error_msg)
+      onDone(nil, errorMsg)
       return
     end
 
@@ -188,6 +182,9 @@ local function resultRow(translated, target)
 end
 
 function onQuery(query)
+  local defaultTarget = noctalia.getConfig("target_lang")
+  defaultTarget = if type(defaultTarget) == "string" and defaultTarget ~= "" then defaultTarget else "en"
+
   local text = noctalia.string.trim(query)
   if text == "" then
     launcher.setResults(query, { hintRow("Translate text", "Type: <lang> <text> - e.g. es hello", "language") })
@@ -202,7 +199,7 @@ function onQuery(query)
       target = code
       content = rest
     else
-      target = DEFAULT_TARGET
+      target = defaultTarget
       content = text
     end
   else
@@ -210,7 +207,7 @@ function onQuery(query)
       launcher.setResults(query, { hintRow("Type text to translate", `Target language: {text}`, "language") })
       return
     end
-    target = DEFAULT_TARGET
+    target = defaultTarget
     content = text
   end
 
@@ -219,32 +216,48 @@ function onQuery(query)
     return
   end
 
-  local provider = noctalia.getConfig("provider")
+  local provider = noctalia.getConfig("provider") or "google"
   local fetchProvider = fetchGoogle
   if provider == "deepl" then
     fetchProvider = fetchDeepL
   end
 
-  local key = `{provider}|{target}|{content}`
-  local cached = cache[key]
-  if cached then
-    launcher.setResults(query, { resultRow(cached, target) })
-    return
-  end
+  -- helper func: isFallback -> tells if this is an auto retry attempt or not
+  local function requestTranslation(reqTarget, reqContent, isFallback)
+    local reqKey = `{provider}|{reqTarget}|{reqContent}`
 
-  launcher.setResults(query, { hintRow("Translating…", content, "loader") })
-  if not pending[key] then
-    pending[key] = true
-    fetchProvider(content, target, function(translated, err)
-      pending[key] = nil
+    if cache[reqKey] then
+      launcher.setResults(query, { resultRow(cache[reqKey], reqTarget) })
+      return
+    end
+
+    launcher.setResults(query, { hintRow("Translating…", reqContent, "loader") })
+
+    if pending[reqKey] then
+      return
+    end
+
+    pending[reqKey] = true
+
+    fetchProvider(reqContent, reqTarget, function(translated, err)
+      pending[reqKey] = nil
+
+      if not translated and err == "Invalid target language code" and not isFallback then
+        -- if the request failed, try it once more, using the enitre input string, with default lang target
+        requestTranslation(defaultTarget, text, true)
+        return
+      end
+
       if translated then
-        cache[key] = translated
-        launcher.setResults(query, { resultRow(translated, target) })
+        cache[reqKey] = translated
+        launcher.setResults(query, { resultRow(translated, reqTarget) })
       else
-        launcher.setResults(query, { hintRow(err or "Translation error", content, "alert-triangle") })
+        launcher.setResults(query, { hintRow(err or "Translation error", reqContent, "alert-triangle") })
       end
     end)
   end
+
+  requestTranslation(target, content, false)
 end
 
 function onActivate(id)

@@ -1,12 +1,12 @@
 # Translator
 
 Translator adds a launcher provider that translates text through Google
-Translate and copies the selected result to the clipboard.
+Translate or DeepL and copies the selected result to the clipboard.
 
 ## Plugin
 
 | Field | Value |
-| --- | --- |
+| - | - |
 | ID | `noctalia/translator` |
 | Entry | Launcher provider: `translate` |
 | Launcher Prefix | `/tr` |
@@ -29,14 +29,18 @@ clipboard.
 
 ## Requirements
 
-The provider uses Google Translate's public `translate_a/single` endpoint, so it
-requires network access to `translate.googleapis.com`.
+Depending on your configured setup, this plugin requires network access to
+either `translate.googleapis.com` (for Google Translate via the
+`translate_a/single` endpoint) or `api.deepl.com`/`.api-free.deepl.com` (for
+DeepL via the `v2/translate` endpoint)
 
 ## Settings
 
 | Setting | Type | Default | Description |
-| --- | --- | --- | --- |
+| - | - | - | - |
 | `target_lang` | `string` | `en` | Default target language code when the query does not include one. |
+| `provider` | `select` | `google` | The translation service to use (`google` or `deepl`). |
+| `deepl_api_key` | `string` | `""` | Your DeepL API Key (only required if you choose to use DeepL). |
 
 ## Notes
 
