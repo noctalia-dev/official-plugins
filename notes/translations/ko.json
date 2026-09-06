@@ -14,6 +14,9 @@
     "extension": {
       "label": "파일 확장자"
     },
+    "glyph": {
+      "label": "바 글라프"
+    },
     "notes_dir": {
       "label": "노트 디렉토리"
     }

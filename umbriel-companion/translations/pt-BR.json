@@ -1,0 +1,71 @@
+{
+  "error": {
+    "stream_failed": "Não foi possível iniciar `umbriel subscribe workspaces`"
+  },
+  "layout": {
+    "dwindle": "Dwindle",
+    "master": "Master",
+    "scrolling": "Scrolling",
+    "unknown": "Desconhecido"
+  },
+  "notify": {
+    "action_failed": "O Umbriel rejeitou {action}"
+  },
+  "panel": {
+    "center_column": "Centralizar coluna",
+    "center_window": "Centralizar janela flutuante",
+    "float": "Alternar flutuação",
+    "fullscreen": "Alternar tela cheia",
+    "master_count": "Janelas master",
+    "master_decrease": "Mover a janela master inferior para a pilha",
+    "master_increase": "Mover a janela superior da pilha para master",
+    "maximize": "Alternar maximização",
+    "move_column": "Mover coluna para cá",
+    "move_window": "Mover janela para cá",
+    "no_workspace": "Nenhum espaço de trabalho em foco.",
+    "no_workspaces": "Nenhum espaço de trabalho reportado.",
+    "pin": "Alternar fixação",
+    "row_tooltip": "Clique para alternar, clique com o botão direito para ações de movimento",
+    "settings": "Configurações do Plugin",
+    "switch": "Mudar para este espaço de trabalho",
+    "target": "Espaço de trabalho em foco",
+    "unavailable": "O Umbriel não está em execução, ou o comando umbriel não está no PATH.",
+    "width": "Largura",
+    "width_tooltip": "Definir largura para {percent}%",
+    "window_section": "Janela em foco",
+    "workspaces": "Espaços de Trabalho"
+  },
+  "settings": {
+    "display_mode": {
+      "description": "Escolher se a barra mostra o layout do espaço de trabalho em foco ou o submapa de atalhos ativo.",
+      "label": "Exibição da Barra",
+      "options": {
+        "layout": "Layout",
+        "submap": "Submapa"
+      }
+    },
+    "scroll_cycles_layout": {
+      "description": "Rolar sobre o widget para alternar entre scrolling, dwindle e master no espaço de trabalho em foco.",
+      "label": "Rolagem alterna o layout"
+    },
+    "show_layout_name": {
+      "description": "Exibir o layout ao lado do símbolo da barra em uma barra horizontal.",
+      "label": "Exibir nome do layout"
+    },
+    "show_workspace_name": {
+      "description": "Exibir o nome do espaço de trabalho em foco ao lado do símbolo da barra em uma barra horizontal.",
+      "label": "Exibir nome do espaço de trabalho"
+    }
+  },
+  "submap": {
+    "default": "Padrão"
+  },
+  "title": "Umbriel",
+  "tooltip": {
+    "layout": "Layout",
+    "submap": "Submapa",
+    "waiting": "Aguardando o fluxo de eventos do espaço de trabalho",
+    "waiting_submap": "Aguardando o fluxo de eventos do submapa",
+    "workspace": "Espaço de Trabalho"
+  }
+}

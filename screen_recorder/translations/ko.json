@@ -35,6 +35,23 @@
     },
     "copy_to_clipboard": {
       "label": "경로가 클립보드에 복사되었습니다"
+    },
+    "glyph_idle": {
+      "label": "글리프: 대기 중"
+    },
+    "glyph_pending": {
+      "description": "녹화 또는 리플레이 버퍼가 시작되는 동안 표시됩니다.",
+      "label": "글리프: 시작 중"
+    },
+    "glyph_recording": {
+      "label": "글리프 : 녹화 중"
+    },
+    "glyph_replaying": {
+      "label": "글리프: 리플레이 버퍼"
+    },
+    "glyph_unavailable": {
+      "description": "gpu-screen-recoder가 설치되지 않았을 때 표시됩니다.",
+      "label": "글리프: 사용할 수 없음"
     }
   }
 }

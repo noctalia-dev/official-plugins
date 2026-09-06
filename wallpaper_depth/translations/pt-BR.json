@@ -1,0 +1,68 @@
+{
+  "panel": {
+    "automatic": "Automático",
+    "clear_cache": "Apagar cache",
+    "description": "Gerar uma máscara de profundidade de primeiro plano para cada papel de parede para que os widgets da área de trabalho possam ficar atrás da paisagem próxima.",
+    "feather": "Suavização das bordas",
+    "generate": "Gerar máscaras",
+    "no_outputs": "Nenhuma saída conectada.",
+    "off": "Desligado",
+    "on": "Ligado",
+    "output": {
+      "cached": "profundidade do cache",
+      "error": "Falha na geração",
+      "no_wallpaper": "Nenhum papel de parede com imagem",
+      "processing": "Estimando profundidade",
+      "ready": "Máscara aplicada",
+      "ready_time": "Máscara aplicada em {seconds} s",
+      "waiting": "Aguardando para gerar"
+    },
+    "outputs": "Saídas",
+    "parameters": "Parâmetros da máscara",
+    "settings": "Configurações",
+    "setup": {
+      "checking": "Verificando modelo local",
+      "disclosure": "A configuração cria um ambiente Python privado e baixa o modelo Apache-2.0 Depth Anything V2 Small de 99 MB do Hugging Face. Nenhum papel de parede é enviado.",
+      "error": "A configuração falhou",
+      "install": "Instalar modelo",
+      "missing": "Configuração necessária",
+      "offline": "O modo offline do shell bloqueia os downloads da configuração.",
+      "prerequisites": "Instale os comandos necessários primeiro: {commands}.",
+      "ready": "Modelo pronto",
+      "retry": "Tentar configuração novamente",
+      "running": "Configurando modelo de profundidade"
+    },
+    "threshold": "Limiar do primeiro plano"
+  },
+  "service": {
+    "busy": "Aguarde a operação atual terminar",
+    "clear_cache_failed": "Não foi possível limpar o cache.",
+    "generation_failed": "A geração de profundidade falhou.",
+    "invalid_result": "O auxiliar de profundidade retornou um resultado inválido.",
+    "invalid_settings": "As configurações do plugin são inválidas.",
+    "offline": "Desative o modo offline do shell antes de configurar.",
+    "python_missing": "python3 não está instalado.",
+    "setup_failed": "A configuração falhou.",
+    "setup_missing": "O modelo e o ambiente de execução não estão instalados.",
+    "setup_running": "Instalando o ambiente de execução e baixando o modelo de 99 MB.",
+    "start_clear_cache_failed": "Não foi possível iniciar a limpeza do cache.",
+    "start_helper_failed": "Não foi possível iniciar o auxiliar de profundidade.",
+    "start_setup_failed": "Não foi possível iniciar a configuração.",
+    "start_validation_failed": "Não foi possível iniciar a validação da configuração.",
+    "validation_failed": "A validação da configuração falhou."
+  },
+  "settings": {
+    "auto_generate": {
+      "description": "Regenerar a máscara de saída quando seu papel de parede ou parâmetros da máscara mudarem.",
+      "label": "Gerar automaticamente"
+    },
+    "feather": {
+      "description": "Largura da transição suave ao redor do limiar de profundidade.",
+      "label": "Suavização das bordas"
+    },
+    "threshold": {
+      "description": "Profundidade normalizada acima da qual o papel de parede apaga os widgets da área de trabalho. Valores mais baixos colocam mais da paisagem em primeiro plano.",
+      "label": "Limiar do primeiro plano"
+    }
+  }
+}

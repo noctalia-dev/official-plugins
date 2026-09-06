@@ -1,0 +1,10 @@
+{
+  "settings": {
+    "show_layout_name": {
+      "description": "가로 바에서 바 글리프 옆에 레이아웃을 표시합니다."
+    },
+    "show_workspace_name": {
+      "description": ""
+    }
+  }
+}
