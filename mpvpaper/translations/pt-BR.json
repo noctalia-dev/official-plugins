@@ -10,8 +10,13 @@
       "label": "CPUs Permitidas"
     },
     "auto_pause": {
-      "description": "Pausar a reprodução enquanto uma janela em tela cheia cobrir o papel de parede (mpvpaper --auto-pause)",
-      "label": "Pausar Quando Coberto"
+      "description": "Pausar a reprodução enquanto uma janela cobrir o papel de parede (experimental: pode não funcionar em todos os compositores)",
+      "label": "Pausar Quando Coberto",
+      "options": {
+        "full": "Tela Cheia",
+        "max": "Maximizada",
+        "off": "Desligado"
+      }
     },
     "cpu_quota": {
       "label": "Cota de CPU"
@@ -52,6 +57,8 @@
       "label": "Diretório de Vídeos"
     }
   },
+  "slideshow": "Apresentação de Slides",
+  "slideshow_off": "Desligado",
   "stop": "Parar",
   "title": "Vídeo como Papel de Parede"
 }

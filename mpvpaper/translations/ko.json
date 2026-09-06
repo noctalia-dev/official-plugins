@@ -13,6 +13,9 @@
         "off": "꺼짐"
       }
     },
+    "glyph": {
+      "label": "글리프"
+    },
     "hardware_decode": {
       "label": "하드웨어 디코딩"
     },
