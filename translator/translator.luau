@@ -13,11 +13,14 @@ DEFAULT_TARGET = if type(DEFAULT_TARGET) == "string" and DEFAULT_TARGET ~= "" th
 -- through to Google as-is, so uncommon languages still work.
 local LANGUAGES = {
   ar = { "arabic", "arabe" },
+  bg = { "bulgarian", "bulgare" },
   cs = { "czech", "tcheque" },
+  da = { "danish", "danois" },
   de = { "german", "allemand", "deutsch" },
   el = { "greek", "grec" },
   en = { "english", "anglais" },
   es = { "spanish", "espagnol", "espanol" },
+  et = { "estonian", "estonien" },
   fa = { "persian", "farsi", "persan" },
   fi = { "finnish", "finnois" },
   fr = { "french", "francais" },
@@ -28,13 +31,18 @@ local LANGUAGES = {
   it = { "italian", "italien" },
   ja = { "japanese", "japonais" },
   ko = { "korean", "coreen" },
+  lt = { "lithuanian", "lituanien" },
+  lv = { "latvian", "letton" },
   nl = { "dutch", "neerlandais" },
   no = { "norwegian", "norvegien" },
   pl = { "polish", "polonais" },
   pt = { "portuguese", "portugais" },
   ro = { "romanian", "roumain" },
   ru = { "russian", "russe" },
+  sk = { "slovak", "slovaque" },
+  sl = { "slovenian", "slovène", "slovene" },
   sv = { "swedish", "suedois" },
+  th = { "thai", "thailandais" },
   tr = { "turkish", "turc" },
   uk = { "ukrainian", "ukrainien" },
   vi = { "vietnamese", "vietnamien" },
@@ -80,10 +88,21 @@ local function parseGoogle(body)
 end
 
 local function fetchGoogle(text, target, onDone)
-  local url = `https://translate.google.com/translate_a/single?client=gtx&sl=auto&tl={noctalia.string.urlEncode(target)}&dt=t&q={noctalia.string.urlEncode(text)}`
+  local url =
+    `https://translate.google.com/translate_a/single?client=gtx&sl=auto&tl={noctalia.string.urlEncode(target)}&dt=t&q={noctalia.string.urlEncode(
+      text
+    )}`
   noctalia.http({ url = url }, function(res)
-    if not res.ok then
-      onDone(nil, "Connection error - is the network up?")
+    if not res.ok or (res.status and res.status >= 400) then
+      local error_msg = "Translation error"
+
+      if res.status == 400 then
+        error_msg = "Invalid target language code"
+      elseif res.status == 429 then
+        error_msg = "Rate limit exceeded: Please slow down"
+      end
+
+      onDone(nil, error_msg)
       return
     end
     local translated = parseGoogle(res.body)
@@ -96,33 +115,51 @@ local function fetchGoogle(text, target, onDone)
 end
 
 local function fetchDeepL(text, target, onDone)
-  local key = noctalia.getConfig("deepl_api_key")
+  local api_key = noctalia.getConfig("deepl_api_key")
 
   -- validate API key
-  if type(key) ~= "string" or noctalia.string.trim(key) == "" then
+  if type(api_key) ~= "string" or noctalia.string.trim(api_key) == "" then
     onDone(nil, "DeepL API Key is not present")
     return
   end
 
   local url = "https://api.deepl.com/v2/translate"
-  if key:match(":fx$") then
+  if api_key:match(":fx$") then
     url = "https://api-free.deepl.com/v2/translate"
   end
 
   local headers = {
-    "Authorization: DeepL-Auth-Key " .. key,
+    "Authorization: DeepL-Auth-Key " .. api_key,
     "Content-Type: application/json",
   }
 
+  local target_lang = string.upper(target)
+
+  -- DeepL uses NB for Norwegian Bokmål, and doesn't support NO
+  if target_lang == "NO" then
+    target_lang = "NB"
+  end
+
   local body = noctalia.json.encode({
-    text = {text},
-    target_lang = string.upper(target)
-  }
-  )
+    text = { text },
+    target_lang = target_lang,
+  })
 
   noctalia.http({ method = "POST", url = url, headers = headers, body = body }, function(res)
-    if not res.ok then
-      onDone(nil, "DeepL connection error (check API key)")
+    if not res.ok or (res.status and res.status >= 400) then
+      local error_msg = "Translation error"
+
+      if res.status == 400 then
+        error_msg = "Invalid target language code"
+      elseif res.status == 403 then
+        error_msg = "Authorization failed: Invalid DeepL API key"
+      elseif res.status == 429 then
+        error_msg = "Rate limit exceeded: Please slow down"
+      elseif res.status == 456 then
+        error_msg = "Quota exceeded: DeepL limit reached"
+      end
+
+      onDone(nil, error_msg)
       return
     end
 
@@ -181,7 +218,13 @@ function onQuery(query)
     return
   end
 
-  local key = `{target}|{content}`
+  local provider = noctalia.getConfig("provider")
+  local fetchProvider = fetchGoogle
+  if provider == "deepl" then
+    fetchProvider = fetchDeepL
+  end
+
+  local key = `{provider}|{target}|{content}`
   local cached = cache[key]
   if cached then
     launcher.setResults(query, { resultRow(cached, target) })
@@ -191,11 +234,6 @@ function onQuery(query)
   launcher.setResults(query, { hintRow("Translating…", content, "loader") })
   if not pending[key] then
     pending[key] = true
-    local provider = noctalia.getConfig("provider")
-    local fetchProvider = fetchGoogle
-    if provider == "deepl" then
-      fetchProvider = fetchDeepL
-    end
     fetchProvider(content, target, function(translated, err)
       pending[key] = nil
       if translated then
