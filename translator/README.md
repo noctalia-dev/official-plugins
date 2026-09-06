@@ -30,7 +30,7 @@ clipboard.
 ## Requirements
 
 The provider uses Google Translate's public `translate_a/single` endpoint, so it
-requires network access to `translate.google.com`.
+requires network access to `translate.googleapis.com`.
 
 ## Settings
 
