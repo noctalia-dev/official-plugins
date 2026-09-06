@@ -1,6 +1,6 @@
 id = "noctalia/translator"
 name = "Translator"
-version = "1.0.5"
+version = "1.0.7"
 plugin_api = 3
 author = "noctalia"
 license = "MIT"
@@ -26,19 +26,22 @@ label_key = "settings.target_lang.label"
 description_key = "settings.target_lang.description"
 default = "en"
 
+
 [[setting]]
 key = "provider"
 type = "select"
-label_key = "Translation Service Provider"
+label_key = "settings.provider.label"
 default = "google"
 options = [
-  { value = "google", label_key = "Google Translate" },
-  { value = "deepl", label_key = "DeepL" },
+  { value = "google", label_key = "settings.provider.options.google" },
+  { value = "deepl", label_key = "settings.provider.options.deepl" },
 ]
+description_key = "settings.provider.description"
+
 
 [[setting]]
 key = "deepl_api_key"
 type = "string"
-label_key = "DeepL API Key"
-description_key = "Required only if DeepL is selected above"
+label_key = "settings.deepl_api_key.label"
+description_key = "settings.deepl_api_key.description"
 default = ""

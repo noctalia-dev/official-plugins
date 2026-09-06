@@ -1,8 +1,20 @@
 {
   "settings": {
     "target_lang": {
-      "description": "Language code used when no language is given (e.g. en, fr, es)",
-      "label": "Default Target Language"
+      "label": "Default Target Language",
+      "description": "Language code used when no language is given (e.g. en, fr, es)"
+    },
+    "provider" : {
+      "label": "Translation Service Provider",
+      "description" : "Select the translation service to use for fetching results",
+      "options" : {
+        "google" : "Google Translate",
+        "deepl" : "DeepL"
+      }
+    },
+    "deepl_api_key" : {
+      "label" : "DeepL API Key",
+      "description" : "Required only if DeepL is selected above"
     }
   }
 }
