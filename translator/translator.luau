@@ -95,6 +95,8 @@ local function fetchGoogle(text, target, onDone)
         errorMsg = "Invalid target language code"
       elseif res.status == 429 then
         errorMsg = "Rate limit exceeded: Please slow down"
+      elseif res.status >= 500 then
+        errorMsg = "Internal Server Error / Service Unavailable: Try again later"
       end
 
       onDone(nil, errorMsg)
@@ -152,6 +154,8 @@ local function fetchDeepL(text, target, onDone)
         errorMsg = "Rate limit exceeded: Please slow down"
       elseif res.status == 456 then
         errorMsg = "Quota exceeded: DeepL limit reached"
+      elseif res.status >= 500 then
+        errorMsg = "Internal Server Error / Service Unavailable: Try again later"
       end
 
       onDone(nil, errorMsg)
