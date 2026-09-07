@@ -62,13 +62,13 @@ tags = ["fun", "animation"]
 [[plugin]]
 id = "noctalia/translator"
 name = "Translator"
-version = "1.0.6"
-updated_at = 1788720750
+version = "1.0.7"
+updated_at = 1788807360
 added_at = 1781268478
 author = "noctalia"
 license = "MIT"
 icon = "language"
-description = "Translate text from the launcher via Google Translate."
+description = "Translate text from the launcher via Google Translate or DeepL."
 plugin_api = 3
 tags = ["language", "launcher"]
 
