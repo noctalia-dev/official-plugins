@@ -4,20 +4,20 @@
 -- Usage from the launcher: `/tr <lang> <text>` - e.g. `/tr es hello world`.
 -- If the first word is not a language, the whole query is translated to the
 -- configured default target. Press Enter on a result to copy it to the clipboard.
--- Translation uses Google Translate's public `translate_a/single` endpoint.
-
-local DEFAULT_TARGET = noctalia.getConfig("target_lang")
-DEFAULT_TARGET = if type(DEFAULT_TARGET) == "string" and DEFAULT_TARGET ~= "" then DEFAULT_TARGET else "en"
+-- Translation uses Google Translate's public `translate_a/single` endpoint or DeepL's `v2/translate` endpoint.
 
 -- Common language aliases → ISO code. Any other 2–3 letter token is passed
--- through to Google as-is, so uncommon languages still work.
+-- through to the provider as-is, so uncommon languages still work.
 local LANGUAGES = {
   ar = { "arabic", "arabe" },
+  bg = { "bulgarian", "bulgare" },
   cs = { "czech", "tcheque" },
+  da = { "danish", "danois" },
   de = { "german", "allemand", "deutsch" },
   el = { "greek", "grec" },
   en = { "english", "anglais" },
   es = { "spanish", "espagnol", "espanol" },
+  et = { "estonian", "estonien" },
   fa = { "persian", "farsi", "persan" },
   fi = { "finnish", "finnois" },
   fr = { "french", "francais" },
@@ -28,20 +28,26 @@ local LANGUAGES = {
   it = { "italian", "italien" },
   ja = { "japanese", "japonais" },
   ko = { "korean", "coreen" },
+  lt = { "lithuanian", "lituanien" },
+  lv = { "latvian", "letton" },
   nl = { "dutch", "neerlandais" },
   no = { "norwegian", "norvegien" },
   pl = { "polish", "polonais" },
   pt = { "portuguese", "portugais" },
   ro = { "romanian", "roumain" },
   ru = { "russian", "russe" },
+  sk = { "slovak", "slovaque" },
+  sl = { "slovenian", "slovène", "slovene" },
   sv = { "swedish", "suedois" },
+  th = { "thai", "thailandais" },
   tr = { "turkish", "turc" },
   uk = { "ukrainian", "ukrainien" },
   vi = { "vietnamese", "vietnamien" },
   zh = { "chinese", "chinois", "mandarin" },
 }
 
--- target|text -> translation; pending guards against duplicate in-flight fetches.
+-- provider|target|text -> { text, target, recoveredFrom }; pending guards against
+-- duplicate in-flight fetches.
 local cache = {}
 local pending = {}
 
@@ -79,11 +85,32 @@ local function parseGoogle(body)
   return table.concat(parts)
 end
 
+-- Returned when a provider rejects the target language; drives the retry in onQuery.
+local INVALID_TARGET = "Invalid target language code"
+
+-- Maps a failed response to a user-facing message. `extra` holds provider-specific codes.
+local function httpError(res, extra)
+  if not res.ok or res.status == 0 then
+    return "Connection error - is the network up?"
+  end
+  if extra and extra[res.status] then
+    return extra[res.status]
+  end
+  if res.status == 400 then
+    return INVALID_TARGET
+  elseif res.status == 429 then
+    return "Rate limit exceeded: Please slow down"
+  elseif res.status >= 500 then
+    return "Internal Server Error / Service Unavailable: Try again later"
+  end
+  return "Translation error"
+end
+
 local function fetchGoogle(text, target, onDone)
   local url = `https://translate.googleapis.com/translate_a/single?client=dict-chrome-ex&sl=auto&tl={noctalia.string.urlEncode(target)}&dt=t&q={noctalia.string.urlEncode(text)}`
   noctalia.http({ url = url }, function(res)
-    if not res.ok then
-      onDone(nil, "Connection error - is the network up?")
+    if not res.ok or res.status >= 400 then
+      onDone(nil, httpError(res))
       return
     end
     local translated = parseGoogle(res.body)
@@ -95,21 +122,80 @@ local function fetchGoogle(text, target, onDone)
   end)
 end
 
+local DEEPL_ERRORS = {
+  [403] = "Authorization failed: Invalid DeepL API key",
+  [456] = "Quota exceeded: DeepL limit reached",
+}
+
+local function fetchDeepL(text, target, onDone)
+  -- Trim: a pasted key often carries trailing whitespace, which would break both the
+  -- free-tier suffix test below and the Authorization header.
+  local configured = noctalia.getConfig("deepl_api_key")
+  local apiKey = if type(configured) == "string" then noctalia.string.trim(configured) else ""
+  if apiKey == "" then
+    onDone(nil, "DeepL API Key is not present")
+    return
+  end
+
+  -- Free-tier keys end in ":fx" and are only valid against the free endpoint.
+  local url = if apiKey:match(":fx$")
+    then "https://api-free.deepl.com/v2/translate"
+    else "https://api.deepl.com/v2/translate"
+
+  local headers = {
+    `Authorization: DeepL-Auth-Key {apiKey}`,
+    "Content-Type: application/json",
+  }
+
+  -- DeepL uses NB for Norwegian Bokmål and does not accept NO.
+  local targetLang = target:upper()
+  if targetLang == "NO" then
+    targetLang = "NB"
+  end
+
+  local body = noctalia.json.encode({
+    text = { text },
+    target_lang = targetLang,
+  })
+
+  noctalia.http({ method = "POST", url = url, headers = headers, body = body }, function(res)
+    if not res.ok or res.status >= 400 then
+      onDone(nil, httpError(res, DEEPL_ERRORS))
+      return
+    end
+
+    local decoded = noctalia.json.decode(res.body)
+    if type(decoded) == "table" and type(decoded.translations) == "table" and type(decoded.translations[1]) == "table" then
+      onDone(decoded.translations[1].text, nil)
+    else
+      onDone(nil, "Translation error")
+    end
+  end)
+end
+
 local function hintRow(title, subtitle, glyph)
   return { id = title, title = title, subtitle = subtitle, glyph = glyph }
 end
 
-local function resultRow(translated, target)
+-- `entry.recoveredFrom` is set when the leading token was rejected as a language and
+-- retranslated as part of the text, so the row never passes that off as a plain hit.
+local function resultRow(entry)
+  local subtitle = if entry.recoveredFrom
+    then `Translation ({entry.target}), "{entry.recoveredFrom}" treated as text - press Enter to copy`
+    else `Translation ({entry.target}) - press Enter to copy`
   return {
-    id = translated,
-    title = translated,
-    subtitle = `Translation ({target}) - press Enter to copy`,
+    id = entry.text,
+    title = entry.text,
+    subtitle = subtitle,
     glyph = "language",
     presentation = "detail",
   }
 end
 
 function onQuery(query)
+  local defaultTarget = noctalia.getConfig("target_lang")
+  defaultTarget = if type(defaultTarget) == "string" and defaultTarget ~= "" then defaultTarget else "en"
+
   local text = noctalia.string.trim(query)
   if text == "" then
     launcher.setResults(query, { hintRow("Translate text", "Type: <lang> <text> - e.g. es hello", "language") })
@@ -124,7 +210,7 @@ function onQuery(query)
       target = code
       content = rest
     else
-      target = DEFAULT_TARGET
+      target = defaultTarget
       content = text
     end
   else
@@ -132,7 +218,7 @@ function onQuery(query)
       launcher.setResults(query, { hintRow("Type text to translate", `Target language: {text}`, "language") })
       return
     end
-    target = DEFAULT_TARGET
+    target = defaultTarget
     content = text
   end
 
@@ -141,26 +227,59 @@ function onQuery(query)
     return
   end
 
-  local key = `{target}|{content}`
-  local cached = cache[key]
-  if cached then
-    launcher.setResults(query, { resultRow(cached, target) })
-    return
+  local provider = noctalia.getConfig("provider") or "google"
+  local fetchProvider = fetchGoogle
+  if provider == "deepl" then
+    fetchProvider = fetchDeepL
   end
 
-  launcher.setResults(query, { hintRow("Translating…", content, "loader") })
-  if not pending[key] then
-    pending[key] = true
-    fetchGoogle(content, target, function(translated, err)
-      pending[key] = nil
-      if translated then
-        cache[key] = translated
-        launcher.setResults(query, { resultRow(translated, target) })
-      else
-        launcher.setResults(query, { hintRow(err or "Translation error", content, "alert-triangle") })
+  -- recoveredFrom: the rejected leading token when this call is the retry.
+  -- aliasKey: cache slot of the rejected request, so an identical query skips it next time.
+  local function requestTranslation(reqTarget, reqContent, recoveredFrom, aliasKey)
+    local reqKey = `{provider}|{reqTarget}|{reqContent}`
+
+    local cached = cache[reqKey]
+    if cached then
+      launcher.setResults(query, { resultRow(cached) })
+      return
+    end
+
+    launcher.setResults(query, { hintRow("Translating…", reqContent, "loader") })
+
+    if pending[reqKey] then
+      return
+    end
+
+    pending[reqKey] = true
+
+    fetchProvider(reqContent, reqTarget, function(translated, err)
+      pending[reqKey] = nil
+
+      if not translated then
+        -- The target came from the leading token, and the provider rejected it: retry once
+        -- with the whole input against the default target. Skipped when the retry would
+        -- repeat the same request, and never chained.
+        local retryable = err == INVALID_TARGET
+          and recoveredFrom == nil
+          and (reqTarget ~= defaultTarget or reqContent ~= text)
+        if retryable then
+          requestTranslation(defaultTarget, text, first, reqKey)
+          return
+        end
+        launcher.setResults(query, { hintRow(err or "Translation error", reqContent, "alert-triangle") })
+        return
       end
+
+      local entry = { text = translated, target = reqTarget, recoveredFrom = recoveredFrom }
+      cache[reqKey] = entry
+      if aliasKey then
+        cache[aliasKey] = entry
+      end
+      launcher.setResults(query, { resultRow(entry) })
     end)
   end
+
+  requestTranslation(target, content)
 end
 
 function onActivate(id)
