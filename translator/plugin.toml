@@ -7,7 +7,7 @@ license = "MIT"
 dependencies = []
 tags = ["language", "launcher"]
 icon = "language"
-description = "Translate text from the launcher via Google Translate."
+description = "Translate text from the launcher via Google Translate or DeepL."
 
 
 [[launcher_provider]]
@@ -16,7 +16,7 @@ entry = "translator.luau"
 prefix = "tr"
 glyph = "language"
 include_in_global_search = false
-debounce_ms = 300                # wait for typing to settle before calling Google
+debounce_ms = 300  # wait for typing to settle before calling the provider
 
 
 [[setting]]
@@ -31,12 +31,12 @@ default = "en"
 key = "provider"
 type = "select"
 label_key = "settings.provider.label"
+description_key = "settings.provider.description"
 default = "google"
 options = [
   { value = "google", label_key = "settings.provider.options.google" },
   { value = "deepl", label_key = "settings.provider.options.deepl" },
 ]
-description_key = "settings.provider.description"
 
 
 [[setting]]
@@ -45,3 +45,4 @@ type = "string"
 label_key = "settings.deepl_api_key.label"
 description_key = "settings.deepl_api_key.description"
 default = ""
+visible_when = { key = "provider", values = ["deepl"] }

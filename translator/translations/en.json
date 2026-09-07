@@ -1,20 +1,20 @@
 {
   "settings": {
-    "target_lang": {
-      "label": "Default Target Language",
-      "description": "Language code used when no language is given (e.g. en, fr, es)"
+    "deepl_api_key": {
+      "description": "Required only if DeepL is selected above",
+      "label": "DeepL API Key"
     },
-    "provider" : {
+    "provider": {
+      "description": "Select the translation service to use for fetching results",
       "label": "Translation Service Provider",
-      "description" : "Select the translation service to use for fetching results",
-      "options" : {
-        "google" : "Google Translate",
-        "deepl" : "DeepL"
+      "options": {
+        "deepl": "DeepL",
+        "google": "Google Translate"
       }
     },
-    "deepl_api_key" : {
-      "label" : "DeepL API Key",
-      "description" : "Required only if DeepL is selected above"
+    "target_lang": {
+      "description": "Language code used when no language is given (e.g. en, fr, es)",
+      "label": "Default Target Language"
     }
   }
 }
