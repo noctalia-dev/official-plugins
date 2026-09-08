@@ -82,7 +82,14 @@ local function parseGoogle(body)
   if #parts == 0 then
     return nil
   end
-  return table.concat(parts)
+
+  -- auto detected source language
+  local source = nil
+  if type(decoded[3]) == "string" then
+    source = decoded[3]:lower()
+  end
+
+  return table.concat(parts), source
 end
 
 -- Returned when a provider rejects the target language; drives the retry in onQuery.
@@ -113,9 +120,9 @@ local function fetchGoogle(text, target, onDone)
       onDone(nil, httpError(res))
       return
     end
-    local translated = parseGoogle(res.body)
+    local translated, source = parseGoogle(res.body)
     if translated then
-      onDone(translated, nil)
+      onDone(translated, nil, source)
     else
       onDone(nil, "Translation error")
     end
@@ -165,8 +172,16 @@ local function fetchDeepL(text, target, onDone)
     end
 
     local decoded = noctalia.json.decode(res.body)
-    if type(decoded) == "table" and type(decoded.translations) == "table" and type(decoded.translations[1]) == "table" then
-      onDone(decoded.translations[1].text, nil)
+    if
+      type(decoded) == "table"
+      and type(decoded.translations) == "table"
+      and type(decoded.translations[1]) == "table"
+    then
+      local source = decoded.translations[1].detected_source_language
+      if type(source) == "string" then
+        source = source:lower()
+      end
+      onDone(decoded.translations[1].text, nil, source)
     else
       onDone(nil, "Translation error")
     end
@@ -180,9 +195,11 @@ end
 -- `entry.recoveredFrom` is set when the leading token was rejected as a language and
 -- retranslated as part of the text, so the row never passes that off as a plain hit.
 local function resultRow(entry)
+  local langPair = if entry.source then `{entry.source} → {entry.target}` else entry.target
+
   local subtitle = if entry.recoveredFrom
-    then `Translation ({entry.target}), "{entry.recoveredFrom}" treated as text - press Enter to copy`
-    else `Translation ({entry.target}) - press Enter to copy`
+    then `Translation ({langPair}), "{entry.recoveredFrom}" treated as text - press Enter to copy`
+    else `Translation ({langPair}) - press Enter to copy`
   return {
     id = entry.text,
     title = entry.text,
@@ -194,7 +211,7 @@ end
 
 function onQuery(query)
   local defaultTarget = noctalia.getConfig("target_lang")
-  defaultTarget = if type(defaultTarget) == "string" and defaultTarget ~= "" then defaultTarget else "en"
+  defaultTarget = if type(defaultTarget) == "string" and defaultTarget ~= "" then defaultTarget:lower() else "en"
 
   local text = noctalia.string.trim(query)
   if text == "" then
@@ -252,7 +269,7 @@ function onQuery(query)
 
     pending[reqKey] = true
 
-    fetchProvider(reqContent, reqTarget, function(translated, err)
+    fetchProvider(reqContent, reqTarget, function(translated, err, source)
       pending[reqKey] = nil
 
       if not translated then
@@ -270,7 +287,7 @@ function onQuery(query)
         return
       end
 
-      local entry = { text = translated, target = reqTarget, recoveredFrom = recoveredFrom }
+      local entry = { text = translated, target = reqTarget, source = source, recoveredFrom = recoveredFrom }
       cache[reqKey] = entry
       if aliasKey then
         cache[aliasKey] = entry
