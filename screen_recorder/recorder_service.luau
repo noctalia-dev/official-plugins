@@ -197,6 +197,11 @@ local function buildResolutionFlag()
     return if res ~= "original" then `-s {res}` else ""
 end
 
+-- "cpu" forces the software encoder (h264-only), anything else keeps hardware encoding.
+local function buildEncoderFlag()
+    return if cfg("video_encoder") == "cpu" then "-encoder cpu" else ""
+end
+
 -- Capture modes a caller may request. An IPC override outside this set is
 -- discarded so an arbitrary payload can never reach the gpu-screen-recorder
 -- command line.
@@ -264,14 +269,19 @@ local function buildRecordCommand(focusedOutputName, sourceOverride)
 
     local fps = cfg("frame_rate")
     local codec = cfg("video_codec")
+    if cfg("video_encoder") == "cpu" and codec ~= "h264" then
+        log(`cpu encoder forces h264 (configured {codec})`)
+        codec = "h264"
+    end
     local qp = scaledVideoQp(codec, cfg("video_qp"))
     local cursor = if cfg("show_cursor") then "yes" else "no"
     local cr = cfg("color_range")
     local restore = if cfg("restore_portal") then "-restore-portal-session yes" else ""
     local audioFlags = buildAudioFlags()
     local resFlag = buildResolutionFlag()
+    local encoderFlag = buildEncoderFlag()
 
-    local flags = `-w {source} -f {fps} -k {codec} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} {restore} -v no -o "{outputPath}"`
+    local flags = `-w {source} -f {fps} -k {codec} {encoderFlag} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} {restore} -v no -o "{outputPath}"`
 
     log(`starting recording: mode={selectedVideoSource(sourceOverride)} target={source} output={outputPath} flags=[{flags}]`)
 
@@ -291,14 +301,19 @@ local function buildReplayCommand(focusedOutputName, sourceOverride)
     local storage = cfg("replay_storage")
     local fps = cfg("frame_rate")
     local codec = cfg("video_codec")
+    if cfg("video_encoder") == "cpu" and codec ~= "h264" then
+        log(`cpu encoder forces h264 (configured {codec})`)
+        codec = "h264"
+    end
     local qp = scaledVideoQp(codec, cfg("video_qp"))
     local cursor = if cfg("show_cursor") then "yes" else "no"
     local cr = cfg("color_range")
     local restore = if cfg("restore_portal") then "-restore-portal-session yes" else ""
     local audioFlags = buildAudioFlags()
     local resFlag = buildResolutionFlag()
+    local encoderFlag = buildEncoderFlag()
 
-    local flags = `-w {source} -c mp4 -f {fps} -k {codec} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} -r {duration} -replay-storage {storage} {restore} -v no -o "{dir}"`
+    local flags = `-w {source} -c mp4 -f {fps} -k {codec} {encoderFlag} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} -r {duration} -replay-storage {storage} {restore} -v no -o "{dir}"`
 
     log(`starting replay buffer: mode={selectedVideoSource(sourceOverride)} target={source} dir={dir} flags=[{flags}]`)
 
