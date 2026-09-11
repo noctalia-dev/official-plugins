@@ -120,6 +120,14 @@
         "vp9": "VP9"
       }
     },
+    "video_encoder": {
+      "description": "CPU encoding only supports H264, GPU is hardware-accelerated",
+      "label": "Video Encoder",
+      "options": {
+        "gpu": "GPU",
+        "cpu": "CPU"
+      }
+    },
     "video_qp": {
       "description": "Lower values produce higher quality and larger files",
       "label": "Video Quality (QP)"
