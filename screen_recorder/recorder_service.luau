@@ -71,6 +71,15 @@ local function logGsrTail(reason)
     end
 end
 
+-- Portal target selection cancelled by user shouldn't be a failure.
+-- Exits silently to idle with no error popup and writes a "cancelled by the user" line to logFile.
+local function portalCaptureCancelled()
+    local contents = noctalia.readFile(logFile)
+    if contents == nil or contents == "" then return false end
+    return contents:find("canceled by the user", 1, true) ~= nil
+     or contents:find("cancelled by the user", 1, true) ~= nil
+end
+
 -- Publish the recorder's status so the widget and shortcut can mirror it.
 local function publishStatus()
     local key = `{state}/{if isAvailable then "1" else "0"}`
@@ -161,6 +170,10 @@ local function notifyRecordingSavedIfPresent(notifyIfMissing)
     noctalia.runAsync(`sleep 0.5; test -s {shellQuote(savedPath)}`, function(result)
         if result.exitCode ~= 0 then
             if notifyIfMissing then
+                if portalCaptureCancelled() then
+                    log("target selection cancelled by user, no output file, return to idle")
+                    return
+                end
                 logGsrTail("recording stopped early with no output file")
                 noctalia.notifyError(noctalia.tr("notify.recording-failed"), noctalia.tr("notify.recording-stopped-early"))
             end
@@ -195,6 +208,11 @@ end
 local function buildResolutionFlag()
     local res = cfg("resolution")
     return if res ~= "original" then `-s {res}` else ""
+end
+
+-- "cpu" forces the software encoder (h264-only), anything else keeps hardware encoding.
+local function buildEncoderFlag()
+    return if cfg("video_encoder") == "cpu" then "-encoder cpu" else ""
 end
 
 -- Capture modes a caller may request. An IPC override outside this set is
@@ -264,14 +282,19 @@ local function buildRecordCommand(focusedOutputName, sourceOverride)
 
     local fps = cfg("frame_rate")
     local codec = cfg("video_codec")
+    if cfg("video_encoder") == "cpu" and codec ~= "h264" then
+        log(`cpu encoder forces h264 (configured {codec})`)
+        codec = "h264"
+    end
     local qp = scaledVideoQp(codec, cfg("video_qp"))
     local cursor = if cfg("show_cursor") then "yes" else "no"
     local cr = cfg("color_range")
     local restore = if cfg("restore_portal") then "-restore-portal-session yes" else ""
     local audioFlags = buildAudioFlags()
     local resFlag = buildResolutionFlag()
+    local encoderFlag = buildEncoderFlag()
 
-    local flags = `-w {source} -f {fps} -k {codec} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} {restore} -v no -o "{outputPath}"`
+    local flags = `-w {source} -f {fps} -k {codec} {encoderFlag} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} {restore} -v no -o "{outputPath}"`
 
     log(`starting recording: mode={selectedVideoSource(sourceOverride)} target={source} output={outputPath} flags=[{flags}]`)
 
@@ -291,14 +314,19 @@ local function buildReplayCommand(focusedOutputName, sourceOverride)
     local storage = cfg("replay_storage")
     local fps = cfg("frame_rate")
     local codec = cfg("video_codec")
+    if cfg("video_encoder") == "cpu" and codec ~= "h264" then
+        log(`cpu encoder forces h264 (configured {codec})`)
+        codec = "h264"
+    end
     local qp = scaledVideoQp(codec, cfg("video_qp"))
     local cursor = if cfg("show_cursor") then "yes" else "no"
     local cr = cfg("color_range")
     local restore = if cfg("restore_portal") then "-restore-portal-session yes" else ""
     local audioFlags = buildAudioFlags()
     local resFlag = buildResolutionFlag()
+    local encoderFlag = buildEncoderFlag()
 
-    local flags = `-w {source} -c mp4 -f {fps} -k {codec} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} -r {duration} -replay-storage {storage} {restore} -v no -o "{dir}"`
+    local flags = `-w {source} -c mp4 -f {fps} -k {codec} {encoderFlag} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} -r {duration} -replay-storage {storage} {restore} -v no -o "{dir}"`
 
     log(`starting replay buffer: mode={selectedVideoSource(sourceOverride)} target={source} dir={dir} flags=[{flags}]`)
 
@@ -477,6 +505,9 @@ local function checkProcessState(processState)
             if processState == "recording" then
                 log("recording active")
                 setState("recording")
+            elseif portalCaptureCancelled() then
+                log("target selection cancelled by user")
+                setState("idle")
             else
                 log("recording never started (process not detected)")
                 logGsrTail("recording failed to start")
@@ -491,6 +522,9 @@ local function checkProcessState(processState)
                 log("replay buffer active")
                 setState("replaying")
                 noctalia.notify(noctalia.tr("notify.replay-active"))
+            elseif portalCaptureCancelled() then
+                log("target selection cancelled by user")
+                setState("idle")
             else
                 log("replay buffer never started (process not detected)")
                 logGsrTail("replay buffer failed to start")

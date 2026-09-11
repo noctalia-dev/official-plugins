@@ -54,6 +54,7 @@ Replay controls are available only when `replay_enabled` is true.
 | `filename_pattern` | `string` | `recording_%Y%m%d_%H%M%S` | Date-format filename pattern without extension. |
 | `frame_rate` | `int` | `60` | Capture frame rate from 1 to 240. |
 | `video_codec` | `select` | `h264` | Video codec: `h264`, `hevc`, `av1`, `vp8`, or `vp9`. |
+| `video_encoder` | `select` | `gpu` | Video encoder: `gpu` (hardware) or `cpu` (software, always H.264). |
 | `video_qp` | `int` | `25` | Constant quality level from 0–51; lower values produce higher quality and larger files. |
 | `resolution` | `string` | `original` | `original` or a size like `1920x1080`. |
 | `audio_source` | `select` | `default_output` | Audio source: output, input, both, or none. |
@@ -111,3 +112,5 @@ with a `screen_recorder:` prefix - watch it in the terminal running Noctalia or 
 `${XDG_STATE_HOME:-~/.local/state}/noctalia/screen_recorder/gpu-screen-recorder.log`
 (truncated per run); when a recording fails to start or ends early, the tail of that
 file is echoed into the Noctalia log so the underlying reason is visible.
+Cancelling the portal target selection dialog exits silently without any error
+notification popup, the cancellation is only written in the Noctalia log.
