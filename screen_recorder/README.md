@@ -112,3 +112,5 @@ with a `screen_recorder:` prefix - watch it in the terminal running Noctalia or 
 `${XDG_STATE_HOME:-~/.local/state}/noctalia/screen_recorder/gpu-screen-recorder.log`
 (truncated per run); when a recording fails to start or ends early, the tail of that
 file is echoed into the Noctalia log so the underlying reason is visible.
+Cancelling the portal target selection dialog exits silently without any error
+notification popup, the cancellation is only written in the Noctalia log.

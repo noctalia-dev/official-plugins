@@ -71,6 +71,14 @@ local function logGsrTail(reason)
     end
 end
 
+-- Portal target selection cancelled by user shouldn't be a failure.
+-- Exits silently to idle with no error popup and writes a "cancelled by the user" line to logFile.
+local function portalCaptureCancelled()
+    local contents = noctalia.readFile(logFile)
+    if contents == nil or contents == "" then return false end
+    return contents:find("cancelled by the user", 1, true) ~= nil
+end
+
 -- Publish the recorder's status so the widget and shortcut can mirror it.
 local function publishStatus()
     local key = `{state}/{if isAvailable then "1" else "0"}`
@@ -161,6 +169,10 @@ local function notifyRecordingSavedIfPresent(notifyIfMissing)
     noctalia.runAsync(`sleep 0.5; test -s {shellQuote(savedPath)}`, function(result)
         if result.exitCode ~= 0 then
             if notifyIfMissing then
+                if portalCaptureCancelled() then
+                    log("target selection cancelled by user, no output file, return to idle")
+                    return
+                end
                 logGsrTail("recording stopped early with no output file")
                 noctalia.notifyError(noctalia.tr("notify.recording-failed"), noctalia.tr("notify.recording-stopped-early"))
             end
@@ -492,6 +504,9 @@ local function checkProcessState(processState)
             if processState == "recording" then
                 log("recording active")
                 setState("recording")
+            elseif portalCaptureCancelled() then
+                log("target selection cancelled by user")
+                setState("idle")
             else
                 log("recording never started (process not detected)")
                 logGsrTail("recording failed to start")
@@ -506,6 +521,9 @@ local function checkProcessState(processState)
                 log("replay buffer active")
                 setState("replaying")
                 noctalia.notify(noctalia.tr("notify.replay-active"))
+            elseif portalCaptureCancelled() then
+                log("target selection cancelled by user")
+                setState("idle")
             else
                 log("replay buffer never started (process not detected)")
                 logGsrTail("replay buffer failed to start")
