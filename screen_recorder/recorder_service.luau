@@ -76,7 +76,8 @@ end
 local function portalCaptureCancelled()
     local contents = noctalia.readFile(logFile)
     if contents == nil or contents == "" then return false end
-    return contents:find("cancelled by the user", 1, true) ~= nil
+    return contents:find("canceled by the user", 1, true) ~= nil
+     or contents:find("cancelled by the user", 1, true) ~= nil
 end
 
 -- Publish the recorder's status so the widget and shortcut can mirror it.
