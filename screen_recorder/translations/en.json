@@ -54,6 +54,13 @@
     "frame_rate": {
       "label": "Frame Rate"
     },
+    "frame_rate_mode": {
+      "label": "Frame Rate Mode",
+      "options": {
+        "vfr": "Variable (VFR)",
+        "cfr": "Constant (CFR)"
+      }
+    },
     "glyph_idle": {
       "label": "Glyph: Idle"
     },

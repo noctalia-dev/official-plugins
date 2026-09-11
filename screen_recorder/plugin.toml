@@ -55,6 +55,16 @@ min = 1
 max = 240
 
 [[setting]]
+key = "frame_rate_mode"
+type = "select"
+label_key = "settings.frame_rate_mode.label"
+default = "vfr"
+options = [
+  { value = "vfr", label_key = "settings.frame_rate_mode.options.vfr" },
+  { value = "cfr", label_key = "settings.frame_rate_mode.options.cfr" },
+]
+
+[[setting]]
 key = "video_codec"
 type = "select"
 label_key = "settings.video_codec.label"
