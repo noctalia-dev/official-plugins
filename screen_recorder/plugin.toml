@@ -79,6 +79,17 @@ options = [
 ]
 
 [[setting]]
+key = "video_bitrate_mode"
+type = "select"
+label_key = "settings.video_bitrate_mode.label"
+default = "qp"
+options = [
+  { value = "qp", label_key = "settings.video_bitrate_mode.options.qp" },
+  { value = "vbr", label_key = "settings.video_bitrate_mode.options.vbr" },
+  { value = "cbr", label_key = "settings.video_bitrate_mode.options.cbr" },
+]
+
+[[setting]]
 key = "video_qp"
 type = "int"
 label_key = "settings.video_qp.label"
@@ -86,6 +97,28 @@ description_key = "settings.video_qp.description"
 default = 25
 min = 0
 max = 51
+visible_when = { key = "video_bitrate_mode", values = ["qp"] }
+
+[[setting]]
+key = "video_quality"
+type = "select"
+label_key = "settings.video_quality.label"
+default = "very_high"
+options = [
+  { value = "medium", label_key = "settings.video_quality.options.medium" },
+  { value = "high", label_key = "settings.video_quality.options.high" },
+  { value = "very_high", label_key = "settings.video_quality.options.very_high" },
+  { value = "ultra", label_key = "settings.video_quality.options.ultra" },
+]
+visible_when = { key = "video_bitrate_mode", values = ["vbr"] }
+
+[[setting]]
+key = "video_bitrate"
+type = "string"
+label_key = "settings.video_bitrate.label"
+description_key = "settings.video_bitrate.description"
+default = "20000"
+visible_when = { key = "video_bitrate_mode", values = ["cbr"] }
 
 [[setting]]
 key = "resolution"

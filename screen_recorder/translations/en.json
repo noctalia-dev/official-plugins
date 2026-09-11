@@ -110,6 +110,18 @@
     "show_cursor": {
       "label": "Show Cursor"
     },
+    "video_bitrate": {
+      "description": "Positive integer bitrate in kbps used for CBR mode",
+      "label": "Video Bitrate (kbps)"
+    },
+    "video_bitrate_mode": {
+      "label": "Bitrate Mode",
+      "options": {
+        "qp": "Constant Quality (QP)",
+        "vbr": "Variable Bitrate (VBR)",
+        "cbr": "Constant Bitrate (CBR)"
+      }
+    },
     "video_codec": {
       "label": "Video Codec",
       "options": {
@@ -131,6 +143,15 @@
     "video_qp": {
       "description": "Lower values produce higher quality and larger files",
       "label": "Video Quality (QP)"
+    },
+    "video_quality": {
+      "label": "Video Quality",
+      "options": {
+        "high": "High",
+        "medium": "Medium",
+        "ultra": "Ultra",
+        "very_high": "Very High"
+      }
     },
     "video_source": {
       "description": "GPU Screen Recorder capture mode; Focused records Noctalia's focused monitor",
