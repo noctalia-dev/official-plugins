@@ -30,8 +30,13 @@
         "both": "Output + Microphone",
         "default_input": "Microphone",
         "default_output": "System Output",
+        "custom": "Custom",
         "none": "No Audio"
       }
+    },
+    "custom_audio_sources": {
+      "description": "Comma-separated gpu-screen-recorder audio sources.",
+      "label": "Custom Audio Sources"
     },
     "color_range": {
       "label": "Color Range",
