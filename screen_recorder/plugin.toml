@@ -12,7 +12,7 @@
 
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.3.2"
+version = "1.3.4"
 plugin_api = 3
 author = "noctalia"
 license = "MIT"
@@ -103,8 +103,17 @@ options = [
   { value = "default_output", label_key = "settings.audio_source.options.default_output" },
   { value = "default_input", label_key = "settings.audio_source.options.default_input" },
   { value = "both", label_key = "settings.audio_source.options.both" },
+  { value = "custom", label_key = "settings.audio_source.options.custom" },
   { value = "none", label_key = "settings.audio_source.options.none" },
 ]
+
+[[setting]]
+key = "custom_audio_sources"
+type = "string"
+label_key = "settings.custom_audio_sources.label"
+description_key = "settings.custom_audio_sources.description"
+default = ""
+visible_when = { key = "audio_source", values = ["custom"] }
 
 [[setting]]
 key = "audio_codec"
@@ -125,7 +134,7 @@ description_key = "settings.audio_bitrate.description"
 default = 0
 min = 0
 max = 512
-visible_when = { key = "audio_source", values = ["default_output", "default_input", "both"] }
+visible_when = { key = "audio_source", values = ["default_output", "default_input", "both", "custom"] }
 
 [[setting]]
 key = "show_cursor"

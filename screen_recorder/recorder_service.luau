@@ -202,6 +202,21 @@ local function buildAudioFlags()
     if source == "both" then
         return `-ac {codec} {bitrateFlag} -a "default_output|default_input"`
     end
+
+    if source == "custom" then
+        local sources = cfg("custom_audio_sources")
+        if sources == "" then return "" end
+
+        local flags = {}
+        for src in sources:gmatch("([^,]+)") do
+            src = noctalia.string.trim(src)
+            table.insert(flags, `-a {shellQuote(src)}`)
+        end
+
+        if #flags == 0 then return "" end
+        return `-ac {codec} {bitrateFlag} {table.concat(flags, " ")}`
+    end
+
     return `-ac {codec} {bitrateFlag} -a {source}`
 end
 
