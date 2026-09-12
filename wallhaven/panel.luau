@@ -40,6 +40,8 @@ local resolutionWidth = ""
 local resolutionHeight = ""
 local aspectRatioIndex = 0
 local clearCounter = 0
+local pageInputCounter = 0
+local pageEditing = false
 
 local thumbPaths = {} -- id -> cache file path
 local thumbPending = {} -- id -> true while downloading
@@ -499,22 +501,22 @@ fetchWallpapers = function()
     `sorting={sortValue()}`,
     `order={sortOrder}`,
   }
-  
+
   local trimmed = noctalia.string.trim(query)
   if trimmed ~= "" then
     table.insert(params, `q={noctalia.string.urlEncode(trimmed)}`)
   end
-  
+
   local resolutionParamName, resolutionValue = buildResolutionParam()
   if resolutionParamName ~= nil and resolutionValue ~= nil then
     table.insert(params, `{resolutionParamName}={resolutionValue}`)
   end
-  
+
   local aspectRatio = aspectRatioParamValue()
   if aspectRatio ~= nil then
     table.insert(params, `ratios={aspectRatio}`)
   end
-  
+
   local url = API_BASE .. "/search?" .. table.concat(params, "&")
 
   noctalia.http({ url = url, headers = httpHeaders() }, function(res)
@@ -537,10 +539,10 @@ fetchWallpapers = function()
     local filteredWallpapers = {}
     local options = aspectRatioOptions()
     local selectedRatio = options[aspectRatioIndex + 1] or ""
-    
+
     for _, wallpaper in ipairs(data) do
       local include = true
-      
+
       -- Client-side aspect ratio check since API's ratio filter is often inaccurate
       if selectedRatio ~= "" then
         local res = wallpaper.resolution
@@ -551,7 +553,7 @@ fetchWallpapers = function()
             local ratio = w / h
             local isWide = ratio > 1
             local isPortrait = ratio < 1
-            
+
             if selectedRatio == "wide" and not isWide then
               include = false
             elseif selectedRatio == "portrait" and not isPortrait then
@@ -568,7 +570,7 @@ fetchWallpapers = function()
           end
         end
       end
-      
+
       if include then
         table.insert(filteredWallpapers, wallpaper)
       end
@@ -686,7 +688,7 @@ end
 
 render = function()
   normalizePurityFilters()
-  local pageLabel = if applying then tr("applying") else `Page {page} / {totalPages}`
+  local pageLabel = if applying then tr("applying") else `Page {page}`
   panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, {
     ui.row({ align = "center", justify = "space_between", gap = 8 }, {
       ui.label({ text = tr("title"), fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
@@ -720,7 +722,24 @@ render = function()
           onClick = "onPrevPage",
           enabled = not loading and page > 1,
         }),
-        ui.label({ text = pageLabel, color = "on_surface_variant" }),
+        (if pageEditing then
+            ui.input({
+                key = `page_jump_{pageInputCounter}`,
+                placeholder = tostring(page),
+                width = 72,
+                focus = true,
+                onSubmit = "onPageEditSubmit",
+            })
+        else
+            ui.button({
+                key = "page_label",
+                text = pageLabel,
+                variant = "ghost",
+                tooltip = tr("page_jump_tooltip"),
+                onClick = "onPageLabelClicked",
+                enabled = not loading and not applying,
+            })),
+        ui.label({ text = if applying then "" else `/ {totalPages}`, color = "on_surface_variant" }),
         ui.button({
           key = "next_page",
           glyph = "chevron-right",
@@ -875,6 +894,31 @@ function onNextPage()
     page += 1
     fetchWallpapers()
   end
+end
+
+function onPageLabelClicked()
+  pageEditing = true
+  pageInputCounter += 1
+  render()
+end
+
+function onPageEditSubmit(value)
+  pageEditing = false
+  pageInputCounter += 1
+  if not loading then
+    local target = parsePositiveInt(noctalia.string.trim(value))
+    if target ~= nil then
+      if target > totalPages then
+        target = totalPages
+      end
+      if target ~= page then
+        page = target
+        fetchWallpapers()
+        return
+      end
+    end
+  end
+  render()
 end
 
 function onCloseClicked()
