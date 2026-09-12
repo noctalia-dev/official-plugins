@@ -40,6 +40,28 @@ local function scaledVideoQp(codec, qp)
     return qp * (if codec == "vp8" then 2 elseif codec == "av1" or codec == "vp9" then 4 else 1)
 end
 
+local function buildVideoBitrateFlags(codec)
+    local mode = cfg("video_bitrate_mode")
+    if mode == "qp" then
+        local qp = scaledVideoQp(codec, cfg("video_qp"))
+        return `-bm qp -ffmpeg-video-opts qp={qp}`
+    end
+
+    if mode == "vbr" then
+        return `-bm vbr -q {cfg("video_quality")}`
+    end
+
+    if mode == "cbr" then
+        local bitrate = tonumber(cfg("video_bitrate"))
+        if not bitrate or bitrate <= 0 or bitrate ~= math.floor(bitrate) then
+            log(`invalid video bitrate: {cfg("video_bitrate")}`)
+            return nil
+        end
+        return `-bm cbr -q {bitrate}`
+    end
+    return ""
+end
+
 -- Where gpu-screen-recorder's own stdout/stderr is captured so its failure reason
 -- can be echoed back through noctalia.log (the process is detached, so this file is
 -- the only way to see why it never started or died early).
@@ -286,7 +308,10 @@ local function buildRecordCommand(focusedOutputName, sourceOverride)
         log(`cpu encoder forces h264 (configured {codec})`)
         codec = "h264"
     end
-    local qp = scaledVideoQp(codec, cfg("video_qp"))
+
+    local bitrateFlags = buildVideoBitrateFlags(codec)
+    if bitrateFlags == nil then return nil end
+
     local cursor = if cfg("show_cursor") then "yes" else "no"
     local cr = cfg("color_range")
     local restore = if cfg("restore_portal") then "-restore-portal-session yes" else ""
@@ -294,7 +319,7 @@ local function buildRecordCommand(focusedOutputName, sourceOverride)
     local resFlag = buildResolutionFlag()
     local encoderFlag = buildEncoderFlag()
 
-    local flags = `-w {source} -f {fps} -k {codec} {encoderFlag} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} {restore} -v no -o "{outputPath}"`
+    local flags = `-w {source} -f {fps} -k {codec} {encoderFlag} {audioFlags} {bitrateFlags} -cursor {cursor} -cr {cr} {resFlag} {restore} -v no -o "{outputPath}"`
 
     log(`starting recording: mode={selectedVideoSource(sourceOverride)} target={source} output={outputPath} flags=[{flags}]`)
 
@@ -318,7 +343,10 @@ local function buildReplayCommand(focusedOutputName, sourceOverride)
         log(`cpu encoder forces h264 (configured {codec})`)
         codec = "h264"
     end
-    local qp = scaledVideoQp(codec, cfg("video_qp"))
+
+    local bitrateFlags = buildVideoBitrateFlags(codec)
+    if bitrateFlags == nil then return nil end
+
     local cursor = if cfg("show_cursor") then "yes" else "no"
     local cr = cfg("color_range")
     local restore = if cfg("restore_portal") then "-restore-portal-session yes" else ""
@@ -326,7 +354,7 @@ local function buildReplayCommand(focusedOutputName, sourceOverride)
     local resFlag = buildResolutionFlag()
     local encoderFlag = buildEncoderFlag()
 
-    local flags = `-w {source} -c mp4 -f {fps} -k {codec} {encoderFlag} {audioFlags} -bm qp -ffmpeg-video-opts qp={qp} -cursor {cursor} -cr {cr} {resFlag} -r {duration} -replay-storage {storage} {restore} -v no -o "{dir}"`
+    local flags = `-w {source} -c mp4 -f {fps} -k {codec} {encoderFlag} {audioFlags} {bitrateFlags} -cursor {cursor} -cr {cr} {resFlag} -r {duration} -replay-storage {storage} {restore} -v no -o "{dir}"`
 
     log(`starting replay buffer: mode={selectedVideoSource(sourceOverride)} target={source} dir={dir} flags=[{flags}]`)
 
