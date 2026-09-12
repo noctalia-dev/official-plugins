@@ -18,7 +18,7 @@ Browse [Wallhaven](https://wallhaven.cc), download a wallpaper into your Noctali
    noctalia msg panel-toggle noctalia/wallhaven:browser
    ```
 
-3. Search by tags, adjust category and purity filters, paginate results, then click a wallpaper to download and apply.
+3. Search by tags, adjust category and purity filters, paginate results (or click the page counter, type a page number, and press Enter), then click a wallpaper to download and apply.
 
 ## Settings
 
