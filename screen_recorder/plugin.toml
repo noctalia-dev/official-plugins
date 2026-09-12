@@ -12,7 +12,7 @@
 
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.3.2"
+version = "1.3.6"
 plugin_api = 3
 author = "noctalia"
 license = "MIT"
@@ -148,6 +148,13 @@ key = "copy_to_clipboard"
 type = "bool"
 label_key = "settings.copy_to_clipboard.label"
 default = false
+
+[[setting]]
+key = "post_save_script"
+type = "file"
+label_key = "settings.post_save_script.label"
+description_key = "settings.post_save_script.description"
+default = ""
 
 [[setting]]
 key = "hide_inactive"
