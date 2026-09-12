@@ -74,6 +74,10 @@
     "hide_inactive": {
       "label": "Hide Widget When Idle"
     },
+    "post_save_script": {
+      "description": "Script to run after a recording or replay is saved.",
+      "label": "Post-save Script"
+    },
     "quality": {
       "label": "Quality",
       "options": {
