@@ -2,8 +2,8 @@
 
 id = "noctalia/bitwarden"
 name = "Bitwarden"
-version = "1.0.1"
-plugin_api = 8
+version = "1.0.2"
+plugin_api = 10
 author = "noctalia"
 license = "MIT"
 dependencies = ["bitwarden-cli"]
@@ -175,6 +175,7 @@ width = 300
 height = 148
 placement = "floating"
 position = "center"
+keyboard_focus = "exclusive"
 dismiss_on_outside_click = false
 
 [[panel]]
