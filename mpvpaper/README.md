@@ -61,6 +61,7 @@ You can control the video wallpaper externally via Noctalia's IPC mechanism. Rep
 - `noctalia msg plugin noctalia/mpvpaper:service all toggle [connector]` - Toggles playback between paused and resumed state.
 - `noctalia msg plugin noctalia/mpvpaper:service all clear <connector>` - Stops the wallpaper on the specified monitor and extracts a frame as a static wallpaper (when enabled).
 - `noctalia msg plugin noctalia/mpvpaper:service all clear-all` - Stops all active video wallpapers.
+- `noctalia msg plugin noctalia/mpvpaper:service all reapply` - Re-applies the last applied wallpaper, relaunching mpvpaper. Made for lock/unlock hooks: clear-all on lock, reapply on unlock.
 - `noctalia msg plugin noctalia/mpvpaper:service all slideshow <minutes>` - Changes the slideshow interval to the value in minutes
 
 ## Settings
