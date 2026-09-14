@@ -309,9 +309,9 @@ local function buildSlideshowPlaylist(connector, selectedPath)
 
   local startIdx = 1
   for i, f in ipairs(files) do
-    if f == selectedPath then 
+    if f == selectedPath then
       startIdx = i
-      break 
+      break
     end
   end
   local ordered = {}
@@ -660,9 +660,11 @@ function onIpc(event, payload)
       return
     end
     -- Nothing currently assigned (e.g. a lock hook ran clear-all): restore the
-    -- last applied set. Aliasing is safe: every clear path re-snapshots first.
+    -- last applied set. Copy, never alias — `assignments` is mutated in place
+    -- elsewhere (picker apply, slideshow tick) and must not corrupt the snapshot.
     if next(assignments) == nil then
-      assignments = lastAssignments
+      assignments = {}
+      for k, v in pairs(lastAssignments) do assignments[k] = v end
       persist()
     end
     applyAll()
