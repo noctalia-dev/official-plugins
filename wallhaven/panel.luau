@@ -723,22 +723,22 @@ render = function()
           enabled = not loading and page > 1,
         }),
         (if pageEditing then
-            ui.input({
-                key = `page_jump_{pageInputCounter}`,
-                placeholder = tostring(page),
-                width = 72,
-                focus = true,
-                onSubmit = "onPageEditSubmit",
-            })
+          ui.input({
+            key = `page_jump_{pageInputCounter}`,
+            placeholder = tostring(page),
+            width = 72,
+            focus = true,
+            onSubmit = "onPageEditSubmit",
+          })
         else
-            ui.button({
-                key = "page_label",
-                text = pageLabel,
-                variant = "ghost",
-                tooltip = tr("page_jump_tooltip"),
-                onClick = "onPageLabelClicked",
-                enabled = not loading and not applying,
-            })),
+          ui.button({
+            key = "page_label",
+            text = pageLabel,
+            variant = "ghost",
+            tooltip = tr("page_jump_tooltip"),
+            onClick = "onPageLabelClicked",
+            enabled = not loading and not applying,
+          })),
         ui.label({ text = if applying then "" else `/ {totalPages}`, color = "on_surface_variant" }),
         ui.button({
           key = "next_page",
