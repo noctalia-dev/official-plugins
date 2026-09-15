@@ -1,6 +1,8 @@
 --!nonstrict
 -- World Clock panel - list of configured timezones with live times.
 -- Add IANA zones (e.g. Europe/Berlin); remove with trash; reorder via drag grip.
+-- Rename with the pencil (empty label = derived short name); the eye shows or
+-- hides a zone in the bar.
 
 local DRAG_TYPE = "world-clock-zone"
 
@@ -8,6 +10,9 @@ local zones = {}
 local draft = ""
 local draftKey = 0
 local pendingDelete = nil
+local editingLabel = nil
+local labelDraft = ""
+local labelKey = 0
 
 local function insertionZone(index)
   return ui.dropZone({
@@ -51,6 +56,7 @@ local function render()
     for i, row in ipairs(zones) do
       local id = row.id
       local deleting = pendingDelete == id
+      local editing = editingLabel == id
       local actions
       if deleting then
         actions = ui.row({ gap = 4, align = "center" }, {
@@ -71,14 +77,72 @@ local function render()
             end,
           }),
         })
+      elseif editing then
+        actions = ui.row({ gap = 4, align = "center" }, {
+          ui.button({
+            glyph = "check",
+            variant = "primary",
+            onClick = "onLabelSubmit",
+          }),
+          ui.button({
+            glyph = "close",
+            variant = "ghost",
+            onClick = function()
+              editingLabel = nil
+              render()
+            end,
+          }),
+        })
       else
-        actions = ui.button({
-          glyph = "trash",
-          variant = "ghost",
-          onClick = function()
-            pendingDelete = id
-            render()
+        actions = ui.row({ gap = 2, align = "center" }, {
+          ui.button({
+            glyph = row.on_bar ~= false and "eye" or "eye-off",
+            variant = "ghost",
+            onClick = function()
+              noctalia.state.set("world_clock.cmd", { op = "bar", zone = id, on_bar = row.on_bar == false })
+              render()
+            end,
+          }),
+          ui.button({
+            glyph = "pencil",
+            variant = "ghost",
+            onClick = function()
+              editingLabel = id
+              labelDraft = row.label or ""
+              labelKey += 1
+              pendingDelete = nil
+              render()
+            end,
+          }),
+          ui.button({
+            glyph = "trash",
+            variant = "ghost",
+            onClick = function()
+              pendingDelete = id
+              editingLabel = nil
+              render()
+            end,
+          }),
+        })
+      end
+
+      local nameColumn
+      if editing then
+        nameColumn = ui.input({
+          key = "label-" .. labelKey,
+          value = labelDraft,
+          placeholder = noctalia.tr("ui.label_placeholder"),
+          flexGrow = 1,
+          focus = true,
+          onChange = function(value)
+              labelDraft = value
           end,
+          onSubmit = "onLabelSubmit",
+        })
+      else
+        nameColumn = ui.column({ flexGrow = 1, gap = 1 }, {
+          ui.label({ text = row.label or id, fontWeight = "bold", fontSize = 13 }),
+          ui.label({ text = id, color = "on_surface_variant", fontSize = 10 }),
         })
       end
 
@@ -93,6 +157,7 @@ local function render()
           paddingH = 6,
           fill = "surface_variant/0.35",
           radius = 6,
+          opacity = row.on_bar ~= false and 1 or 0.55,
         }, {
           ui.dragSource({
             key = "grip-" .. id,
@@ -108,10 +173,7 @@ local function render()
           }, {
             ui.glyph({ name = "menu-2", size = 14, color = "on_surface_variant" }),
           }),
-          ui.column({ flexGrow = 1, gap = 1 }, {
-            ui.label({ text = row.label or id, fontWeight = "bold", fontSize = 13 }),
-            ui.label({ text = id, color = "on_surface_variant", fontSize = 10 }),
-          }),
+          nameColumn,
           ui.column({ align = "end", gap = 1 }, {
             ui.label({ text = row.time or "", fontWeight = "bold", fontSize = 15, color = "primary" }),
             ui.label({ text = row.offset or "", color = "on_surface_variant", fontSize = 10 }),
@@ -156,15 +218,27 @@ function onAdd()
   draft = ""
   draftKey += 1
   pendingDelete = nil
+  editingLabel = nil
   if zone ~= "" then
     noctalia.state.set("world_clock.cmd", { op = "add", zone = zone })
   end
   render()
 end
 
+function onLabelSubmit()
+    local id = editingLabel
+    if id == nil then
+      return
+    end
+    editingLabel = nil
+    noctalia.state.set("world_clock.cmd", { op = "label", zone = id, label = labelDraft })
+    render()
+end
+
 function onOpen(_context)
   zones = noctalia.state.get("world_clock.zones") or {}
   pendingDelete = nil
+  editingLabel = nil
   draft = ""
   draftKey += 1
   panel.setWantsSecondTicks(true)
@@ -177,17 +251,11 @@ noctalia.state.watch("world_clock.zones", function(value)
   else
     zones = {}
   end
-  if pendingDelete ~= nil then
-    local stillThere = false
-    for _, row in ipairs(zones) do
-      if row.id == pendingDelete then
-        stillThere = true
-        break
-      end
-    end
-    if not stillThere then
-      pendingDelete = nil
-    end
+  if pendingDelete ~= nil and zoneRow(pendingDelete) == nil then
+    pendingDelete = nil
+  end
+  if editingLabel ~= nil and zoneRow(editingLabel) == nil then
+    editingLabel = nil
   end
   render()
 end)

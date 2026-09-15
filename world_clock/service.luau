@@ -1,16 +1,19 @@
 --!nonstrict
 -- World Clock service - owns the timezone list and publishes live times.
 --
--- Persistence: pluginDataDir()/zones.json (ordered IANA zone names).
--- State: world_clock.zones = { { id, label, time, offset }, ... }
--- Commands: world_clock.cmd = { op = "add"|"remove"|"reorder", zone = "...", index? = N }
+-- Persistence: pluginDataDir()/zones.json = array of
+-- { id = "<IANA>", label = "<custom or empty>", on_bar = true|false }
+-- Legacy files (plain IANA strings) load as label = "", on_bar = true.
+-- State: world_clock.zones = { { id, label, time, offset, on_bar }, ... }
+-- Commands: world_clock.cmd = { op = "add"|"remove"|"reorder"|"label"|"bar",
+-- zone = "...", index? = N, label? = "...", on_bar? = bool }
 -- IPC: add / remove / list / clear
 
 noctalia.setUpdateInterval(1000)
 
 local DEFAULT_ZONES = { "UTC", "America/New_York", "Europe/Berlin", "Asia/Tokyo" }
 
-local zones = {} -- ordered list of IANA ids
+local zones = {} -- ordered list of { id, label, on_bar }
 
 local function dataPath()
   local dir = noctalia.pluginDataDir()
@@ -26,6 +29,16 @@ local function shortLabel(zone)
     return slash:gsub("_", " ")
   end
   return zone
+end
+
+-- A stored zone: id is the IANA name, label is the user's custom label
+-- ("" = derive the short name from the id), on_bar gates the bar widget.
+local function makeZone(id, label, onBar)
+  return {
+    id = id,
+    label = noctalia.string.trim(label or ""),
+    on_bar = onBar ~= false,
+  }
 end
 
 local function saveZones()
@@ -48,9 +61,20 @@ local function loadZones()
     if raw ~= nil then
       local decoded = noctalia.json.decode(raw)
       if type(decoded) == "table" then
-        for _, zone in ipairs(decoded) do
-          if type(zone) == "string" and zone ~= "" and noctalia.isValidTimezone(zone) then
-            table.insert(zones, zone)
+        for _, entry in ipairs(decoded) do
+          local id, label, onBar
+          if type(entry) == "string" then
+            -- Legacy zones.json: plain IANA strings.
+            id, label = entry, ""
+          elseif type(entry) == "table" and type(entry.id) == "string" then
+            id = entry.id
+            if type(entry.label) == "string" then
+              label = entry.label
+            end
+            onBar = entry.on_bar
+          end
+          if id ~= nil and id ~= "" and noctalia.isValidTimezone(id) then
+            table.insert(zones, makeZone(id, label, onBar))
           end
         end
       end
@@ -59,7 +83,7 @@ local function loadZones()
   if #zones == 0 then
     for _, zone in ipairs(DEFAULT_ZONES) do
       if noctalia.isValidTimezone(zone) then
-        table.insert(zones, zone)
+        table.insert(zones, makeZone(zone))
       end
     end
     saveZones()
@@ -67,8 +91,9 @@ local function loadZones()
 end
 
 local function indexOf(zone)
-  for i, id in ipairs(zones) do
-    if id == zone then
+  zone = noctalia.string.trim(zone or "")
+  for i, row in ipairs(zones) do
+    if row.id == zone then
       return i
     end
   end
@@ -80,10 +105,11 @@ local function publish()
   local format = noctalia.timeFormat()
   for _, zone in ipairs(zones) do
     table.insert(rows, {
-      id = zone,
-      label = shortLabel(zone),
-      time = noctalia.formatTime(format, nil, zone),
-      offset = noctalia.formatTime("%z", nil, zone),
+      id = zone.id,
+      label = zone.label ~= "" and zone.label or shortLabel(zone.id),
+      time = noctalia.formatTime(format, nil, zone.id),
+      offset = noctalia.formatTime("%z", nil, zone.id),
+      on_bar = zone.on_bar ~= false,
     })
   end
   noctalia.state.set("world_clock.zones", rows)
@@ -100,14 +126,13 @@ local function addZone(zone)
   if indexOf(zone) ~= nil then
     return false, "duplicate"
   end
-  table.insert(zones, zone)
+  table.insert(zones, makeZone(zone))
   saveZones()
   publish()
   return true
 end
 
 local function removeZone(zone)
-  zone = noctalia.string.trim(zone or "")
   local idx = indexOf(zone)
   if idx == nil then
     return false
@@ -126,7 +151,6 @@ end
 
 -- Move `zone` so it ends up at 1-based `index` in the final list.
 local function reorderZone(zone, index)
-  zone = noctalia.string.trim(zone or "")
   local fromIdx = indexOf(zone)
   if fromIdx == nil then
     return false
@@ -135,12 +159,34 @@ local function reorderZone(zone, index)
   if insertAt == nil then
     return false
   end
-  table.remove(zones, fromIdx)
+  local row = table.remove(zones, fromIdx)
   if fromIdx < insertAt then
     insertAt -= 1
   end
   insertAt = math.max(1, math.min(insertAt, #zones + 1))
-  table.insert(zones, insertAt, zone)
+  table.insert(zones, insertAt, row)
+  saveZones()
+  publish()
+  return true
+end
+
+local function setLabel(zone, label)
+  local idx = indexOf(zone)
+  if idx == nil then
+    return false
+  end
+  zones[idx].label = noctalia.string.trim(label or "")
+  saveZones()
+  publish()
+  return true
+end
+
+local function setOnBar(zone, onBar)
+  local idx = indexOf(zone)
+  if idx == nil then
+    return false
+  end
+  zones[idx].on_bar = onBar ~= false
   saveZones()
   publish()
   return true
@@ -163,7 +209,11 @@ function onIpc(event, payload)
   elseif event == "clear" then
     clearZones()
   elseif event == "list" then
-    local body = table.concat(zones, "\n")
+    local ids = {}
+    for _, zone in ipairs(zones) do
+      table.insert(ids, zone.id)
+    end
+    local body = table.concat(ids, "\n")
     if body == "" then
       body = noctalia.tr("ipc.empty_list")
     end
@@ -188,6 +238,10 @@ noctalia.state.watch("world_clock.cmd", function(cmd)
     removeZone(zone)
   elseif op == "reorder" then
     reorderZone(zone, cmd.index)
+  elseif op == "label" then
+    setLabel(zone, cmd.label)
+  elseif op == "bar" then
+    setOnBar(zone, cmd.on_bar)
   end
   noctalia.state.set("world_clock.cmd", nil)
 end)
