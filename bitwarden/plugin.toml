@@ -2,8 +2,8 @@
 
 id = "noctalia/bitwarden"
 name = "Bitwarden"
-version = "1.0.2"
-plugin_api = 10
+version = "1.1.0"
+plugin_api = 17
 author = "noctalia"
 license = "MIT"
 dependencies = ["bitwarden-cli"]

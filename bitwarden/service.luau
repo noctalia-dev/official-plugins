@@ -299,11 +299,12 @@ local function stopServe(onDone)
     `pkill -f 'bw serve' >/dev/null 2>&1 || true`,
   }, "; ")
   log(`stopping serve (port {port})`)
-  noctalia.runAsync(cmd, function()
-    if onDone ~= nil then
-      onDone()
-    end
-  end, 5000)
+  if onDone == nil then
+    -- teardown path: detached, so the kill is not tied to this runtime
+    noctalia.runAsync(cmd)
+    return
+  end
+  noctalia.runAsync(cmd, onDone, 5000)
 end
 
 local function restartServe(onDone)
@@ -908,7 +909,11 @@ function update()
   end
 end
 
-function onExit(_signal)
+function onExit(_signal, reason)
+  -- stop serve, the lock below still runs for on_restart as a fallback
+  if reason == "disable" or reason == "uninstall" then
+    stopServe()
+  end
   -- detached lock only for on_restart; awaiting HTTP on teardown can stall the host
   if vaultTimeoutMode() == "on_restart" and status.vault == "unlocked" then
     local port = servePort()
