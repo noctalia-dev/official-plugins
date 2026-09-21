@@ -38,10 +38,10 @@ is on `PATH`. Distro package names vary (`bitwarden-cli`, `bw`, …).
 With **Auto-start serve** enabled (default), the service starts
 `bw serve --hostname 127.0.0.1 --port <serve_port>` when the API is unreachable.
 
-Disabling or uninstalling the plugin stops `bw serve` (including one you started
-yourself), so the vault is no longer held in memory. Use **Log out** to stop
-serve without disabling the plugin; restarting Noctalia leaves it running, with
-the vault locked according to **Vault timeout**.
+Disabling or uninstalling the plugin stops the `bw serve` bound to **Serve Port**
+(or to the port it started on, if that changed); other processes on the port and
+`bw serve` on other ports are left alone. Restarting Noctalia leaves it running,
+locked per **Vault timeout**.
 
 ### Testing login again
 
@@ -50,7 +50,7 @@ vault in memory. Prefer the launcher **Log out** action (stops serve + CLI
 logout), or:
 
 ```sh
-# nix wraps bw as `node …/bw.js serve`: kill by port, not `pkill bw serve`
+# manual cleanup: the plugin reaps only `bw serve --port 8087`
 fuser -k 8087/tcp || true
 bw logout
 # confirm nothing is still serving secrets:
