@@ -50,7 +50,8 @@ vault in memory. Prefer the launcher **Log out** action (stops serve + CLI
 logout), or:
 
 ```sh
-# manual cleanup: the plugin reaps only `bw serve --port 8087`
+# manual cleanup by port (kills whatever holds it, nix-wrapped `node …/bw.js serve` included);
+# the plugin's own teardown is narrower - it reaps only a `bw serve` carrying `--port 8087`
 fuser -k 8087/tcp || true
 bw logout
 # confirm nothing is still serving secrets:
