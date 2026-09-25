@@ -28,6 +28,13 @@ description_key = "settings.auto_serve.description"
 default = true
 
 [[setting]]
+key = "hide_actions_when_searching"
+type = "bool"
+label_key = "settings.hide_actions_when_searching.label"
+description_key = "settings.hide_actions_when_searching.description"
+default = false
+
+[[setting]]
 key = "vault_timeout"
 type = "select"
 label_key = "settings.vault_timeout.label"

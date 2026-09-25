@@ -131,6 +131,10 @@ local function itemRows(list)
   return rows
 end
 
+local function hideActionsWhenSearching()
+  return noctalia.getConfig("hide_actions_when_searching") == true
+end
+
 local function servePort()
   local port = noctalia.getConfig("serve_port")
   if type(port) == "number" and port >= 1024 and port <= 65535 then
@@ -178,7 +182,7 @@ local function searchItems(query, search)
       launcher.setResults(query, actionRows())
       return
     end
-    local rows = actionRows()
+    local rows = (search == "" or not hideActionsWhenSearching()) and actionRows() or {}
     if not res.ok then
       noctalia.state.set("command", { action = "ensure_serve" })
       table.insert(
@@ -228,7 +232,7 @@ function onQuery(query)
   end
 
   pending[query] = true
-  launcher.setResults(query, rows)
+  launcher.setResults(query, (text == "" or not hideActionsWhenSearching()) and rows or {})
   searchItems(query, text)
 end
 

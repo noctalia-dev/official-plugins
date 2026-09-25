@@ -110,6 +110,10 @@
       "description": "Include uppercase letters in generated passwords",
       "label": "Include Uppercase"
     },
+    "hide_actions_when_searching": {
+      "description": "Hide the pinned actions (generate, lock, sync, etc.) once you start typing, so matching vault items appear first",
+      "label": "Hide Actions While Searching"
+    },
     "notify_on_copy": {
       "description": "Show a notification after copying a vault field or generated secret",
       "label": "Notify on Copy"
