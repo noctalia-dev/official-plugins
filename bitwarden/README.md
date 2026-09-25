@@ -89,6 +89,7 @@ When unlocked, `/bw` lists vault items (capped). Keep typing to filter by name, 
 | `auto_serve` | bool | `true` | Start `bw serve` when unreachable |
 | `vault_timeout` | select | `on_restart` | Auto-lock after inactivity (`30`/`60`/`240` min), `on_restart`, `never` (until serve stops), or `custom` |
 | `vault_timeout_custom_minutes` | int | `15` | Minutes when `vault_timeout` is `custom` (1–10080) |
+| `hide_actions_when_searching` | bool | `false` | Hide pinned actions (generate, lock, sync, etc.) once you start typing, so matching vault items appear first |
 | `server_url` | string | _(empty)_ | Passed to `bw config server` before API-key login |
 | `copy_field` | select | `password` | Field to copy: password, username, totp, uri |
 | `notify_on_copy` | bool | `true` | Notify after a successful copy |
