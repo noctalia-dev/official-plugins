@@ -32,13 +32,11 @@ function Tooltip.hide()
 end
 
 local HOURGLASS_COLORS = {
-  IDLE = "on_surface",
-  RUNNING = "primary",
   NOTIFY = "error",
 }
 
 local function getHourglassColor()
-  return HOURGLASS_COLORS[STATE] or HOURGLASS_COLORS.IDLE
+  return HOURGLASS_COLORS[STATE]
 end
 
 local function render()
