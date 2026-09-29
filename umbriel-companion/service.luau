@@ -1,11 +1,11 @@
 --!nonstrict
 -- Umbriel Companion service - the only entry that talks to the compositor.
 --
--- Umbriel pushes its workspace list and active submap over the IPC event stream.
--- `umbriel subscribe workspaces,submap` is that stream on stdout, one JSON object
--- per line, so the service holds it open and republishes each line as a snapshot
--- the UI entries read. No timer, no polling: the bar changes in the same breath
--- as the keybind that changed either value.
+-- Umbriel pushes its workspace list, window list, and active submap over the IPC
+-- event stream. `umbriel subscribe workspaces,windows,submap` is that stream on
+-- stdout, one JSON object per line, so the service holds it open and republishes
+-- each line as a snapshot the UI entries read. No timer, no polling: the bar
+-- changes in the same breath as the keybind that changed a value.
 --
 --   noctalia.runStream(cmd, onLine)   long-lived child, one callback per line
 --   noctalia.state.set("umbriel.state", snapshot)     one snapshot, one re-render
@@ -19,9 +19,22 @@ local available = noctalia.getenv("UMBRIEL_SOCKET") ~= nil and noctalia.commandE
 
 local streaming = false
 local workspaces = {}
+local windows = {}
 local submap = ""
 local submapReady = false
 local streamError = nil
+
+-- A window's `focused` flag is per workspace. `active` would name the one window
+-- holding keyboard focus, but the open panel takes that, so the target is the
+-- focused window of the focused workspace.
+local function findFocusedWindow(workspace)
+  for _, window in ipairs(windows) do
+    if window.focused == true and window.workspace == workspace.id then
+      return window
+    end
+  end
+  return nil
+end
 
 local function publish()
   local focused = nil
@@ -36,6 +49,7 @@ local function publish()
     available = available,
     workspaces = workspaces,
     focused = focused,
+    focused_window = focused ~= nil and findFocusedWindow(focused) or nil,
     submap = submap,
     submap_ready = submapReady,
     error = streamError,
@@ -58,6 +72,10 @@ local function onLine(line)
     workspaces = decoded.data
     streamError = nil
     publish()
+  elseif decoded.event == "windows" and type(decoded.data) == "table" then
+    windows = decoded.data
+    streamError = nil
+    publish()
   elseif decoded.event == "submap" and (decoded.data == nil or type(decoded.data) == "string") then
     submap = decoded.data or ""
     submapReady = true
@@ -70,7 +88,7 @@ local function startStream()
   if not available or streaming then
     return
   end
-  streaming = noctalia.runStream("umbriel subscribe workspaces,submap", onLine)
+  streaming = noctalia.runStream("umbriel subscribe workspaces,windows,submap", onLine)
   if not streaming then
     streamError = noctalia.tr("error.stream_failed")
     publish()

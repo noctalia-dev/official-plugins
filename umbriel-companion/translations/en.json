@@ -22,6 +22,7 @@
     "maximize": "Toggle maximize",
     "move_column": "Move column here",
     "move_window": "Move window here",
+    "no_window": "No focused window.",
     "no_workspace": "No focused workspace.",
     "no_workspaces": "No workspaces reported.",
     "pin": "Toggle pinned",

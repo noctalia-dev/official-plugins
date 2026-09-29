@@ -32,8 +32,8 @@ at the top, because that is the workspace `workspace-set-layout` acts on, not th
   reload reasserts the configured mode.
 - **Layout actions** - master layout gets the master-count steppers; scrolling gets *Center column*. Dwindle has no
   layout-scoped action, so the row disappears.
-- **Focused window** - width presets (⅓, ½, ⅔, full), floating, pinned, fullscreen, maximize, and centering for a
-  floating window.
+- **Focused window** - the title, app id, and size of the focused workspace's focused window, then width presets
+  (⅓, ½, ⅔, full), floating, pinned, fullscreen, maximize, and centering for a floating window.
 - **Workspaces** - every workspace of every output with its layout. Click switches to it; right-click moves the
   focused window or its whole column there.
 

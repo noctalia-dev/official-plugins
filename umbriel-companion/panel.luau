@@ -25,7 +25,7 @@ local LAYOUT_KEYS = {
 local WIDTH_PRESETS = { "0.333", "0.5", "0.667", "1.0" }
 local WIDTH_LABELS = { "⅓", "½", "⅔", "1" }
 local WINDOW_ACTIONS = {
-  { glyph = "app-window", action = "window-toggle-floating", key = "panel.float" },
+  { glyph = "app-window", action = "window-toggle-floating", key = "panel.float", state = "floating" },
   { glyph = "pin", action = "window-toggle-pinned", key = "panel.pin" },
   { glyph = "arrows-maximize", action = "window-toggle-fullscreen", key = "panel.fullscreen" },
   { glyph = "maximize", action = "window-toggle-maximize", key = "panel.maximize" },
@@ -140,7 +140,22 @@ local function layoutExtras(focused)
   return nil
 end
 
-local function windowSection()
+local function windowIdentity(window)
+  if window == nil then
+    return ui.label({ text = tr("panel.no_window"), color = "on_surface_variant", fontSize = 12 })
+  end
+  return ui.column({ gap = 2 }, {
+    ui.label({ text = window.title, fontSize = 12, maxLines = 1 }),
+    ui.label({
+      text = `{window.app_id} · {window.w} × {window.h}`,
+      color = "on_surface_variant",
+      fontSize = 11,
+      maxLines = 1,
+    }),
+  })
+end
+
+local function windowSection(window)
   local widths = {}
   for index, fraction in ipairs(WIDTH_PRESETS) do
     table.insert(widths, ui.button({
@@ -159,6 +174,7 @@ local function windowSection()
     table.insert(actions, ui.button({
       glyph = entry.glyph,
       tooltip = tr(entry.key),
+      selected = window ~= nil and window[entry.state] == true,
       flexGrow = 1,
       onClick = function()
         request(entry.action)
@@ -168,6 +184,7 @@ local function windowSection()
 
   return ui.column({ gap = 6 }, {
     sectionTitle("panel.window_section"),
+    windowIdentity(window),
     ui.row({ gap = 6, align = "center" }, {
       ui.label({ text = tr("panel.width"), color = "on_surface_variant", fontSize = 12 }),
       ui.row({ gap = 6, flexGrow = 1 }, widths),
@@ -251,7 +268,7 @@ local function render()
   end
 
   table.insert(children, ui.separator({}))
-  table.insert(children, windowSection())
+  table.insert(children, windowSection(snapshot.focused_window))
   table.insert(children, ui.separator({}))
   table.insert(children, sectionTitle("panel.workspaces"))
   table.insert(children, ui.scroll({ flexGrow = 1, gap = 4 }, workspaceRows()))
