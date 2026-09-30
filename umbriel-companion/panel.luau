@@ -110,14 +110,14 @@ local function layoutExtras(focused)
         glyph = "minus",
         tooltip = tr("panel.master_decrease"),
         onClick = function()
-          request("master-count-decrease")
+          request("layout-master-count-decrease")
         end,
       }),
       ui.button({
         glyph = "plus",
         tooltip = tr("panel.master_increase"),
         onClick = function()
-          request("master-count-increase")
+          request("layout-master-count-increase")
         end,
       }),
     })
@@ -164,7 +164,7 @@ local function windowSection(window)
       flexGrow = 1,
       tooltip = tr("panel.width_tooltip", { percent = math.floor(tonumber(fraction) * 100 + 0.5) }),
       onClick = function()
-        request(`window-set-width:{fraction}`)
+        request(`window-set-primary-extent:{fraction}`)
       end,
     }))
   end
