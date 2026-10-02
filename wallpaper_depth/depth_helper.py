@@ -399,7 +399,7 @@ def main() -> int:
         elif args.command == "status":
             status(data_dir)
         elif args.command == "generate":
-            generate(data_dir, args.wallpaper.expanduser().resolve(), args.threshold, args.feather)
+            generate(data_dir, args.wallpaper.expanduser(), args.threshold, args.feather)
         elif args.command == "clear-cache":
             clear_cache(data_dir)
         return 0
