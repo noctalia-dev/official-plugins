@@ -3,6 +3,8 @@
 -- Add IANA zones (e.g. Europe/Berlin); remove with trash; reorder via drag grip.
 -- Rename with the pencil (empty label = derived short name); the eye shows or
 -- hides a zone in the bar.
+-- text_size scales the panel text and show_add_zone hides the add-timezone
+-- input; both are manifest settings read at render time.
 
 local DRAG_TYPE = "world-clock-zone"
 
@@ -13,6 +15,9 @@ local pendingDelete = nil
 local editingLabel = nil
 local labelDraft = ""
 local labelKey = 0
+
+-- Multipliers for text_size setting, unset/unknown value renders 1:1
+local TEXT_SCALES = { small = 0.85, large = 1.25 }
 
 local function insertionZone(index)
   return ui.dropZone({
@@ -45,12 +50,16 @@ function onZoneDropped(payload, value)
 end
 
 local function render()
+  local scale = TEXT_SCALES[noctalia.getConfig("text_size")] or 1
+  local function sized(size)
+      return math.floor(size * scale + 0.5)
+  end
   local rows = {}
   if #zones == 0 then
     table.insert(rows, ui.label({
       text = noctalia.tr("ui.empty"),
       color = "on_surface_variant",
-      fontSize = 13,
+      fontSize = sized(13),
     }))
   else
     for i, row in ipairs(zones) do
@@ -141,8 +150,8 @@ local function render()
         })
       else
         nameColumn = ui.column({ flexGrow = 1, gap = 1 }, {
-          ui.label({ text = row.label or id, fontWeight = "bold", fontSize = 13 }),
-          ui.label({ text = id, color = "on_surface_variant", fontSize = 10 }),
+          ui.label({ text = row.label or id, fontWeight = "bold", fontSize = sized(13) }),
+          ui.label({ text = id, color = "on_surface_variant", fontSize = sized(10) }),
         })
       end
 
@@ -175,8 +184,8 @@ local function render()
           }),
           nameColumn,
           ui.column({ align = "end", gap = 1 }, {
-            ui.label({ text = row.time or "", fontWeight = "bold", fontSize = 15, color = "primary" }),
-            ui.label({ text = row.offset or "", color = "on_surface_variant", fontSize = 10 }),
+            ui.label({ text = row.time or "", fontWeight = "bold", fontSize = sized(15), color = "primary" }),
+            ui.label({ text = row.offset or "", color = "on_surface_variant", fontSize = sized(10) }),
           }),
           actions,
         })
@@ -185,14 +194,16 @@ local function render()
     table.insert(rows, insertionZone(#zones + 1))
   end
 
-  panel.render(ui.column({ flexGrow = 1, gap = 8, padding = 8 }, {
+  local sections = {
     ui.row({ align = "center", justify = "space_between" }, {
-      ui.label({ text = noctalia.tr("title"), fontSize = 16, fontWeight = "bold", flexGrow = 1 }),
+      ui.label({ text = noctalia.tr("title"), fontSize = sized(16), fontWeight = "bold", flexGrow = 1 }),
       ui.button({ glyph = "close", onClick = function()
         panel.close()
       end }),
     }),
-    ui.row({ gap = 6, align = "center" }, {
+  }
+  if noctalia.getConfig("show_add_zone") ~= false then
+    table.insert(sections, ui.row({ gap = 6, align = "center" }, {
       ui.input({
         key = "add-" .. draftKey,
         value = draft,
@@ -208,9 +219,10 @@ local function render()
         variant = "primary",
         onClick = "onAdd",
       }),
-    }),
-    ui.scroll({ flexGrow = 1, gap = 0 }, rows),
-  }))
+    }))
+  end
+  table.insert(sections, ui.scroll({ flexGrow = 1, gap = 0 }, rows))
+  panel.render(ui.column({ flexGrow = 1, gap = 8, padding = 8 }, sections))
 end
 
 function onAdd()

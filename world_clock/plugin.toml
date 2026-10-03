@@ -2,10 +2,12 @@
 # Add or remove IANA zones; the service keeps times ticking and publishes them
 # to every entry through noctalia.state. The bar widget shows the world glyph
 # only unless the "show_clocks" widget setting lists the clocks in the bar.
+# Panel settings: time_format is applied to the service, text_size and
+# show_add_zone also applied to panel.
 
 id = "noctalia/world_clock"
 name = "World Clock"
-version = "1.1.0"
+version = "1.2.0"
 plugin_api = 19
 author = "noctalia"
 license = "MIT"
@@ -33,6 +35,56 @@ height = 342
 placement = "attached"
 position = "auto"
 open_near_click = true
+
+# text_size and show_add_zone are read by the panel itself, so they live on the
+# panel entry. time_format is consumed by the service, and entry settings are
+# not visible across entries, so it is declared at the plugin level (seeded
+# into every entry) — see the runtime docs on getConfig scoping.
+[[panel.setting]]
+key = "text_size"
+type = "select"
+label_key = "settings.text_size.label"
+description_key = "settings.text_size.description"
+default = "normal"
+
+ [[panel.setting.options]]
+ value = "small"
+ label_key = "settings.text_size.options.small"
+
+ [[panel.setting.options]]
+ value = "normal"
+ label_key = "settings.text_size.options.normal"
+
+ [[panel.setting.options]]
+ value = "large"
+ label_key = "settings.text_size.options.large"
+
+[[panel.setting]]
+key = "show_add_zone"
+type = "bool"
+label_key = "settings.show_add_zone.label"
+description_key = "settings.show_add_zone.description"
+default = true
+
+# Plugin-level setting: read by the service (and effective for the bar too).
+[[setting]]
+key = "time_format"
+type = "select"
+label_key = "settings.time_format.label"
+description_key = "settings.time_format.description"
+default = "system"
+
+  [[setting.options]]
+  value = "system"
+  label_key = "settings.time_format.options.system"
+
+  [[setting.options]]
+  value = "12h"
+  label_key = "settings.time_format.options.12h"
+
+  [[setting.options]]
+  value = "24h"
+  label_key = "settings.time_format.options.24h"
 
 [[service]]
 id = "service"

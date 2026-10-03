@@ -21,7 +21,8 @@ world-clock panel.
 Turn on **Show clocks in the bar** in the widget settings to list every
 timezone you left visible right in the bar instead: each entry shows the
 zone's label (your custom label if you set one, otherwise the zone's short
-name) and its live time, following `[shell].time_format`. A vertical bar shows
+name) and its live time, following the plugin's **Time format** setting 
+(System follows `[shell].time_format`). A vertical bar shows
 the times only, one zone per line. Clicking the widget still opens the panel.
 
 ### Panel
@@ -33,6 +34,13 @@ Drag the grip on the left of a row to reorder.
 Use the eye control to show or hide a zone in the bar, and the pencil control
 to give it a custom label (shown in the bar and the panel). An empty label
 falls back to the zone's short name, for example `America/New_York` -> `New York`.
+
+Panel preferences: **Time format** overrides the hour cycle everywhere the
+plugin shows times - `System` follows `[shell].time_format`, or pick 12-hour or
+24-hour. **Text size** scales the panel's text. **Show add-timezone box** hides
+the input row for a read-only panel, zones can still be added and managed over
+IPC. The panel's size is fixed by the plugin, so a smaller text size fits more
+zones before scrolling.
 
 On first run the list is seeded with:
 
@@ -63,8 +71,12 @@ noctalia msg plugin noctalia/world_clock:service all clear
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `show_clocks` | `bool` | `false` | Show the configured clocks in the bar instead of the icon only. |
+| `time_format` | `select` | `system` | Time format in the panel and the bar: the shell setting, 12-hour, or 24-hour. |
+| `text_size` | `select` | `normal` | Text size in the panel: small, normal, or large. |
+| `show_add_zone` | `bool` | `true` | Show the input that adds timezones from the panel. |
 
 ## Notes
 
 Requires `plugin_api = 19` for timezone formatting and `noctalia.timeFormat()` /
-`noctalia.isValidTimezone()`. Display times follow `[shell].time_format`.
+`noctalia.isValidTimezone()`. Display times follow the `time_format` setting,
+falling back to `[shell].time_format`.

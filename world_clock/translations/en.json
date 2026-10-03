@@ -6,9 +6,31 @@
     "missing_zone": "Timezone not in the list: {zone}"
   },
   "settings": {
+    "show_add_zone": {
+      "description": "Show the input that adds timezones from the panel",
+      "label": "Show add-timezone box"
+    },
     "show_clocks": {
       "description": "Show the configured clocks in the bar instead of the icon only",
       "label": "Show clocks in the bar"
+    },
+    "text_size": {
+      "description": "Size of the font in the panel",
+      "label": "Text size",
+      "options": {
+        "small": "Small",
+        "normal": "Normal",
+        "large": "Large"
+      }
+    },
+    "time_format": {
+      "description": "Time format for the panel and bar; System follows the shell setting",
+      "label": "Time format",
+      "options": {
+        "12h": "12-hour",
+        "24h": "24-hour",
+        "system": "System"
+      }
     }
   },
   "title": "World Clock",

@@ -8,6 +8,8 @@
 -- Commands: world_clock.cmd = { op = "add"|"remove"|"reorder"|"label"|"bar",
 -- zone = "...", index? = N, label? = "...", on_bar? = bool }
 -- IPC: add / remove / list / clear
+-- Setting: time_format("system" | "12h" | "24h", plugin-level) picks the published
+-- time pattern otherwise follow [shell].time_format.
 
 noctalia.setUpdateInterval(1000)
 
@@ -100,9 +102,15 @@ local function indexOf(zone)
   return nil
 end
 
+-- Shell already follow 24h = {:%H:%M}, adds configurable
+-- switch between 12h and 24h
+local TIME_FORMATS = {
+  ["12h"] = "{:%I:%M %p}",
+  ["24h"] = "{:%H:%M}",
+}
 local function publish()
   local rows = {}
-  local format = noctalia.timeFormat()
+  local format = TIME_FORMATS[noctalia.getConfig("time_format")] or noctalia.timeFormat()
   for _, zone in ipairs(zones) do
     table.insert(rows, {
       id = zone.id,
