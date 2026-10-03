@@ -1,5 +1,9 @@
 {
   "settings": {
+    "alarm": {
+      "description": "Keep beeping when the timer finishes until the timer is dismissed",
+      "label": "Persistent Alarm"
+    },
     "color": {
       "description": "Accent color for the time and progress bar",
       "label": "Color"

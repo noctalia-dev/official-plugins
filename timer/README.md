@@ -24,6 +24,9 @@ or the formatted countdown when running. Click the widget to open the timer
 panel for duration input and controls. When the timer completes, clicking the
 bar widget resets it.
 
+Enable the `alarm` setting to keep the timer beeping at zero until dismissed
+(click the bar widget, or press Reset in the panel or the desktop widget).
+
 On vertical bars, the widget shows an hourglass with the time as a tooltip.
 On horizontal bars, the widget shows the hourglass and countdown side by side,
 with an option to hide the countdown when idle.
@@ -46,6 +49,12 @@ the bar widget and panel through the `timer` service, so all three stay in sync,
 and the service sends a notification when the countdown reaches zero.
 
 ## Settings
+
+### Plugin
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `alarm` | `bool` | `false` | Keeps beeping when the countdown reaches zero, until the timer is dismissed. |
 
 ### Bar Widget
 

@@ -9,6 +9,7 @@
 --   noctalia.state.set(key, value)     publish state to other entries
 --   noctalia.state.watch(key, fn)      react to commands from UI entries
 --   noctalia.notify(title, body)       alert user when timer completes
+--   noctalia.sound.load/play           optional repeating completion alarm
 
 noctalia.setUpdateInterval(1000)
 
@@ -69,7 +70,42 @@ noctalia.state.watch("timer.cmd", function(cmd)
 
 end)
 
--- send notification and sound when implemented
+-- Opt-in completion alarm: the tick replays the sound while NOTIFY (any RESET
+-- silences it), a failed load just stays silent until the next settings change retries.
+local ALARM_SOUND = "alarm"
+local alarmEnabled = noctalia.getConfig("alarm") == true
+local alarmReady = false
+
+local function playAlarm()
+  if alarmEnabled and alarmReady then
+    noctalia.sound.play(ALARM_SOUND)
+  end
+end
+
+local function loadAlarm()
+  if not alarmEnabled or alarmReady then
+    return
+  end
+  local accepted = noctalia.sound.load(ALARM_SOUND, "sounds/alarm.wav", function(ok, err)
+    if ok then
+      alarmReady = true
+    else
+      noctalia.log(`Timer alarm sound failed to load: {err}`)
+    end
+  end)
+  if not accepted then
+    noctalia.log("Timer alarm sound load was rejected")
+  end
+end
+
+loadAlarm()
+
+function onConfigChanged()
+  alarmEnabled = noctalia.getConfig("alarm") == true
+  loadAlarm()
+end
+
+-- send notification and start the optional alarm when the timer completes
 local function notifyUser()
   noctalia.notify(noctalia.tr("ui.notify_title"), noctalia.tr("ui.notify_body"))
 end
@@ -84,7 +120,10 @@ function update()
     else
       noctalia.state.set("timer.state", "NOTIFY")
       notifyUser()
+      playAlarm()
     end
 
+  elseif STATE == "NOTIFY" then
+    playAlarm()
   end
 end
