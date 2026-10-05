@@ -1,8 +1,12 @@
 {
   "settings": {
     "alarm": {
-      "description": "Keep beeping when the timer finishes until the timer is dismissed",
+      "description": "Keep beeping until the timer is dismissed, ignoring the alarm duration",
       "label": "Persistent Alarm"
+    },
+    "alarm_duration": {
+      "description": "Seconds the alarm beeps after the timer finishes. 0 silences it.",
+      "label": "Alarm duration (seconds)"
     },
     "color": {
       "description": "Accent color for the time and progress bar",

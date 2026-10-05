@@ -12,7 +12,7 @@
 
 id = "noctalia/timer"
 name = "Timer"
-version = "1.3.0"
+version = "1.4.0"
 plugin_api = 20
 author = "noctalia"
 license = "MIT"
@@ -21,13 +21,24 @@ tags = ["countdown", "utility"]
 icon = "clock"
 description = "A countdown timer with bar widget, panel, and desktop widget."
 
-# Keep beeping when countdown reaches 0 until timer is dismissed
+# Alarm sound at countdown 0, beeps until dismissed, overriding alarm_duration
 [[setting]]
 key = "alarm"
 type = "bool"
 label_key = "settings.alarm.label"
 description_key = "settings.alarm.description"
 default = false
+
+# Alarm length in seconds, 0 silences it. Hidden while alarm is on
+[[setting]]
+key = "alarm_duration"
+type = "int"
+label_key = "settings.alarm_duration.label"
+description_key = "settings.alarm_duration.description"
+default = 10
+min = 0
+max = 60
+visible_when = { key = "alarm", values = ["false"] }
 
 [[widget]]
 id = "bar"

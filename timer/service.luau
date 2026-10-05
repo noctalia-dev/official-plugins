@@ -70,20 +70,22 @@ noctalia.state.watch("timer.cmd", function(cmd)
 
 end)
 
--- Opt-in completion alarm: the tick replays the sound while NOTIFY (any RESET
--- silences it), a failed load just stays silent until the next settings change retries.
+-- Completion alarm: the tick replays the sound while NOTIFY for alarm_duration
+-- seconds (0 silences it), the alarm bool keeps it beeping until dismissed.
 local ALARM_SOUND = "alarm"
 local alarmEnabled = noctalia.getConfig("alarm") == true
 local alarmReady = false
+local alarmDuration = noctalia.getConfig("alarm_duration") or 10
+local notifyElapsed = 0
 
 local function playAlarm()
-  if alarmEnabled and alarmReady then
+  if alarmReady and (alarmEnabled or notifyElapsed < alarmDuration) then
     noctalia.sound.play(ALARM_SOUND)
   end
 end
 
 local function loadAlarm()
-  if not alarmEnabled or alarmReady then
+  if alarmReady or (not alarmEnabled and alarmDuration <= 0) then
     return
   end
   local accepted = noctalia.sound.load(ALARM_SOUND, "sounds/alarm.wav", function(ok, err)
@@ -102,6 +104,7 @@ loadAlarm()
 
 function onConfigChanged()
   alarmEnabled = noctalia.getConfig("alarm") == true
+  alarmDuration = noctalia.getConfig("alarm_duration") or 10
   loadAlarm()
 end
 
@@ -120,10 +123,12 @@ function update()
     else
       noctalia.state.set("timer.state", "NOTIFY")
       notifyUser()
+      notifyElapsed = 0
       playAlarm()
     end
 
   elseif STATE == "NOTIFY" then
+    notifyElapsed = notifyElapsed + 1
     playAlarm()
   end
 end
