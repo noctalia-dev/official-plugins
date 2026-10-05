@@ -25,8 +25,8 @@ panel for duration input and controls. When the timer completes, clicking the
 bar widget resets it.
 
 At zero the alarm beeps for `alarm_duration` seconds (10 by default, 0 silences
-it). Enable `alarm` to keep beeping until dismissed (click the bar widget, or
-press Reset in the panel or the desktop widget).
+it) and the timer returns to idle. `alarm` keeps it beeping until dismissed
+(click the bar widget, or press Reset in the panel or the desktop widget).
 
 On vertical bars, the widget shows an hourglass with the time as a tooltip.
 On horizontal bars, the widget shows the hourglass and countdown side by side,
