@@ -22,6 +22,7 @@
     "maximize": "Attiva/disattiva la massimizzazione",
     "move_column": "Sposta la colonna qui",
     "move_window": "Sposta la finestra qui",
+    "no_window": "Nessuna finestra in focus.",
     "no_workspace": "Nessuno spazio di lavoro in focus.",
     "no_workspaces": "Nessuna area di lavoro segnalata.",
     "pin": "Attiva/disattiva bloccato",

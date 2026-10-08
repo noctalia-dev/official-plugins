@@ -5,10 +5,39 @@
     "invalid_zone": "Fuso orario sconosciuto: {zone}",
     "missing_zone": "Fuso orario non nella lista: {zone}"
   },
+  "settings": {
+    "show_add_zone": {
+      "description": "Mostra l'input che aggiunge i fusi orari nel pannello",
+      "label": "Mostra casella Aggiungi fuso orario"
+    },
+    "show_clocks": {
+      "description": "Mostra gli orologi configurati nella barra invece che solo icona",
+      "label": "Mostra orologio nella barra"
+    },
+    "text_size": {
+      "description": "Dimensione del carattere nel pannello",
+      "label": "Dimensione testo",
+      "options": {
+        "large": "Grande",
+        "normal": "Normale",
+        "small": "Piccolo"
+      }
+    },
+    "time_format": {
+      "description": "Formato orario per il pannello e la barra; Sistema segue le impostazioni shell",
+      "label": "Formato orario",
+      "options": {
+        "12h": "12 ore",
+        "24h": "24 ore",
+        "system": "Sistema"
+      }
+    }
+  },
   "title": "Orologio Globale",
   "ui": {
     "add_placeholder": "Europa/Berlino",
     "drag_tooltip": "Trascina per riordinare",
-    "empty": "Nessun fuso orario. Aggiungi una zona IANA qui sotto"
+    "empty": "Nessun fuso orario. Aggiungi una zona IANA qui sotto",
+    "label_placeholder": "Etichetta (opzionale)"
   }
 }

@@ -110,6 +110,10 @@
       "description": "Includi lettere maiuscole nelle password generate",
       "label": "Includi maiuscole"
     },
+    "hide_actions_when_searching": {
+      "description": "Nascondi le azioni fissate (genera, blocca sync, ecc...) quando inizi a scrivere, così gli oggetti del vault comparirrano per primi",
+      "label": "Nascondi Azioni Durante Ricerca"
+    },
     "notify_on_copy": {
       "description": "Mostra una notifica dopo aver copiato un campo o generato un secreto",
       "label": "Notifica dopo la Copia"

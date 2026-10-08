@@ -1,7 +1,7 @@
 {
   "notify": {
     "launch-failed": "Impossibile eseguire gpu-screen-recorder ",
-    "no-monitor": "Impossibile rilevare il monitor attivo",
+    "no-monitor": "Impossibile rilevare il monitor in focus",
     "portal-not-running": "xdg-desktop-portal non è in esecuzione",
     "recording-failed": "Registrazione fallita",
     "recording-saved": "Registrazione salvata",
@@ -28,6 +28,7 @@
       "label": "Sorgente Audio",
       "options": {
         "both": "Output + Microfono",
+        "custom": "Personalizzato",
         "default_input": "Microfono",
         "default_output": "Output di Sistema",
         "none": "No Audio"
@@ -43,6 +44,10 @@
     "copy_to_clipboard": {
       "label": "Copia Percorso negli Appunti"
     },
+    "custom_audio_sources": {
+      "description": "Sorgenti audio gpu-screen-recorder separate da virgole",
+      "label": "Sorgenti Audio Personalizzate"
+    },
     "directory": {
       "description": "Usa ~/Videos/Recordings quando vuoto",
       "label": "Percorso Output"
@@ -53,6 +58,13 @@
     },
     "frame_rate": {
       "label": "Frame Rate"
+    },
+    "frame_rate_mode": {
+      "label": "Modalità Frame Rate",
+      "options": {
+        "cfr": "Costante (CFR)",
+        "vfr": "Variabile (VFR)"
+      }
     },
     "glyph_idle": {
       "label": "Glifo: Inattivo"
@@ -73,6 +85,10 @@
     },
     "hide_inactive": {
       "label": "Nascondi Widget Quando Inattivo"
+    },
+    "post_save_script": {
+      "description": "Script da eseguire dopo che una registrazione o replay viene salvato.",
+      "label": "Script Post-salvataggio"
     },
     "quality": {
       "label": "Qualità",
@@ -110,6 +126,18 @@
     "show_cursor": {
       "label": "Mosta il Cursore"
     },
+    "video_bitrate": {
+      "description": "Bitrate intero positivo in kbps usato per modalità CBR",
+      "label": "Bitrate Video (kbps)"
+    },
+    "video_bitrate_mode": {
+      "label": "Modalità Bitrate",
+      "options": {
+        "cbr": "Bitrate costante (CBR)",
+        "qp": "Qualità costante (QP)",
+        "vbr": "Bitrate variabile (VBR)"
+      }
+    },
     "video_codec": {
       "label": "Codec VIdeo",
       "options": {
@@ -120,9 +148,26 @@
         "vp9": "VP9"
       }
     },
+    "video_encoder": {
+      "description": "Encoding CPU supporta solo H264, GPU è hardware-accelerated",
+      "label": "Encoder Video",
+      "options": {
+        "cpu": "CPU",
+        "gpu": "GPU"
+      }
+    },
     "video_qp": {
       "description": "Valori più bassi risultano in qualità maggiore e file più grandi",
       "label": "Qualità Video (QP)"
+    },
+    "video_quality": {
+      "label": "Qualità Video",
+      "options": {
+        "high": "Alto",
+        "medium": "Medio",
+        "ultra": "Ultra",
+        "very_high": "Molto Alto"
+      }
     },
     "video_source": {
       "description": "Modalità cattura di GPU Screen Recorder; Attivo registra il monitor attivo di Noctalia",

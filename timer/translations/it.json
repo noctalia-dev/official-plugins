@@ -1,5 +1,13 @@
 {
   "settings": {
+    "alarm": {
+      "description": "Mantieni l'allarme fino a quando il timer non è disattivato, ignorando la durata dell'allarme",
+      "label": "Allarme persistente"
+    },
+    "alarm_duration": {
+      "description": "Durata in secondi dell'allarme dopo che il timer scade. 0 lo silenzia.",
+      "label": "Durata allarme (secondi)"
+    },
     "color": {
       "description": "Colore di accento per l'orario e la barra di avanzamento",
       "label": "Colore"
