@@ -75,8 +75,8 @@ tags = ["language", "launcher"]
 [[plugin]]
 id = "noctalia/timer"
 name = "Timer"
-version = "1.4.0"
-updated_at = 1791247927
+version = "1.5.0"
+updated_at = 1791484831
 added_at = 1781407877
 author = "noctalia"
 license = "MIT"
