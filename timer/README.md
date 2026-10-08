@@ -49,6 +49,24 @@ The desktop widget owns no timer logic: it drives the same shared countdown as
 the bar widget and panel through the `timer` service, so all three stay in sync,
 and the service sends a notification when the countdown reaches zero.
 
+### IPC
+
+The countdown can also be driven over Noctalia's IPC, which is useful for
+compositor keybinds (sway, Hyprland) and shell aliases:
+
+    noctalia msg plugin noctalia/timer:timer all start 40   # start a 40 minute countdown
+    noctalia msg plugin noctalia/timer:timer all pause      # pause, or resume when paused
+    noctalia msg plugin noctalia/timer:timer all cancel     # reset to idle (`reset` alias)
+
+`start <minutes>` is ignored while a countdown is running, so repeated calls
+cannot clobber it. Otherwise it starts a fresh countdown of the requested
+duration — also while paused (refreshing the progress baseline) and through a
+ringing completion alarm, which it silences.
+
+Fractional minutes are rounded down to whole seconds. Invalid inputs,
+durations below one second, and durations that overflow to infinity are ignored
+without changing the current timer.
+
 ## Settings
 
 ### Plugin
