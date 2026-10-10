@@ -252,7 +252,7 @@ function onLabelSubmit()
 end
 
 function onOpen(_context)
-  closeButton = noctalia.getSetting("show_close_buttons")
+  closeButton = noctalia.getSetting("shell.show_close_buttons")
   zones = noctalia.state.get("world_clock.zones") or {}
   pendingDelete = nil
   editingLabel = nil
