@@ -35,6 +35,8 @@ local themes = { "Dark", "Light", "System" }
 local selectedColor = "#FFF59B"
 local colorPickerStatus = "Choose a color to test the dialog callback."
 
+local closeButton = true
+
 -- A labelled section: a heading above a control. ui.column stretches children to
 -- the panel width by default, so the control fills the row.
 local function section(title, control)
@@ -45,15 +47,18 @@ local function section(title, control)
 end
 
 local function render()
+  local headerContent = {
+    ui.label({ text = "Example Panel", fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 })
+  }
+  if closeButton then
+    table.insert(headerContent, ui.button({ glyph = "close", onClick = "onCloseClicked" }))
+  end
   -- The panel surface already insets its content (Style::panelPadding), so this
   -- adds gaps between rows, not its own outer padding.
   panel.render(ui.column({ flexGrow = 1, gap = 16 }, {
-    -- Header: title on the left, close button pinned to the top right -
-    -- matching the built-in panels (no divider rule).
-    ui.row({ align = "center", justify = "space_between", gap = 8 }, {
-      ui.label({ text = "Example Panel", fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
-      ui.button({ glyph = "close", onClick = "onCloseClicked" }),
-    }),
+    -- Header: title on the left, close button pinned to the top right if 
+    -- `shell.show_close_buttons` is true - matching the built-in panels (no divider rule).
+    ui.row({ align = "center", justify = "space_between", gap = 8 }, headerContent),
 
     -- Body: a scrollable stack of settings.
     ui.scroll({ flexGrow = 1, gap = 16 }, {
@@ -86,6 +91,9 @@ local function render()
 end
 
 function onOpen(_context)
+  -- The setting is updated on each panel opening since it doesn't
+  -- automatically reload when the setting is changed
+  closeButton = noctalia.getSetting("shell.show_close_buttons")
   render()
 end
 
