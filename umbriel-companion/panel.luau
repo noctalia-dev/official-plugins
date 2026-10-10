@@ -32,6 +32,8 @@ local WINDOW_ACTIONS = {
   { glyph = "focus-centered", action = "window-center", key = "panel.center_window" },
 }
 
+local closeButton = true
+
 local snapshot = { available = false, workspaces = {} }
 
 local function tr(key, subst)
@@ -242,12 +244,16 @@ local function workspaceRows()
 end
 
 local function render()
-  local header = ui.row({ align = "center", gap = 8 }, {
+  local headerContent = {
     ui.glyph({ name = "layout-columns", size = 20, color = "primary" }),
     ui.label({ text = tr("title"), fontSize = 16, fontWeight = "bold", flexGrow = 1 }),
     ui.button({ glyph = "settings", variant = "ghost", tooltip = tr("panel.settings"), onClick = "onSettings" }),
-    ui.button({ glyph = "close", variant = "ghost", onClick = "onCloseClicked" }),
-  })
+  }
+  if closeButton then
+    table.insert(headerContent, ui.button({ glyph = "close", variant = "ghost", onClick = "onCloseClicked" }))
+  end
+
+  local header = ui.row({ align = "center", gap = 8 }, headerContent)
 
   if snapshot.available ~= true then
     panel.render(ui.column({ flexGrow = 1, gap = 8, padding = 10 }, { header, unavailableCard() }))
@@ -300,6 +306,7 @@ function onCloseClicked()
 end
 
 function onOpen(_context)
+  closeButton = noctalia.getSetting("shell.show_close_buttons")
   snapshot = noctalia.state.get("umbriel.state") or snapshot
   -- The snapshot is whatever the stream last pushed. An empty request asks the
   -- service to confirm the stream is still alive before the user acts on it.
