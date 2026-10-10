@@ -1,5 +1,5 @@
 --!strict
--- Type definitions for the Noctalia plugin API (plugin_api 32).
+-- Type definitions for the Noctalia plugin API (plugin_api 33).
 --
 -- luau-lsp *definition file*: it declares the host-injected globals (noctalia.*,
 -- barWidget.*, shortcut.*, launcher.*, desktopWidget.*, panel.*, ui.*) so authors
@@ -585,7 +585,7 @@ export type UiToggleProps = {
 
 -- ui.scroll (panels only; skipped with a warning in the bar). Vertical scrolling
 -- container with a column's layout props. stickToBottom, onScroll and
--- scrollToBottomRev are API 21.
+-- scrollToBottomRev are API 21; revealKey is API 33.
 export type UiScrollProps = {
   key: string?,
   width: number?,
@@ -606,6 +606,7 @@ export type UiScrollProps = {
   stickToBottom: boolean?, -- stay pinned to the bottom until the user scrolls away
   scrollToBottomRev: number?, -- jumps to the bottom on first sight and on every change
   onScroll: UiScrollHandler?,
+  revealKey: string?, -- scrolls the descendant with this key into view (API 33); re-applies only when it changes or the child reappears
 }
 
 -- ui.dragSource (panels only, API 5). Marks a subtree draggable: a grip glyph, or a whole
