@@ -23,6 +23,7 @@ local sortByDate = false
 local pins = {} -- filename -> true; persisted in a sidecar next to the notes
 local hoveredKey = nil
 local cornerRadiusScale = 1.0
+local closeButton = true
 
 local render
 
@@ -365,7 +366,9 @@ render = function()
     }))
   end
   table.insert(header, ui.button({ key = "header-new", glyph = "plus", variant = "primary", onClick = "onNewNote" }))
-  table.insert(header, ui.button({ key = "header-close", glyph = "close", variant = "ghost", onClick = "onClosePanel" }))
+  if closeButton then
+    table.insert(header, ui.button({ key = "header-close", glyph = "close", variant = "ghost", onClick = "onClosePanel" }))
+  end
   panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, {
     ui.row({ align = "center", gap = 8 }, header),
     isEditor and editorView() or listView(),
@@ -375,6 +378,7 @@ end
 function onOpen(_context)
   notesDir = noctalia.expandPath(noctalia.getConfig("notes_dir"))
   cornerRadiusScale = noctalia.getSetting("shell.corner_radius_scale")
+  closeButton = noctalia.getSetting("shell.show_close_buttons")
   local extension = noctalia.string.trim(noctalia.getConfig("extension")):gsub("^%.", "")
   if extension == "" then
     noctalia.notifyError(tr("title"), tr("bad_extension"))
