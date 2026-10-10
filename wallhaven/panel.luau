@@ -692,15 +692,15 @@ render = function()
   normalizePurityFilters()
   local pageLabel = if applying then tr("applying") else `Page {page}`
 
-  local headerRow = {
+  local headerContent = {
     ui.label({ text = tr("title"), fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
   }
   if closeButton then
-    table.insert(headerRow, ui.button({ glyph = "close", onClick = "onCloseClicked" }))
+    table.insert(headerContent, ui.button({ glyph = "close", onClick = "onCloseClicked" }))
   end
 
   panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, {
-    ui.row({ align = "center", justify = "space_between", gap = 8 }, headerRow),
+    ui.row({ align = "center", justify = "space_between", gap = 8 }, headerContent),
 
     ui.row({ gap = 8, align = "center" }, {
       ui.input({
