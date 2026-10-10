@@ -8,6 +8,8 @@
 
 local DRAG_TYPE = "world-clock-zone"
 
+local closeButton = true
+
 local zones = {}
 local draft = ""
 local draftKey = 0
@@ -194,13 +196,15 @@ local function render()
     table.insert(rows, insertionZone(#zones + 1))
   end
 
+  local headerContent = {
+    ui.label({ text = noctalia.tr("title"), fontSize = sized(16), fontWeight = "bold", flexGrow = 1 }),
+  }
+  if closeButton then
+    table.insert(headerContent, ui.button({ glyph = "close", onClick = function() panel.close() end }))
+  end
+
   local sections = {
-    ui.row({ align = "center", justify = "space_between" }, {
-      ui.label({ text = noctalia.tr("title"), fontSize = sized(16), fontWeight = "bold", flexGrow = 1 }),
-      ui.button({ glyph = "close", onClick = function()
-        panel.close()
-      end }),
-    }),
+    ui.row({ align = "center", justify = "space_between" }, headerContent),
   }
   if noctalia.getConfig("show_add_zone") ~= false then
     table.insert(sections, ui.row({ gap = 6, align = "center" }, {
@@ -248,6 +252,7 @@ function onLabelSubmit()
 end
 
 function onOpen(_context)
+  closeButton = noctalia.getSetting("shell.show_close_buttons")
   zones = noctalia.state.get("world_clock.zones") or {}
   pendingDelete = nil
   editingLabel = nil
