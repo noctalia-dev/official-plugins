@@ -25,6 +25,8 @@ local SLIDESHOW_MIN_MINUTES = 0
 local SLIDESHOW_MAX_MINUTES = 120
 local SECONDS_PER_MINUTE = 60
 
+local closeButton = true
+
 local videos = {}      -- { { path=, name=, ext= }, ... }
 local page = 1
 local outputsList = {}
@@ -412,11 +414,15 @@ render = function()
   -- Lock the output selector if "All Outputs" (*) is currently playing a video.
   local selectEnabled = assignmentFor("*") == nil
 
+  local headerContent = {
+    ui.label({ text = tr("title"), fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
+  }
+  if closeButton then
+    table.insert(headerContent, ui.button({ glyph = "close", onClick = "onClose" }))
+  end
+
   local mainChildren = {
-    ui.row({ align = "center", justify = "space_between", gap = 8 }, {
-      ui.label({ text = tr("title"), fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
-      ui.button({ glyph = "close", onClick = "onClose" }),
-    }),
+    ui.row({ align = "center", justify = "space_between", gap = 8 }, headerContent),
 
     slideshowExpanded and ui.row({ gap = 8, align = "center" }, {
       ui.slider({
@@ -470,6 +476,7 @@ end
 -- ── Callbacks ──────────────────────────────────────────────────────────────
 
 function onOpen(_context)
+  closeButton = noctalia.getSetting("shell.show_close_buttons")
   -- Seed the slider from the service's last-known interval (seconds). This
   -- ensures the panel shows the right value after restarts.
   local override = noctalia.state.get("slideshowOverride")
