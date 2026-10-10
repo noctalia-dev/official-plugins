@@ -17,6 +17,8 @@
 
 local DRAG_TYPE = "example-task"
 
+local closeButton = true
+
 local columns = {
   { id = "today", title = "Today", items = { "Write release notes", "Review the panel PR", "Water the cactus" } },
   { id = "later", title = "Later", items = { "Refactor tray menus", "Sort wallpapers" } },
@@ -144,12 +146,16 @@ local function columnCard(column)
 end
 
 function render()
+  local headerContent = {
+    ui.label({ text = "Drag & Drop", fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
+    ui.button({ glyph = "refresh", tooltip = "Reset the lists", onClick = "onResetClicked" }),
+  }
+  if closeButton then
+    table.insert(headerContent, ui.button({ glyph = "close", onClick = "onCloseClicked" }))
+  end
+
   panel.render(ui.column({ flexGrow = 1, gap = 12 }, {
-    ui.row({ align = "center", justify = "space_between", gap = 8 }, {
-      ui.label({ text = "Drag & Drop", fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
-      ui.button({ glyph = "refresh", tooltip = "Reset the lists", onClick = "onResetClicked" }),
-      ui.button({ glyph = "close", onClick = "onCloseClicked" }),
-    }),
+    ui.row({ align = "center", justify = "space_between", gap = 8 }, headerContent),
 
     ui.row({ gap = 12, align = "stretch", flexGrow = 1 }, {
       columnCard(columns[1]),
@@ -175,5 +181,6 @@ function render()
 end
 
 function onOpen(_context)
+  closeButton = noctalia.getSetting("shell.show_close_buttons")
   render()
 end
