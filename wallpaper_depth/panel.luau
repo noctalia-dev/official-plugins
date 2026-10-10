@@ -1,5 +1,7 @@
 --!nonstrict
 
+local closeButton = true
+
 local status = {
   setupState = "checking",
   setupMessage = "",
@@ -143,14 +145,17 @@ local function render()
   local ready = status.setupState == "ready"
   local threshold = math.floor((status.threshold or 0) * 100 + 0.5)
   local feather = math.floor((status.feather or 0) * 100 + 0.5)
+
+  local headerContent = {
+    ui.glyph({ name = "layers-subtract", size = 20, color = "primary" }),
+    ui.label({ text = tr("title"), fontSize = 16, fontWeight = "bold", flexGrow = 1 }),
+  }
+  if closeButton then
+    table.insert(headerContent, ui.button({ glyph = "close", variant = "ghost", onClick = function() panel.close() end }))
+  end
+
   panel.render(ui.column({ flexGrow = 1, gap = 10, padding = 10 }, {
-    ui.row({ align = "center", gap = 8 }, {
-      ui.glyph({ name = "layers-subtract", size = 20, color = "primary" }),
-      ui.label({ text = tr("title"), fontSize = 16, fontWeight = "bold", flexGrow = 1 }),
-      ui.button({ glyph = "close", variant = "ghost", onClick = function()
-        panel.close()
-      end }),
-    }),
+    ui.row({ align = "center", gap = 8 }, headerContent),
     ui.label({
       text = tr("panel.description"),
       color = "on_surface_variant",
@@ -220,6 +225,7 @@ function onSettings()
 end
 
 function onOpen(_context)
+  closeButton = noctalia.getSetting("show_close_buttons")
   status = noctalia.state.get("wallpaper_depth.status") or status
   render()
 end
