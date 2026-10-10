@@ -225,7 +225,7 @@ function onSettings()
 end
 
 function onOpen(_context)
-  closeButton = noctalia.getSetting("show_close_buttons")
+  closeButton = noctalia.getSetting("shell.show_close_buttons")
   status = noctalia.state.get("wallpaper_depth.status") or status
   render()
 end
