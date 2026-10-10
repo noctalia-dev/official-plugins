@@ -15,6 +15,7 @@ function render()
       key = "cid_" .. tostring(clientIdKey),
       value = "",
       placeholder = noctalia.tr("panel.client-id-placeholder"),
+      focus = true,
       onChange = "onClientIdChange",
     }),
     ui.label({ text = noctalia.tr("panel.client-secret-label"), fontWeight = "medium" }),

@@ -5,6 +5,9 @@ local RESULT_LIMIT = 100
 local pending = {}
 local vaultStatus = "offline"
 local lastQuery = ""
+-- Full item list from bw serve, fuzzy-matched locally. Refetched when the
+-- query is empty (each fresh /bw), after a sync, and dropped on lock.
+local itemCache = nil
 
 local function hint(id, title, subtitle, glyph)
   return { id = id or "", title = title, subtitle = subtitle, glyph = glyph or "lock" }
@@ -69,6 +72,7 @@ local function applyStatus(st)
   local wasUnlocked = vaultStatus == "unlocked"
   vaultStatus = nextStatus
   if wasUnlocked and vaultStatus ~= "unlocked" then
+    itemCache = nil
     publishActions()
   end
 end
@@ -110,31 +114,6 @@ local function itemGlyph(item)
   return "lock"
 end
 
-local function itemRows(list)
-  local rows = {}
-  if type(list) ~= "table" then
-    return rows
-  end
-  for _, item in list do
-    if #rows >= RESULT_LIMIT then
-      break
-    end
-    if type(item) == "table" and type(item.id) == "string" and type(item.name) == "string" then
-      table.insert(rows, {
-        id = "item:" .. item.id,
-        title = item.name,
-        subtitle = itemSubtitle(item),
-        glyph = itemGlyph(item),
-      })
-    end
-  end
-  return rows
-end
-
-local function hideActionsWhenSearching()
-  return noctalia.getConfig("hide_actions_when_searching") == true
-end
-
 local function servePort()
   local port = noctalia.getConfig("serve_port")
   if type(port) == "number" and port >= 1024 and port <= 65535 then
@@ -164,14 +143,88 @@ local function unwrapList(decoded)
   return {}, nil
 end
 
-local function searchItems(query, search)
-  local url = `http://127.0.0.1:{servePort()}/list/object/items`
-  if search ~= "" then
-    url = url .. "?search=" .. noctalia.string.urlEncode(search)
+local function hideActionsWhenSearching()
+  return noctalia.getConfig("hide_actions_when_searching") == true
+end
+
+-- Best fuzzy score of `text` over the given fields; nil when none match.
+local function bestScore(text, ...)
+  local best = nil
+  for _, field in { ... } do
+    if type(field) == "string" and field ~= "" then
+      local score = noctalia.fuzzyScore(text, field)
+      if score ~= nil and (best == nil or score > best) then
+        best = score
+      end
+    end
   end
+  return best
+end
+
+local function firstUri(item)
+  local login = item.login
+  if type(login) == "table" and type(login.uris) == "table" then
+    for _, u in login.uris do
+      if type(u) == "table" and type(u.uri) == "string" and u.uri ~= "" then
+        return u.uri
+      end
+    end
+  end
+  return nil
+end
+
+-- Actions and items scored against `text` and sorted best first. An empty
+-- text keeps the plain order: actions, then items. With
+-- hide_actions_when_searching, a non-empty text ranks items only.
+local function rankRows(text, items)
+  local scored = {}
+  local function add(row, score)
+    row.score = score
+    table.insert(scored, { row = row, score = score, order = #scored })
+  end
+  local actions = if text ~= "" and hideActionsWhenSearching() then {} else actionRows()
+  for _, row in actions do
+    local score = if text == "" then 0 else bestScore(text, row.title)
+    if score ~= nil then
+      add(row, score)
+    end
+  end
+  if type(items) == "table" then
+    for _, item in items do
+      if type(item) == "table" and type(item.id) == "string" and type(item.name) == "string" then
+        local login = if type(item.login) == "table" then item.login else {}
+        local score = if text == "" then 0 else bestScore(text, item.name, login.username, firstUri(item))
+        if score ~= nil then
+          add({
+            id = "item:" .. item.id,
+            title = item.name,
+            subtitle = itemSubtitle(item),
+            glyph = itemGlyph(item),
+          }, score)
+        end
+      end
+    end
+  end
+  table.sort(scored, function(a, b)
+    if a.score ~= b.score then
+      return a.score > b.score
+    end
+    return a.order < b.order
+  end)
+  local rows = {}
+  for _, entry in scored do
+    if #rows >= RESULT_LIMIT then
+      break
+    end
+    table.insert(rows, entry.row)
+  end
+  return rows
+end
+
+local function fetchItems(query, text)
   noctalia.http({
     method = "GET",
-    url = url,
+    url = `http://127.0.0.1:{servePort()}/list/object/items`,
     headers = { "Accept: application/json" },
   }, function(res)
     if pending[query] ~= true then
@@ -179,12 +232,12 @@ local function searchItems(query, search)
     end
     pending[query] = nil
     if vaultStatus ~= "unlocked" then
-      launcher.setResults(query, actionRows())
+      launcher.setResults(query, rankRows(text, nil))
       return
     end
-    local rows = (search == "" or not hideActionsWhenSearching()) and actionRows() or {}
     if not res.ok then
       noctalia.state.set("command", { action = "ensure_serve" })
+      local rows = rankRows(text, nil)
       table.insert(
         rows,
         hint("", noctalia.tr("launcher.serve-down"), noctalia.tr("launcher.serve-down-hint"), "plug-connected")
@@ -194,6 +247,7 @@ local function searchItems(query, search)
     end
     local items, err = unwrapList(noctalia.json.decode(res.body))
     if err ~= nil then
+      local rows = rankRows(text, nil)
       if string.find(string.lower(err), "locked", 1, true) then
         table.insert(rows, hint("action:unlock", noctalia.tr("launcher.vault-locked"), err, "lock"))
       else
@@ -202,38 +256,43 @@ local function searchItems(query, search)
       launcher.setResults(query, rows)
       return
     end
-    local found = itemRows(items)
-    if #found == 0 and search ~= "" then
-      table.insert(rows, hint("", noctalia.tr("launcher.no-matches"), noctalia.tr("launcher.try-different"), "search-off"))
+    itemCache = items
+    -- the user may have typed on while the list was loading
+    if query == lastQuery then
+      local rows = rankRows(text, items)
+      if #rows == 0 then
+        table.insert(rows, hint("", noctalia.tr("launcher.no-matches"), noctalia.tr("launcher.try-different"), "search-off"))
+      end
+      launcher.setResults(query, rows)
     end
-    for _, row in found do
-      table.insert(rows, row)
-    end
-    launcher.setResults(query, rows)
   end)
 end
 
 function onQuery(query)
   lastQuery = query
   local text = noctalia.string.trim(query)
-  local rows = actionRows()
-
-  if vaultStatus == "unauthenticated" then
-    launcher.setResults(query, rows)
-    return
-  end
 
   if vaultStatus ~= "unlocked" then
-    if text ~= "" then
+    local rows = rankRows(text, nil)
+    if #rows == 0 and vaultStatus ~= "unauthenticated" then
       table.insert(rows, hint("action:unlock", noctalia.tr("launcher.vault-locked"), noctalia.tr("launcher.unlock-hint"), "lock"))
     end
     launcher.setResults(query, rows)
     return
   end
 
+  if text ~= "" and itemCache ~= nil then
+    local rows = rankRows(text, itemCache)
+    if #rows == 0 then
+      table.insert(rows, hint("", noctalia.tr("launcher.no-matches"), noctalia.tr("launcher.try-different"), "search-off"))
+    end
+    launcher.setResults(query, rows)
+    return
+  end
+
   pending[query] = true
-  launcher.setResults(query, (text == "" or not hideActionsWhenSearching()) and rows or {})
-  searchItems(query, text)
+  launcher.setResults(query, rankRows(text, itemCache))
+  fetchItems(query, text)
 end
 
 function onActivate(id)
@@ -258,6 +317,7 @@ function onActivate(id)
     return
   end
   if id == "action:sync" then
+    itemCache = nil
     noctalia.state.set("command", { action = "sync" })
     return
   end
