@@ -19,7 +19,10 @@ local REPLAY_STATES = { "replaying", "replay_pending" }
 local outputPath = ""
 local isAvailable = false
 local tickCount = 0
-local pendingTick = 0
+-- tickCount when the current start began; the pending verdict waits a full
+-- check interval from here, so a process check already in flight at start
+-- (or the next periodic one, up to 2s away) cannot decide on its own.
+local pendingSince = 0
 local checkedAvailability = false
 local processCheckPending = false
 local stateGeneration = 0
@@ -424,7 +427,7 @@ local function startRecording(focusedOutputName, sourceOverride)
     if not isAvailable or state ~= "idle" then return end
 
     setState("pending")
-    pendingTick = 0
+    pendingSince = tickCount
     updateDisplay()
 
     checkPortalsIfNeededAsync(sourceOverride, function(portalAvailable)
@@ -479,7 +482,7 @@ local function startReplay(focusedOutputName, sourceOverride)
     if not cfg("replay_enabled") then return end
 
     setState("replay_pending")
-    pendingTick = 0
+    pendingSince = tickCount
     updateDisplay()
 
     checkPortalsIfNeededAsync(sourceOverride, function(portalAvailable)
@@ -560,8 +563,7 @@ end
 
 local function checkProcessState(processState)
     if state == "pending" then
-        pendingTick += CHECK_TICKS
-        if pendingTick >= PENDING_TICKS then
+        if tickCount - pendingSince >= PENDING_TICKS then
             if processState == "recording" then
                 log("recording active")
                 setState("recording")
@@ -576,8 +578,7 @@ local function checkProcessState(processState)
             end
         end
     elseif state == "replay_pending" then
-        pendingTick += CHECK_TICKS
-        if pendingTick >= PENDING_TICKS then
+        if tickCount - pendingSince >= PENDING_TICKS then
             if processState == "replaying" then
                 log("replay buffer active")
                 setState("replaying")
