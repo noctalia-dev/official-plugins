@@ -91,6 +91,8 @@ local function render()
 end
 
 function onOpen(_context)
+  -- The setting is updated on each panel opening since it doesn't
+  -- automatically reload when the setting is changed
   closeButton = noctalia.getSetting("shell.show_close_buttons")
   render()
 end
