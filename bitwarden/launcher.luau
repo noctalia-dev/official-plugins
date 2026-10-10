@@ -221,6 +221,30 @@ local function rankRows(text, items)
   return rows
 end
 
+-- Keep only what ranking and the subtitle read. bw serve returns items fully
+-- decrypted (passwords, TOTP seeds, notes, cards); the cache must not hold
+-- those for the whole session. Copy fetches the secret by id when needed.
+local function slimItems(list)
+  local out = {}
+  if type(list) ~= "table" then
+    return out
+  end
+  for _, item in list do
+    if type(item) == "table" and type(item.id) == "string" and type(item.name) == "string" then
+      local login = nil
+      if type(item.login) == "table" then
+        local uri = firstUri(item)
+        login = {
+          username = if type(item.login.username) == "string" then item.login.username else nil,
+          uris = if uri ~= nil then { { uri = uri } } else nil,
+        }
+      end
+      table.insert(out, { id = item.id, name = item.name, type = item.type, login = login })
+    end
+  end
+  return out
+end
+
 local function fetchItems(query, text)
   noctalia.http({
     method = "GET",
@@ -256,10 +280,10 @@ local function fetchItems(query, text)
       launcher.setResults(query, rows)
       return
     end
-    itemCache = items
+    itemCache = slimItems(items)
     -- the user may have typed on while the list was loading
     if query == lastQuery then
-      local rows = rankRows(text, items)
+      local rows = rankRows(text, itemCache)
       if #rows == 0 then
         table.insert(rows, hint("", noctalia.tr("launcher.no-matches"), noctalia.tr("launcher.try-different"), "search-off"))
       end
