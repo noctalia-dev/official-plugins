@@ -12,7 +12,9 @@
     "password-required": "Enter your master password",
     "request-failed": "Request failed",
     "sync-failed": "Could not sync the vault",
-    "vault-locked": "Vault is locked"
+    "vault-locked": "Vault is locked",
+    "wtype-missing": "wtype is not installed (required for autotype)",
+    "autotype-unavailable": "Autotype needs both a username and a password on this entry"
   },
   "generated": "Generated password copied",
   "generated-passphrase": "Generated passphrase copied",
@@ -62,7 +64,8 @@
     "login-blurb": "From the web vault: Settings → Security → Keys → View API key. You can also run bw login once in a terminal instead.",
     "password-label": "Master password",
     "password-placeholder": "Master password",
-    "unlock": "Unlock"
+    "unlock": "Unlock",
+    "autotype": "Autotype"
   },
   "settings": {
     "auto_serve": {
@@ -154,5 +157,6 @@
   },
   "synced": "Vault synced",
   "title": "Bitwarden",
-  "unlocked": "Vault unlocked"
+  "unlocked": "Vault unlocked",
+  "autotyping": "Autotyping credentials…"
 }

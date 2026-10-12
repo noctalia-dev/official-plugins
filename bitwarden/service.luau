@@ -644,6 +644,44 @@ local function extractField(item, field)
   return nil
 end
 
+local function autotypeItem(payload)
+  local id = type(payload) == "table" and payload.id or nil
+  if type(id) ~= "string" or id == "" then
+    return
+  end
+  if status.vault ~= "unlocked" then
+    noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.vault-locked"))
+    return
+  end
+  if not noctalia.commandExists("wtype") then
+    noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.wtype-missing"))
+    return
+  end
+  httpJson("GET", `/object/item/{noctalia.string.urlEncode(id)}`, nil, function(data, err)
+    if err ~= nil then
+      noctalia.notifyError(noctalia.tr("title"), err)
+      return
+    end
+    local item = data
+    if type(data) == "table" and type(data.data) == "table" and data.id == nil then
+      item = data.data
+    end
+    local login = type(item) == "table" and item.login or nil
+    local username = type(login) == "table" and type(login.username) == "string" and login.username or nil
+    local password = type(login) == "table" and type(login.password) == "string" and login.password or nil
+    if username == nil or password == nil then
+      noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.autotype-unavailable"))
+      return
+    end
+    touchUnlockActivity()
+    -- brief delay so the previously focused window regains keyboard after the
+    -- panel closes. Tradeoff (documented in README): credentials are visible
+    -- in wtype's process arguments while it runs, like every wtype autotyper.
+    noctalia.runAsync(`sleep 0.4 && wtype {shellQuote(username)} -k tab {shellQuote(password)}`)
+    noctalia.notify(noctalia.tr("title"), noctalia.tr("autotyping"))
+  end)
+end
+
 local function copyItemField(itemId, fieldOverride)
   if type(itemId) ~= "string" or itemId == "" then
     return
@@ -849,6 +887,8 @@ function onIpc(event, payload)
       field = payload.field
     end
     copyItemField(id, field)
+  elseif event == "autotype" then
+    autotypeItem(payload)
   elseif event == "generate" then
     local mode = "password"
     if type(payload) == "table" then
