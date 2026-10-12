@@ -58,6 +58,14 @@ function render()
     ui.scroll({ flexGrow = 1, gap = 4 }, rows),
     ui.row({ gap = 8, align = "end" }, {
       ui.button({
+        text = noctalia.tr("panel.autotype"),
+        variant = "primary",
+        onClick = function()
+          noctalia.state.set("command", { action = "autotype", id = item.id })
+          panel.close()
+        end,
+      }),
+      ui.button({
         text = noctalia.tr("panel.close"),
         variant = "ghost",
         onClick = "onClosePanel",
