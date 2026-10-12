@@ -16,6 +16,7 @@ Control Center.
 Install `gpu-screen-recorder` on `PATH`, or install the Flatpak app
 `com.dec05eba.gpu_screen_recorder`. Portal capture also requires
 `xdg-desktop-portal` with any backend that provides the ScreenCast interface.
+Region capture requires `slurp`.
 
 - **[gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/about/)** - Hardware-accelerated screen recording
 
@@ -45,11 +46,14 @@ Shortcut controls:
 
 Replay controls are available only when `replay_enabled` is true.
 
+When `video_source` is `region`, starting a capture or replay first opens a
+`slurp` picker: drawing an area records it and cancelling returns to idle.
+
 ## Settings
 
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
-| `video_source` | `select` | `portal` | Capture `focused` or `portal`. |
+| `video_source` | `select` | `portal` | Capture `focused`, `portal` or `region`. |
 | `directory` | `folder` | `~/Videos/Recordings` | Output folder, falling back to `~/Videos/Recordings`. |
 | `filename_pattern` | `string` | `recording_%Y%m%d_%H%M%S` | Date-format filename pattern without extension. |
 | `frame_rate` | `int` | `60` | Capture frame rate from 1 to 240. |
@@ -92,12 +96,13 @@ noctalia msg plugin noctalia/screen_recorder:service all replay-save
 ### Capture source override
 
 `start` and `replay-start` accept an optional payload that overrides the
-`video_source` setting for that capture: `focused` or `portal`. Any
+`video_source` setting for that capture: `focused`, `portal` or `region`. Any
 other value is ignored and the configured source is used.
 
 ```sh
 noctalia msg plugin noctalia/screen_recorder:service all start focused
 noctalia msg plugin noctalia/screen_recorder:service all start portal
+noctalia msg plugin noctalia/screen_recorder:service all start region
 ```
 
 Here `all` is the IPC target (which instance receives the event) and the trailing
