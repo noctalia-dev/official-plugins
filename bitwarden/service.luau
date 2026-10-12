@@ -620,10 +620,31 @@ local function extractField(item, field)
     end
     return nil
   end
+  if type(field) == "string" and field:sub(1, 4) == "uri:" then
+    local index = tonumber(field:sub(5))
+    if index ~= nil and type(login) == "table" and type(login.uris) == "table" then
+      local u = login.uris[index]
+      if type(u) == "table" and type(u.uri) == "string" and u.uri ~= "" then
+        return u.uri
+      end
+    end
+    return nil
+  end
+  if type(field) == "string" and field:sub(1, 7) == "custom:" then
+    local wanted = field:sub(8)
+    if type(item.fields) == "table" then
+      for _, f in item.fields do
+        if type(f) == "table" and f.name == wanted and type(f.value) == "string" and f.value ~= "" then
+          return f.value
+        end
+      end
+    end
+    return nil
+  end
   return nil
 end
 
-local function copyItemField(itemId)
+local function copyItemField(itemId, fieldOverride)
   if type(itemId) ~= "string" or itemId == "" then
     return
   end
@@ -632,6 +653,9 @@ local function copyItemField(itemId)
     return
   end
   local field = cfg("copy_field")
+  if type(fieldOverride) == "string" and fieldOverride ~= "" then
+    field = fieldOverride
+  end
   if type(field) ~= "string" or field == "" then
     field = "password"
   end
@@ -819,10 +843,12 @@ function onIpc(event, payload)
     pollStatus()
   elseif event == "copy" then
     local id = payload
+    local field = nil
     if type(payload) == "table" then
       id = payload.id
+      field = payload.field
     end
-    copyItemField(id)
+    copyItemField(id, field)
   elseif event == "generate" then
     local mode = "password"
     if type(payload) == "table" then

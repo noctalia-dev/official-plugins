@@ -6,6 +6,8 @@ local pending = {}
 local vaultStatus = "offline"
 local lastQuery = ""
 
+
+
 local function hint(id, title, subtitle, glyph)
   return { id = id or "", title = title, subtitle = subtitle, glyph = glyph or "lock" }
 end
@@ -164,6 +166,117 @@ local function unwrapList(decoded)
   return {}, nil
 end
 
+-- Fetch one item and decide how to copy it: entries without custom fields
+-- keep the old single-keypress flow; entries with custom fields open the
+-- field picker panel (mirrors the entry detail in the Bitwarden apps).
+local function fetchItemFields(itemId)
+  local url = `http://127.0.0.1:{servePort()}/object/item/{noctalia.string.urlEncode(itemId)}`
+  noctalia.http({
+    method = "GET",
+    url = url,
+    headers = { "Accept: application/json" },
+  }, function(res)
+    if not res.ok then
+      noctalia.state.set("command", { action = "copy", id = itemId })
+      return
+    end
+    local decoded = noctalia.json.decode(res.body)
+    local item = type(decoded) == "table" and decoded.data or nil
+    if type(item) ~= "table" then
+      noctalia.state.set("command", { action = "copy", id = itemId })
+      return
+    end
+
+    local fields = {}
+    -- Copy shortcuts: digits first, then letters. Both the labels here and
+    -- the panel's capture_keys/onKey mapping in fields.luau use this order.
+    local fieldChords = {
+      "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
+      "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+      "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+      "u", "v", "w", "x", "y", "z",
+    }
+    local fieldIndex = 0
+    local function addField(field)
+      fieldIndex += 1
+      local chord = fieldChords[fieldIndex]
+      if chord ~= nil then
+        field.label = "[" .. chord .. "] " .. field.label
+      end
+      table.insert(fields, field)
+    end
+    local login = item.login
+    if type(login) == "table" then
+      if type(login.username) == "string" and login.username ~= "" then
+        addField({ key = "username", label = noctalia.tr("launcher.field-username"), masked = false })
+      end
+      if type(login.password) == "string" and login.password ~= "" then
+        addField({
+          key = "password",
+          label = noctalia.tr("launcher.field-password"),
+          masked = true,
+          value = login.password,
+        })
+      end
+      if type(login.totp) == "string" and login.totp ~= "" then
+        addField({ key = "totp", label = noctalia.tr("launcher.field-totp"), masked = false })
+      end
+      if type(login.uris) == "table" then
+        local n = 0
+        for _, u in login.uris do
+          if type(u) == "table" and type(u.uri) == "string" and u.uri ~= "" then
+            n += 1
+            addField({
+              key = "uri:" .. tostring(n),
+              label = if n == 1 then noctalia.tr("launcher.field-uri") else noctalia.tr("launcher.field-uri") .. " " .. tostring(n),
+              masked = false,
+              value = u.uri,
+            })
+          end
+        end
+      end
+    end
+    if type(item.notes) == "string" and item.notes ~= "" then
+      addField({
+        key = "notes",
+        label = noctalia.tr("launcher.field-notes"),
+        masked = false,
+        value = item.notes,
+        -- multiline notes flattened for the one-line panel display; the copy
+        -- keeps the full text
+        display = item.notes:gsub("\r?\n", " · "),
+      })
+    end
+    if type(item.fields) == "table" then
+      for _, f in item.fields do
+        if type(f) == "table" and type(f.name) == "string" and f.name ~= "" and type(f.value) == "string" and f.value ~= "" then
+          addField({
+            key = "custom:" .. f.name,
+            label = f.name,
+            -- bw serve types custom fields as ints (0 = text, 1 = hidden);
+            -- accept the string form too in case the API ever grows one.
+            masked = f.type == 1 or f.type == "hidden",
+            value = f.value,
+          })
+        end
+      end
+    end
+
+    local hasCustom = type(item.fields) == "table" and #item.fields > 0
+    if not hasCustom then
+      noctalia.state.set("command", { action = "copy", id = itemId })
+      return
+    end
+
+    noctalia.state.set("fields_panel", {
+      id = itemId,
+      name = if type(item.name) == "string" then item.name else "",
+      fields = fields,
+    })
+    noctalia.togglePanel("noctalia/bitwarden:fields")
+  end)
+end
+
 local function searchItems(query, search)
   local url = `http://127.0.0.1:{servePort()}/list/object/items`
   if search ~= "" then
@@ -276,7 +389,7 @@ function onActivate(id)
   if id:sub(1, 5) == "item:" then
     local itemId = id:sub(6)
     if itemId ~= "" then
-      noctalia.state.set("command", { action = "copy", id = itemId })
+      fetchItemFields(itemId)
     end
   end
 end
