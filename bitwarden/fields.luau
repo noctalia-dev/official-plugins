@@ -3,8 +3,12 @@
 -- state) for entries that carry custom fields; each row copies its field.
 -- Digits 1..9/0 then letters a..z (capture_keys in plugin.toml) copy the
 -- numbered field.
+--
+-- The panel state carries keys, labels, and non-secret display values only:
+-- masked fields (passwords, hidden custom fields) arrive without a value and
+-- are resolved by key by the service when copied.
 
-local item = nil -- { id = "...", name = "...", fields = { { key, label, masked, value } } }
+local item = nil -- { id = "...", name = "...", fields = { { key, label, masked, value? } } }
 
 -- Copy shortcuts: digits first, then letters — the same order as the
 -- capture_keys list in plugin.toml and the labels the launcher renders.
@@ -15,15 +19,7 @@ local fieldChords = {
   "u", "v", "w", "x", "y", "z",
 }
 
-local function maskValue(value)
-  if type(value) ~= "string" or value == "" then
-    return ""
-  end
-  if #value == 1 then
-    return "*"
-  end
-  return value:sub(1, 1) .. string.rep("*", #value - 1)
-end
+local HIDDEN_PREVIEW = "••••"
 
 function render()
   if type(item) ~= "table" then
@@ -46,7 +42,11 @@ function render()
     }, {
       ui.label({ text = f.label, fontWeight = "medium", flexGrow = 1 }),
       ui.label({
-        text = if f.display ~= nil then f.display else if f.value ~= nil then (if f.masked then maskValue(f.value) else f.value) else "",
+        text = if f.display ~= nil
+          then f.display
+          elseif f.value ~= nil then f.value
+          elseif f.masked then HIDDEN_PREVIEW
+          else "",
         color = "on_surface_variant",
       }),
     }))

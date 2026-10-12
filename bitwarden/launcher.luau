@@ -25,8 +25,6 @@ local function dropFetch()
   fetchGen += 1
 end
 
-
-
 local function hint(id, title, subtitle, glyph)
   return { id = id or "", title = title, subtitle = subtitle, glyph = glyph or "lock" }
 end
@@ -212,7 +210,8 @@ local function fetchItemFields(itemId)
           key = "password",
           label = noctalia.tr("launcher.field-password"),
           masked = true,
-          value = login.password,
+          -- Masked values never leave the launcher: the panel only carries
+          -- keys/labels, and the service resolves the value by key on copy.
         })
       end
       if type(login.totp) == "string" and login.totp ~= "" then
@@ -247,13 +246,16 @@ local function fetchItemFields(itemId)
     if type(item.fields) == "table" then
       for _, f in item.fields do
         if type(f) == "table" and type(f.name) == "string" and f.name ~= "" and type(f.value) == "string" and f.value ~= "" then
+          local hidden = f.type == 1 or f.type == "hidden"
           addField({
             key = "custom:" .. f.name,
             label = f.name,
             -- bw serve types custom fields as ints (0 = text, 1 = hidden);
             -- accept the string form too in case the API ever grows one.
-            masked = f.type == 1 or f.type == "hidden",
-            value = f.value,
+            masked = hidden,
+            -- Hidden custom fields are resolved by key on copy, same as the
+            -- login password; text fields are not secret and preview inline.
+            value = if not hidden then f.value else nil,
           })
         end
       end
