@@ -13,7 +13,7 @@ servers work if you already pointed the CLI at them with `bw config server`
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/bitwarden` |
-| Entries | Service `service`, launcher `finder`, panels `unlock` / `login` |
+| Entries | Service `service`, launcher `finder`, panels `unlock` / `login` / `fields` |
 | Launcher prefix | `/bw` |
 | Dependency | `bitwarden-cli` (`bw` on `PATH`) |
 
@@ -77,7 +77,7 @@ Open the launcher and type `/bw`:
 | **Lock vault** | Locks the local serve session |
 | **Sync vault** | Pulls latest vault data |
 | **Start bw serve** | Shown when serve is offline |
-| Vault items | Listed when unlocked; Enter copies the configured field (password by default) |
+| Vault items | Listed when unlocked. Enter opens the entry when it has custom fields (a picker panel lists every copyable field; digits 1–9/0 copy the numbered one), or copies the configured field (`password` by default) when it does not |
 
 When unlocked, `/bw` lists vault items (capped). Typing fuzzy-matches the actions and the vault items
 (name, username, or URI) and ranks them together, best match first, so `/bw unl` selects **Unlock vault**
@@ -118,6 +118,7 @@ noctalia msg plugin noctalia/bitwarden:service all generate
 noctalia msg plugin noctalia/bitwarden:service all generate passphrase
 noctalia msg panel-toggle noctalia/bitwarden:login
 noctalia msg panel-toggle noctalia/bitwarden:unlock
+noctalia msg panel-toggle noctalia/bitwarden:fields
 ```
 
 Do not pass API secrets or the master password on the CLI. Use the panels.
