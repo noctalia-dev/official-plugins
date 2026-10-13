@@ -2,11 +2,13 @@
 -- Bitwarden launcher /bw
 
 local RESULT_LIMIT = 100
--- Subtracted from action scores. fuzzyScore (fzy) docks ~0.005 per trailing
--- character, so a short title like "Log Out" would otherwise beat every
--- longer item starting with "lo". 0.2 outweighs ~40 characters of length
--- difference but not a word-start bonus (0.6+), so an action still wins when
--- it matches clearly better ("unl" -> Unlock Vault).
+-- Subtracted from action scores unless the text names whole words of the
+-- title. fuzzyScore (fzy) docks ~0.005 per trailing character, so a short
+-- title like "Log Out" would otherwise beat every longer item starting with
+-- "lo". 0.2 outweighs ~40 characters of length difference but not a
+-- word-start bonus (0.6+), so an action still wins when it matches clearly
+-- better ("unl" -> Unlock Vault), and "sync" picks Sync Vault over a
+-- "Syncthing" item.
 local ACTION_HANDICAP = 0.2
 local vaultStatus = "offline"
 local lastQuery = ""
@@ -168,6 +170,12 @@ local function hideActionsWhenSearching()
   return noctalia.getConfig("hide_actions_when_searching") == true
 end
 
+-- True when `text` is one or more whole words of `title` ("sync", "log out").
+local function namesWholeWords(text, title)
+  local padded = " " .. string.lower(title) .. " "
+  return string.find(padded, " " .. string.lower(text) .. " ", 1, true) ~= nil
+end
+
 -- Best fuzzy score of `text` over the given fields; nil when none match.
 local function bestScore(text, ...)
   local best = nil
@@ -207,7 +215,10 @@ local function rankRows(text, items)
   for _, row in actions do
     local score = if text == "" then 0 else bestScore(text, row.title)
     if score ~= nil then
-      add(row, if text == "" then score else score - ACTION_HANDICAP, false)
+      if text ~= "" and not namesWholeWords(text, row.title) then
+        score -= ACTION_HANDICAP
+      end
+      add(row, score, false)
     end
   end
   if type(items) == "table" then
