@@ -2,12 +2,26 @@
 -- Bitwarden launcher /bw
 
 local RESULT_LIMIT = 100
-local pending = {}
+-- Subtracted from action scores. fuzzyScore (fzy) docks ~0.005 per trailing
+-- character, so a short title like "Log Out" would otherwise beat every
+-- longer item starting with "lo". 0.2 outweighs ~40 characters of length
+-- difference but not a word-start bonus (0.6+), so an action still wins when
+-- it matches clearly better ("unl" -> Unlock Vault).
+local ACTION_HANDICAP = 0.2
 local vaultStatus = "offline"
 local lastQuery = ""
 -- Full item list from bw serve, fuzzy-matched locally. Refetched when the
--- query is empty (each fresh /bw), after a sync, and dropped on lock.
+-- query is empty (each fresh /bw), dropped on lock and when a sync completes.
 local itemCache = nil
+-- At most one list request runs at a time. Bumping fetchGen discards the
+-- response of the one in flight.
+local fetching = false
+local fetchGen = 0
+
+local function dropFetch()
+  fetching = false
+  fetchGen += 1
+end
 
 local function hint(id, title, subtitle, glyph)
   return { id = id or "", title = title, subtitle = subtitle, glyph = glyph or "lock" }
@@ -60,7 +74,7 @@ end
 
 local function publishActions()
   -- drop in-flight search so late responses can't repaint
-  pending = {}
+  dropFetch()
   launcher.setResults(lastQuery, actionRows())
 end
 
@@ -79,6 +93,13 @@ end
 
 applyStatus(noctalia.state.get("status"))
 noctalia.state.watch("status", applyStatus)
+
+-- A sync from anywhere (launcher, panel, IPC) makes the cached list stale.
+-- A list request started before the sync finished may be stale too.
+noctalia.state.watch("synced", function()
+  itemCache = nil
+  dropFetch()
+end)
 
 local function itemSubtitle(item)
   local parts = {}
@@ -178,15 +199,15 @@ end
 -- hide_actions_when_searching, a non-empty text ranks items only.
 local function rankRows(text, items)
   local scored = {}
-  local function add(row, score)
+  local function add(row, score, isItem)
     row.score = score
-    table.insert(scored, { row = row, score = score, order = #scored })
+    table.insert(scored, { row = row, score = score, isItem = isItem, order = #scored })
   end
   local actions = if text ~= "" and hideActionsWhenSearching() then {} else actionRows()
   for _, row in actions do
     local score = if text == "" then 0 else bestScore(text, row.title)
     if score ~= nil then
-      add(row, score)
+      add(row, if text == "" then score else score - ACTION_HANDICAP, false)
     end
   end
   if type(items) == "table" then
@@ -200,7 +221,7 @@ local function rankRows(text, items)
             title = item.name,
             subtitle = itemSubtitle(item),
             glyph = itemGlyph(item),
-          }, score)
+          }, score, true)
         end
       end
     end
@@ -211,12 +232,16 @@ local function rankRows(text, items)
     end
     return a.order < b.order
   end)
+  -- RESULT_LIMIT caps vault items only; matching actions always show
   local rows = {}
+  local itemCount = 0
   for _, entry in scored do
-    if #rows >= RESULT_LIMIT then
-      break
+    if entry.isItem then
+      itemCount += 1
     end
-    table.insert(rows, entry.row)
+    if not entry.isItem or itemCount <= RESULT_LIMIT then
+      table.insert(rows, entry.row)
+    end
   end
   return rows
 end
@@ -245,16 +270,30 @@ local function slimItems(list)
   return out
 end
 
-local function fetchItems(query, text)
+-- Results for whatever the user has typed by the time the list arrives.
+local function publishItems()
+  local rows = rankRows(noctalia.string.trim(lastQuery), itemCache)
+  if #rows == 0 then
+    table.insert(rows, hint("", noctalia.tr("launcher.no-matches"), noctalia.tr("launcher.try-different"), "search-off"))
+  end
+  launcher.setResults(lastQuery, rows)
+end
+
+local function fetchItems()
+  fetching = true
+  local gen = fetchGen
   noctalia.http({
     method = "GET",
     url = `http://127.0.0.1:{servePort()}/list/object/items`,
     headers = { "Accept: application/json" },
   }, function(res)
-    if pending[query] ~= true then
+    if gen ~= fetchGen then
       return
     end
-    pending[query] = nil
+    fetching = false
+    -- errors are shown against the latest query too
+    local query = lastQuery
+    local text = noctalia.string.trim(query)
     if vaultStatus ~= "unlocked" then
       launcher.setResults(query, rankRows(text, nil))
       return
@@ -282,13 +321,7 @@ local function fetchItems(query, text)
     end
     itemCache = slimItems(items)
     -- the user may have typed on while the list was loading
-    if query == lastQuery then
-      local rows = rankRows(text, itemCache)
-      if #rows == 0 then
-        table.insert(rows, hint("", noctalia.tr("launcher.no-matches"), noctalia.tr("launcher.try-different"), "search-off"))
-      end
-      launcher.setResults(query, rows)
-    end
+    publishItems()
   end)
 end
 
@@ -306,17 +339,16 @@ function onQuery(query)
   end
 
   if text ~= "" and itemCache ~= nil then
-    local rows = rankRows(text, itemCache)
-    if #rows == 0 then
-      table.insert(rows, hint("", noctalia.tr("launcher.no-matches"), noctalia.tr("launcher.try-different"), "search-off"))
-    end
-    launcher.setResults(query, rows)
+    publishItems()
     return
   end
 
-  pending[query] = true
+  -- actions (and any cached items) right away; the list fills in when it lands
   launcher.setResults(query, rankRows(text, itemCache))
-  fetchItems(query, text)
+  -- a request already in flight answers this query when it returns
+  if not fetching then
+    fetchItems()
+  end
 end
 
 function onActivate(id)
@@ -341,7 +373,7 @@ function onActivate(id)
     return
   end
   if id == "action:sync" then
-    itemCache = nil
+    -- the cache is dropped when the sync completes, via the "synced" state
     noctalia.state.set("command", { action = "sync" })
     return
   end

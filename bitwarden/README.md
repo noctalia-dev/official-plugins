@@ -82,6 +82,9 @@ Open the launcher and type `/bw`:
 When unlocked, `/bw` lists vault items (capped). Typing fuzzy-matches the actions and the vault items
 (name, username, or URI) and ranks them together, best match first, so `/bw unl` selects **Unlock vault**
 and `/bw ghb` finds a GitHub login. The item list is fetched once per `/bw` and matched locally as you type.
+Only each item's id, name, type, username and first URI are kept in memory between keystrokes, never
+passwords, TOTP seeds, notes or card data; Enter fetches the secret by id. That metadata stays cached until
+the vault locks, a sync completes, or `/bw` is reopened.
 
 ## Settings
 

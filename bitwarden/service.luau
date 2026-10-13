@@ -11,6 +11,8 @@ local serveStartCooldown = 0
 local nextSlowPollTick = 0
 local statusInFlight = false
 local opInFlight = false
+-- bumped after each successful sync; the launcher drops its item cache on change
+local syncCount = 0
 local lastStatusKey = ""
 local pendingClear = nil -- { text, ticksLeft }
 local servePortStarted = nil -- port bw serve was started on by this runtime (nil = none)
@@ -794,6 +796,8 @@ local function doSync()
     if status.vault == "unlocked" then
       touchUnlockActivity()
     end
+    syncCount += 1
+    noctalia.state.set("synced", syncCount)
     noctalia.notify(noctalia.tr("title"), noctalia.tr("synced"))
     pollStatus()
   end)
