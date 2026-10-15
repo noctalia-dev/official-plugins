@@ -1,5 +1,5 @@
 --!strict
--- Type definitions for the Noctalia plugin API (plugin_api 34).
+-- Type definitions for the Noctalia plugin API (plugin_api 35).
 --
 -- luau-lsp *definition file*: it declares the host-injected globals (noctalia.*,
 -- barWidget.*, shortcut.*, launcher.*, desktopWidget.*, panel.*, ui.*) so authors
@@ -161,6 +161,17 @@ export type NoctaliaSound = {
   play: (name: string) -> (),
 }
 
+export type OsdOptions = {
+  progress: number?, -- fill level 0..1, clamped; NaN raises. Omit for a text-only popup
+  inactive: boolean?, -- muted icon/text, as the built-in popups use for "off" states
+}
+
+-- API 35. `icon` is a glyph name (same names ui.glyph accepts) and
+-- must not be empty; `value` is the text beside it, defaulting to "".
+export type NoctaliaOsd = {
+  show: (icon: string, value: string?, opts: OsdOptions?) -> (),
+}
+
 export type Noctalia = {
   log: (msg: string) -> (),
 
@@ -274,6 +285,7 @@ export type Noctalia = {
 
   state: NoctaliaState,
   sound: NoctaliaSound,
+  osd: NoctaliaOsd,
   json: NoctaliaJson,
   string: NoctaliaString,
 }
