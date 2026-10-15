@@ -1,5 +1,5 @@
 --!strict
--- Type definitions for the Noctalia plugin API (plugin_api 34).
+-- Type definitions for the Noctalia plugin API (plugin_api 35).
 --
 -- luau-lsp *definition file*: it declares the host-injected globals (noctalia.*,
 -- barWidget.*, shortcut.*, launcher.*, desktopWidget.*, panel.*, ui.*) so authors
@@ -609,10 +609,11 @@ export type UiScrollProps = {
   revealKey: string?, -- scrolls the descendant with this key into view (API 33); re-applies only when it changes or the child reappears
 }
 
--- ui.dragSource (panels only, API 5). Marks a subtree draggable: a grip glyph, or a whole
--- row through previewAncestor. dragType and payload are required - a missing, mistyped,
--- empty or over-limit value disables the control for that render. Limits: payload 16 KiB,
--- dragType 256 bytes.
+-- ui.dragSource (panels, API 5; bar widgets, API 35). Marks a subtree draggable: a grip
+-- glyph, or a whole row through previewAncestor. dragType and payload are required - a
+-- missing, mistyped, empty or over-limit value disables the control for that render.
+-- Limits: payload 16 KiB, dragType 256 bytes. In a bar widget the ghost stays inside the
+-- widget's own extent.
 export type UiDragSourceProps = {
   key: string?,
   width: number?,
@@ -638,9 +639,16 @@ export type UiDragSourceProps = {
   tooltip: string?,
   previewAncestor: number?, -- integer 0..8 parent levels the ghost shows; 1 previews the row around a grip
   liftFromLayout: boolean?, -- remove the previewed row from layout while dragging
+  -- API 35. The grab hand on hover (default) suits a grip; a source that wraps a whole
+  -- clickable item sets false for the plain pointer. Dragging always shows the grabbing hand.
+  grabCursor: boolean?,
+  -- API 35. A press released inside the source before the drag threshold: how a source
+  -- that wraps a whole item stays clickable, since its input area covers the item. A
+  -- completed drag, or a press that slides off the edge, never fires it.
+  onClick: UiClickHandler?,
 }
 
--- ui.dropZone (panels only, API 5). Flex container that accepts drops; accepts, value and
+-- ui.dropZone (panels, API 5; bar widgets, API 35). Flex container that accepts drops; accepts, value and
 -- onDrop are required (`accepts = {}` accepts nothing). Nested zones resolve to the
 -- deepest accepting zone, hitSlop zones first, closest wins. The host moves nothing: the
 -- callback mutates the plugin's model and re-renders. Limits: value/onDrop/each accepts
@@ -669,7 +677,10 @@ export type UiDropZoneProps = {
   onDrop: UiDropHandler,
   direction: ("column" | "row")?,
   enabled: boolean?,
-  expandOnDrag: boolean?, -- a fixed-height zone animates to the dragged row's height
+  -- A thin zone animates to the dragged item's size along its thin axis while targeted:
+  -- a 3px-high rule between rows grows in height, a 4px-wide one between the members of
+  -- a row grows in width (API 35; height only before).
+  expandOnDrag: boolean?,
   hitSlop: number?, -- extra drag-only hit distance, without changing layout or clicks
 }
 
