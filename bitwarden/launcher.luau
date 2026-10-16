@@ -96,13 +96,6 @@ end
 applyStatus(noctalia.state.get("status"))
 noctalia.state.watch("status", applyStatus)
 
--- A sync from anywhere (launcher, panel, IPC) makes the cached list stale.
--- A list request started before the sync finished may be stale too.
-noctalia.state.watch("synced", function()
-  itemCache = nil
-  dropFetch()
-end)
-
 local function itemSubtitle(item)
   local parts = {}
   local login = item.login
@@ -204,14 +197,16 @@ end
 
 -- Actions and items scored against `text` and sorted best first. An empty
 -- text keeps the plain order: actions, then items. With
--- hide_actions_when_searching, a non-empty text ranks items only.
+-- hide_actions_when_searching, a non-empty text ranks items only while
+-- unlocked; locked or logged out, the actions are all there is to match.
 local function rankRows(text, items)
   local scored = {}
   local function add(row, score, isItem)
     row.score = score
     table.insert(scored, { row = row, score = score, isItem = isItem, order = #scored })
   end
-  local actions = if text ~= "" and hideActionsWhenSearching() then {} else actionRows()
+  local hideActions = text ~= "" and vaultStatus == "unlocked" and hideActionsWhenSearching()
+  local actions = if hideActions then {} else actionRows()
   for _, row in actions do
     local score = if text == "" then 0 else bestScore(text, row.title)
     if score ~= nil then
@@ -335,6 +330,18 @@ local function fetchItems()
     publishItems()
   end)
 end
+
+-- A sync from anywhere (launcher or IPC) makes the cached list stale.
+-- A list request started before the sync finished may be stale too, so it
+-- is dropped and sent again for the query still waiting on it.
+noctalia.state.watch("synced", function()
+  local wasFetching = fetching
+  itemCache = nil
+  dropFetch()
+  if wasFetching and vaultStatus == "unlocked" then
+    fetchItems()
+  end
+end)
 
 function onQuery(query)
   lastQuery = query
