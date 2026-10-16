@@ -13,6 +13,7 @@ function render()
       value = "",
       placeholder = noctalia.tr("panel.password-placeholder"),
       password = true,
+      focus = true, -- type straight away, no Tab needed
       onChange = "onPasswordChange",
       onSubmit = "onUnlock",
     }),
