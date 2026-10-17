@@ -4,11 +4,36 @@
 -- Digits 1..9/0 then letters a..z (capture_keys in plugin.toml) copy the
 -- numbered field.
 --
--- The panel state carries keys, labels, and non-secret display values only:
--- masked fields (passwords, hidden custom fields) arrive without a value and
--- are resolved by key by the service when copied.
+-- Plaintext lifecycle: the panel state carries keys, labels, and display
+-- values (notes and text custom fields arrive unmasked because they are not
+-- secret). It is consumed once in onOpen and cleared immediately, cleared on
+-- every close path, and re-cleared whenever the vault stops being unlocked —
+-- so a picker toggled back open after a lock or logout can never render
+-- stale plaintext.
 
 local item = nil -- { id = "...", name = "...", fields = { { key, label, masked, value? } } }
+
+local function clearPanelState()
+  item = nil
+  noctalia.state.set("fields_panel", nil)
+end
+
+local function vaultUnlocked()
+  local st = noctalia.state.get("status")
+  return type(st) == "table" and st.vault == "unlocked"
+end
+
+-- Close the picker (and drop its plaintext) the moment the vault locks or
+-- logs out; the service republishes "status" on every transition.
+noctalia.state.watch("status", function()
+  if item == nil then
+    return
+  end
+  if not vaultUnlocked() then
+    clearPanelState()
+    panel.close()
+  end
+end)
 
 -- Copy shortcuts: digits first, then letters — the same order as the
 -- capture_keys list in plugin.toml and the labels the launcher renders.
@@ -37,6 +62,7 @@ function render()
       align = "center",
       onClick = function()
         noctalia.state.set("command", { action = "copy", id = item.id, field = f.key })
+        clearPanelState()
         panel.close()
       end,
     }, {
@@ -62,6 +88,7 @@ function render()
         variant = "primary",
         onClick = function()
           noctalia.state.set("command", { action = "autotype", id = item.id })
+          clearPanelState()
           panel.close()
         end,
       }),
@@ -93,19 +120,30 @@ function onKey(chord, pressed)
     return
   end
   noctalia.state.set("command", { action = "copy", id = item.id, field = f.key })
+  clearPanelState()
   panel.close()
 end
 
 function onClosePanel()
+  clearPanelState()
   panel.close()
 end
 
 function onOpen(_context)
+  if not vaultUnlocked() then
+    -- never restore plaintext without an unlocked vault behind it
+    clearPanelState()
+    render()
+    return
+  end
   local data = noctalia.state.get("fields_panel")
   if type(data) == "table" and type(data.fields) == "table" and #data.fields > 0 then
     item = data
   else
     item = nil
   end
+  -- consume the shared state once: from here on the values live only in this
+  -- panel's runtime, and a reopen after close/lock starts empty
+  noctalia.state.set("fields_panel", nil)
   render()
 end

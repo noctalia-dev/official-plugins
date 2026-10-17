@@ -91,6 +91,9 @@ local function applyStatus(st)
   vaultStatus = nextStatus
   if wasUnlocked and vaultStatus ~= "unlocked" then
     itemCache = nil
+    -- drop the field picker's shared state too: it can carry decrypted
+    -- values and must not survive a lock or logout
+    noctalia.state.set("fields_panel", nil)
     publishActions()
   end
 end
@@ -171,6 +174,10 @@ local function fetchItemFields(itemId)
     url = url,
     headers = { "Accept: application/json" },
   }, function(res)
+    if vaultStatus ~= "unlocked" then
+      -- late response after a lock/logout: never open the picker on it
+      return
+    end
     if not res.ok then
       noctalia.state.set("command", { action = "copy", id = itemId })
       return
@@ -218,13 +225,16 @@ local function fetchItemFields(itemId)
         addField({ key = "totp", label = noctalia.tr("launcher.field-totp"), masked = false })
       end
       if type(login.uris) == "table" then
-        local n = 0
-        for _, u in login.uris do
+        local shown = 0
+        for i, u in login.uris do
           if type(u) == "table" and type(u.uri) == "string" and u.uri ~= "" then
-            n += 1
+            shown += 1
             addField({
-              key = "uri:" .. tostring(n),
-              label = if n == 1 then noctalia.tr("launcher.field-uri") else noctalia.tr("launcher.field-uri") .. " " .. tostring(n),
+              -- key carries the original array index so each row always
+              -- copies the URI it displays (skipped/empty entries keep their
+              -- position); display numbering counts shown rows separately
+              key = "uri:" .. tostring(i),
+              label = if shown == 1 then noctalia.tr("launcher.field-uri") else noctalia.tr("launcher.field-uri") .. " " .. tostring(shown),
               masked = false,
               value = u.uri,
             })
@@ -244,11 +254,13 @@ local function fetchItemFields(itemId)
       })
     end
     if type(item.fields) == "table" then
-      for _, f in item.fields do
+      for i, f in item.fields do
         if type(f) == "table" and type(f.name) == "string" and f.name ~= "" and type(f.value) == "string" and f.value ~= "" then
           local hidden = f.type == 1 or f.type == "hidden"
           addField({
-            key = "custom:" .. f.name,
+            -- key by array index: duplicate names must not shadow each other
+            -- (the service resolves the index strictly by position)
+            key = "custom:" .. tostring(i),
             label = f.name,
             -- bw serve types custom fields as ints (0 = text, 1 = hidden);
             -- accept the string form too in case the API ever grows one.
