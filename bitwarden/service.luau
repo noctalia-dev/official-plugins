@@ -620,10 +620,85 @@ local function extractField(item, field)
     end
     return nil
   end
+  if type(field) == "string" and field:sub(1, 4) == "uri:" then
+    local index = tonumber(field:sub(5))
+    if index ~= nil and type(login) == "table" and type(login.uris) == "table" then
+      local u = login.uris[index]
+      if type(u) == "table" and type(u.uri) == "string" and u.uri ~= "" then
+        return u.uri
+      end
+    end
+    return nil
+  end
+  if type(field) == "string" and field:sub(1, 7) == "custom:" then
+    local id = field:sub(8)
+    if type(item.fields) == "table" then
+      -- the picker keys fields by their array index; a numeric id is resolved
+      -- strictly by position so duplicate names can never shadow each other
+      local index = tonumber(id)
+      if index ~= nil then
+        local f = item.fields[index]
+        if type(f) == "table" and type(f.value) == "string" and f.value ~= "" then
+          return f.value
+        end
+        return nil
+      end
+      -- legacy name-based lookup (older keys / hand-written overrides);
+      -- ambiguous when names repeat — returns the first match
+      for _, f in item.fields do
+        if type(f) == "table" and f.name == id and type(f.value) == "string" and f.value ~= "" then
+          return f.value
+        end
+      end
+    end
+    return nil
+  end
   return nil
 end
 
-local function copyItemField(itemId)
+local function autotypeItem(payload)
+  local id = type(payload) == "table" and payload.id or nil
+  if type(id) ~= "string" or id == "" then
+    return
+  end
+  if status.vault ~= "unlocked" then
+    noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.vault-locked"))
+    return
+  end
+  if not noctalia.commandExists("wtype") then
+    noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.wtype-missing"))
+    return
+  end
+  httpJson("GET", `/object/item/{noctalia.string.urlEncode(id)}`, nil, function(data, err)
+    if err ~= nil then
+      noctalia.notifyError(noctalia.tr("title"), err)
+      return
+    end
+    local item = data
+    if type(data) == "table" and type(data.data) == "table" and data.id == nil then
+      item = data.data
+    end
+    local login = type(item) == "table" and item.login or nil
+    local username = type(login) == "table" and type(login.username) == "string" and login.username or nil
+    local password = type(login) == "table" and type(login.password) == "string" and login.password or nil
+    if username == nil or password == nil then
+      noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.autotype-unavailable"))
+      return
+    end
+    touchUnlockActivity()
+    -- brief delay so the previously focused window regains keyboard after the
+    -- panel closes. Credentials go as one literal-text argument after `--`:
+    -- wtype then types everything verbatim, so a username or password that
+    -- starts with "-" can no longer be parsed as an option, and the literal
+    -- tab in the text presses Tab (wtype maps \t to the Tab keysym). Tradeoff
+    -- (documented in README): they remain visible in wtype's process
+    -- arguments while it runs, like every wtype-based autotyper.
+    noctalia.runAsync(`sleep 0.4 && wtype -- {shellQuote(username .. "\t" .. password)}`)
+    noctalia.notify(noctalia.tr("title"), noctalia.tr("autotyping"))
+  end)
+end
+
+local function copyItemField(itemId, fieldOverride)
   if type(itemId) ~= "string" or itemId == "" then
     return
   end
@@ -632,6 +707,9 @@ local function copyItemField(itemId)
     return
   end
   local field = cfg("copy_field")
+  if type(fieldOverride) == "string" and fieldOverride ~= "" then
+    field = fieldOverride
+  end
   if type(field) ~= "string" or field == "" then
     field = "password"
   end
@@ -819,10 +897,14 @@ function onIpc(event, payload)
     pollStatus()
   elseif event == "copy" then
     local id = payload
+    local field = nil
     if type(payload) == "table" then
       id = payload.id
+      field = payload.field
     end
-    copyItemField(id)
+    copyItemField(id, field)
+  elseif event == "autotype" then
+    autotypeItem(payload)
   elseif event == "generate" then
     local mode = "password"
     if type(payload) == "table" then

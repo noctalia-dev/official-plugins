@@ -13,9 +13,9 @@ servers work if you already pointed the CLI at them with `bw config server`
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/bitwarden` |
-| Entries | Service `service`, launcher `finder`, panels `unlock` / `login` |
+| Entries | Service `service`, launcher `finder`, panels `unlock` / `login` / `fields` |
 | Launcher prefix | `/bw` |
-| Dependency | `bitwarden-cli` (`bw` on `PATH`) |
+| Dependency | `bitwarden-cli` (`bw` on `PATH`); optional: `wtype` for the Autotype button |
 
 ## Requirements
 
@@ -77,7 +77,7 @@ Open the launcher and type `/bw`:
 | **Lock vault** | Locks the local serve session |
 | **Sync vault** | Pulls latest vault data |
 | **Start bw serve** | Shown when serve is offline |
-| Vault items | Listed when unlocked; Enter copies the configured field (password by default) |
+| Vault items | Listed when unlocked. Enter opens the entry when it has custom fields (a picker panel lists every copyable field; digits 1–9/0 then letters a–z copy the numbered one), or copies the configured field (`password` by default) when it does not. The picker also has an **Autotype** button: types the username, then Tab, then the password into the previously focused window after a short delay (requires [wtype](https://github.com/atx/wtype)) |
 
 When unlocked, `/bw` lists vault items (capped). Keep typing to filter by name, username, or URI.
 
@@ -113,11 +113,14 @@ noctalia msg plugin noctalia/bitwarden:service all generate
 noctalia msg plugin noctalia/bitwarden:service all generate passphrase
 noctalia msg panel-toggle noctalia/bitwarden:login
 noctalia msg panel-toggle noctalia/bitwarden:unlock
+noctalia msg panel-toggle noctalia/bitwarden:fields
 ```
 
 Do not pass API secrets or the master password on the CLI. Use the panels.
 
 ## Security
+
+The Autotype button passes the username, a Tab, and the password to `wtype` as a single literal-text argument (`--` guarantees a leading `-` in the credentials is never parsed as an option), so they are briefly visible in the process list while typing (the same tradeoff as every wtype-based autotyper). The field picker panel holds only field keys, labels, and non-secret display values in the plugin’s in-memory runtime state while it is open; masked values (passwords, hidden custom fields) are never sent to the panel — copies are resolved by the service from the vault item by key. That shared state is consumed once when the panel opens and is cleared on every close path and whenever the vault locks or logs out, so a picker reopened afterwards starts empty instead of restoring decrypted values. Nothing is written to disk.
 
 - Serve is bound to **127.0.0.1** only. While the vault is unlocked, any local
   process that can reach that port can read vault secrets. Prefer a vault timeout
