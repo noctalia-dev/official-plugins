@@ -631,10 +631,22 @@ local function extractField(item, field)
     return nil
   end
   if type(field) == "string" and field:sub(1, 7) == "custom:" then
-    local wanted = field:sub(8)
+    local id = field:sub(8)
     if type(item.fields) == "table" then
+      -- the picker keys fields by their array index; a numeric id is resolved
+      -- strictly by position so duplicate names can never shadow each other
+      local index = tonumber(id)
+      if index ~= nil then
+        local f = item.fields[index]
+        if type(f) == "table" and type(f.value) == "string" and f.value ~= "" then
+          return f.value
+        end
+        return nil
+      end
+      -- legacy name-based lookup (older keys / hand-written overrides);
+      -- ambiguous when names repeat — returns the first match
       for _, f in item.fields do
-        if type(f) == "table" and f.name == wanted and type(f.value) == "string" and f.value ~= "" then
+        if type(f) == "table" and f.name == id and type(f.value) == "string" and f.value ~= "" then
           return f.value
         end
       end
@@ -675,9 +687,13 @@ local function autotypeItem(payload)
     end
     touchUnlockActivity()
     -- brief delay so the previously focused window regains keyboard after the
-    -- panel closes. Tradeoff (documented in README): credentials are visible
-    -- in wtype's process arguments while it runs, like every wtype autotyper.
-    noctalia.runAsync(`sleep 0.4 && wtype {shellQuote(username)} -k tab {shellQuote(password)}`)
+    -- panel closes. Credentials go as one literal-text argument after `--`:
+    -- wtype then types everything verbatim, so a username or password that
+    -- starts with "-" can no longer be parsed as an option, and the literal
+    -- tab in the text presses Tab (wtype maps \t to the Tab keysym). Tradeoff
+    -- (documented in README): they remain visible in wtype's process
+    -- arguments while it runs, like every wtype-based autotyper.
+    noctalia.runAsync(`sleep 0.4 && wtype -- {shellQuote(username .. "\t" .. password)}`)
     noctalia.notify(noctalia.tr("title"), noctalia.tr("autotyping"))
   end)
 end
