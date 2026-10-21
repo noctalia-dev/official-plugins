@@ -129,6 +129,11 @@ function onClosePanel()
   panel.close()
 end
 
+-- Outside-click and Escape dismissals bypass onClosePanel; drop the item here.
+function onClose()
+  clearPanelState()
+end
+
 function onOpen(_context)
   if not vaultUnlocked() then
     -- never restore plaintext without an unlocked vault behind it
