@@ -491,6 +491,22 @@ export type UiImageProps = {
   tooltip: string?, -- shown on hover (API 32); wraps the image in a hover target; cleared when dropped
 }
 
+-- API 40. Opaque RGBA8 frames from a local Unix stream socket. The host fits
+-- the image inside the rectangle. Pointer positions exclude letterboxing.
+export type UiFrameProps = {
+  key: string?,
+  width: number,
+  height: number,
+  flexGrow: number?,
+  opacity: number?,
+  visible: boolean?,
+  path: string,
+  radius: number?,
+  -- Press/release/cancel include button: left/right/middle; scroll adds dx/dy in wheel steps.
+  onPointer: (string | ((kind: string, positionJson: string) -> ()))?,
+  onKey: (string | ((kind: string, keyJson: string) -> ()))?,
+}
+
 export type UiSeparatorProps = {
   key: string?,
   width: number?,
@@ -759,6 +775,7 @@ declare ui: {
   markdown: (props: UiMarkdownProps?) -> UiNode,
   glyph: (props: UiGlyphProps?) -> UiNode,
   image: (props: UiImageProps?) -> UiNode,
+  frame: (props: UiFrameProps) -> UiNode,
   separator: (props: UiSeparatorProps?) -> UiNode,
   spacer: (props: UiSpacerProps?) -> UiNode,
   progress: (props: UiProgressProps?) -> UiNode,
@@ -832,6 +849,7 @@ declare desktopWidget: {
 
 declare panel: {
   render: (tree: UiNode) -> (),
+  setSize: (width: number, height: number) -> (), -- API 40: preferred logical size, 1..4096; host bounds still apply
   close: () -> (),
   -- Opens a native menu at the originating direct pointer callback; false outside a live
   -- one. onActivate receives (actionId, context) in the panel script. API 28.
