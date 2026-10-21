@@ -1,7 +1,10 @@
 {
+  "autotyping": "Autotyping credentials…",
   "copied": "Copied to clipboard",
   "errors": {
     "api-key-required": "Enter both client id and client secret",
+    "autotype-failed": "wtype could not type the credentials",
+    "autotype-unavailable": "Autotype needs both a username and a password on this entry",
     "encode-failed": "Could not encode unlock request",
     "field-empty": "That field is empty for this item",
     "generate-failed": "Could not generate a password",
@@ -13,19 +16,16 @@
     "request-failed": "Request failed",
     "sync-failed": "Could not sync the vault",
     "vault-locked": "Vault is locked",
-    "wtype-missing": "wtype is not installed (required for autotype)",
-    "autotype-unavailable": "Autotype needs both a username and a password on this entry"
+    "wtype-missing": "wtype is not installed (required for autotype)"
   },
   "generated": "Generated password copied",
   "generated-passphrase": "Generated passphrase copied",
   "launcher": {
-    "choose-field": "Choose a Field",
-    "choose-field-hint": "Select which field to copy",
+    "field-notes": "Notes",
     "field-password": "Password",
     "field-totp": "TOTP",
     "field-uri": "URI",
     "field-username": "Username",
-    "field-notes": "Notes",
     "generate": "Generate Password",
     "generate-hint": "Copy a new password (settings control length/charset)",
     "generate-passphrase": "Generate Passphrase",
@@ -53,6 +53,7 @@
   "logged-in": "Logged in, unlock with your master password",
   "logged-out": "Logged out of Bitwarden CLI",
   "panel": {
+    "autotype": "Autotype",
     "client-id-label": "Client ID",
     "client-id-placeholder": "user.…",
     "client-secret-label": "Client Secret",
@@ -64,8 +65,7 @@
     "login-blurb": "From the web vault: Settings → Security → Keys → View API key. You can also run bw login once in a terminal instead.",
     "password-label": "Master password",
     "password-placeholder": "Master password",
-    "unlock": "Unlock",
-    "autotype": "Autotype"
+    "unlock": "Unlock"
   },
   "settings": {
     "auto_serve": {
@@ -157,6 +157,5 @@
   },
   "synced": "Vault synced",
   "title": "Bitwarden",
-  "unlocked": "Vault unlocked",
-  "autotyping": "Autotyping credentials…"
+  "unlocked": "Vault unlocked"
 }

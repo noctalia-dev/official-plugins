@@ -677,14 +677,22 @@ local function autotypeItem(payload)
       return
     end
     touchUnlockActivity()
-    -- brief delay so the previously focused window regains keyboard after the
-    -- panel closes. Credentials go as one literal-text argument after `--`:
-    -- wtype then types everything verbatim, so a username or password that
-    -- starts with "-" can no longer be parsed as an option, and the literal
-    -- tab in the text presses Tab (wtype maps \t to the Tab keysym). Tradeoff
-    -- (documented in README): they remain visible in wtype's process
-    -- arguments while it runs, like every wtype-based autotyper.
-    noctalia.runAsync(`sleep 0.4 && wtype -- {shellQuote(username .. "\t" .. password)}`)
+    -- wtype sleeps first so the previously focused window regains the
+    -- keyboard after the panel closes. argv form, no shell: credentials go as
+    -- one literal-text argument after `--`, so a leading "-" is never parsed
+    -- as an option, and the literal tab presses Tab (wtype maps \t to the Tab
+    -- keysym). Tradeoff (documented in README): they remain visible in
+    -- wtype's process arguments while it runs, like every wtype-based
+    -- autotyper.
+    local started = noctalia.runAsync({ "wtype", "-s", "400", "--", username .. "\t" .. password }, function(result)
+      if type(result) ~= "table" or result.timedOut or result.exitCode ~= 0 then
+        noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.autotype-failed"))
+      end
+    end)
+    if not started then
+      noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.autotype-failed"))
+      return
+    end
     noctalia.notify(noctalia.tr("title"), noctalia.tr("autotyping"))
   end)
 end
