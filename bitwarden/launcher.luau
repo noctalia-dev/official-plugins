@@ -402,7 +402,14 @@ local function slimItems(list)
           uris = if uri ~= nil then { { uri = uri } } else nil,
         }
       end
-      table.insert(out, { id = item.id, name = item.name, type = item.type, login = login })
+      table.insert(out, {
+        id = item.id,
+        name = item.name,
+        type = item.type,
+        login = login,
+        -- lets activation skip the full-item fetch for entries without custom fields
+        hasFields = type(item.fields) == "table" and #item.fields > 0,
+      })
     end
   end
   return out
@@ -542,7 +549,18 @@ function onActivate(id)
   if id:sub(1, 5) == "item:" then
     local itemId = id:sub(6)
     if itemId ~= "" then
-      fetchItemFields(itemId)
+      local cached = nil
+      for _, item in itemCache or {} do
+        if item.id == itemId then
+          cached = item
+          break
+        end
+      end
+      if cached ~= nil and not cached.hasFields then
+        noctalia.state.set("command", { action = "copy", id = itemId })
+      else
+        fetchItemFields(itemId)
+      end
     end
   end
 end
