@@ -125,11 +125,19 @@ Do not pass API secrets or the master password on the CLI. Use the panels.
 
 ## Security
 
-The Autotype button passes the username, a Tab, and the password to `wtype` as a single literal-text argument (`--` guarantees a leading `-` in the credentials is never parsed as an option), so they are briefly visible in the process list while typing (the same tradeoff as every wtype-based autotyper). The field picker panel holds only field keys, labels, and non-secret display values in the plugin’s in-memory runtime state while it is open; masked values (passwords, hidden custom fields) are never sent to the panel — copies are resolved by the service from the vault item by key. That shared state is consumed once when the panel opens and is cleared on every close path and whenever the vault locks or logs out, so a picker reopened afterwards starts empty instead of restoring decrypted values. Nothing is written to disk.
-
 - Serve is bound to **127.0.0.1** only. While the vault is unlocked, any local
   process that can reach that port can read vault secrets. Prefer a vault timeout
   and lock when idle.
 - Master passwords and API keys are never stored in plugin settings or on disk.
 - Shell `offline_mode` blocks launcher HTTP to `bw serve` until it is off.
 - Generate uses warm `bw serve` (`GET /generate`), CLI fallback if unreachable.
+- Autotype runs `wtype` directly (no shell) with the username, a Tab, and the
+  password as one literal-text argument after `--`, so a leading `-` is never
+  parsed as an option. They are briefly visible in the process list while it
+  types, the same tradeoff as every wtype-based autotyper.
+- The field picker receives field keys, labels, and the plain text of URIs,
+  notes, and text custom fields (secure notes included). Passwords and hidden
+  custom fields never reach the panel; the service resolves them by key on copy.
+  The panel consumes that state once on open and drops it on every close and
+  whenever the vault locks or logs out, so a reopened picker starts empty.
+  Nothing is written to disk.
