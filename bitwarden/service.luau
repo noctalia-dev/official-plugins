@@ -633,24 +633,13 @@ local function extractField(item, field)
     return nil
   end
   if type(field) == "string" and field:sub(1, 7) == "custom:" then
-    local id = field:sub(8)
-    if type(item.fields) == "table" then
-      -- the picker keys fields by their array index; a numeric id is resolved
-      -- strictly by position so duplicate names can never shadow each other
-      local index = tonumber(id)
-      if index ~= nil then
-        local f = item.fields[index]
-        if type(f) == "table" and type(f.value) == "string" and f.value ~= "" then
-          return f.value
-        end
-        return nil
-      end
-      -- legacy name-based lookup (older keys / hand-written overrides);
-      -- ambiguous when names repeat — returns the first match
-      for _, f in item.fields do
-        if type(f) == "table" and f.name == id and type(f.value) == "string" and f.value ~= "" then
-          return f.value
-        end
+    local index = tonumber(field:sub(8))
+    -- the picker keys fields by array index so duplicate names can never
+    -- shadow each other
+    if index ~= nil and type(item.fields) == "table" then
+      local f = item.fields[index]
+      if type(f) == "table" and type(f.value) == "string" and f.value ~= "" then
+        return f.value
       end
     end
     return nil
@@ -715,15 +704,7 @@ local function copyItemField(itemId, fieldOverride)
   if type(field) ~= "string" or field == "" then
     field = "password"
   end
-  -- try /object/<field>, else full item
-  local path = `/object/{field}/{noctalia.string.urlEncode(itemId)}`
-  httpJson("GET", path, nil, function(data, err)
-    local value = if err == nil then parseSecretValue(data) else nil
-    if value ~= nil then
-      touchUnlockActivity()
-      copySecret(value, "copied")
-      return
-    end
+  local function copyFromItem()
     httpJson("GET", `/object/item/{noctalia.string.urlEncode(itemId)}`, nil, function(itemData, itemErr)
       if itemErr ~= nil then
         noctalia.notifyError(noctalia.tr("title"), itemErr)
@@ -733,7 +714,7 @@ local function copyItemField(itemId, fieldOverride)
       if type(itemData) == "table" and type(itemData.data) == "table" and itemData.id == nil then
         item = itemData.data
       end
-      value = extractField(item, field)
+      local value = extractField(item, field)
       if value == nil or value == "" then
         noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.field-empty"))
         return
@@ -741,6 +722,21 @@ local function copyItemField(itemId, fieldOverride)
       touchUnlockActivity()
       copySecret(value, "copied")
     end)
+  end
+  -- indexed picker keys (uri:N, custom:N) have no /object/<field> endpoint
+  if string.find(field, ":", 1, true) ~= nil then
+    copyFromItem()
+    return
+  end
+  -- try /object/<field>, else full item
+  httpJson("GET", `/object/{field}/{noctalia.string.urlEncode(itemId)}`, nil, function(data, err)
+    local value = if err == nil then parseSecretValue(data) else nil
+    if value ~= nil then
+      touchUnlockActivity()
+      copySecret(value, "copied")
+      return
+    end
+    copyFromItem()
   end)
 end
 
