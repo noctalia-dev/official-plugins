@@ -677,20 +677,38 @@ local function autotypeItem(payload)
       return
     end
     touchUnlockActivity()
-    -- wtype sleeps first so the previously focused window regains the
-    -- keyboard after the panel closes. argv form, no shell: credentials go as
-    -- one literal-text argument after `--`, so a leading "-" is never parsed
-    -- as an option, and the literal tab presses Tab (wtype maps \t to the Tab
-    -- keysym). Tradeoff (documented in README): they remain visible in
+    -- Two wtype runs, argv form (no shell). Each sleeps before its first key:
+    -- wtype can drop the first key sent right after it uploads its keymap, and
+    -- the previously focused window needs time to regain the keyboard after
+    -- the panel closes. Tab is a real key press (-k Tab) followed by a pause,
+    -- so the target can move focus before the password starts; a literal \t
+    -- inside one text argument lost the Tab and the next character. Each
+    -- credential is literal text after `--`, so a leading "-" is never parsed
+    -- as an option. Tradeoff (documented in README): they remain visible in
     -- wtype's process arguments while it runs, like every wtype-based
     -- autotyper.
-    local started = noctalia.runAsync({ "wtype", "-s", "400", "--", username .. "\t" .. password }, function(result)
-      if type(result) ~= "table" or result.timedOut or result.exitCode ~= 0 then
-        noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.autotype-failed"))
+    local function failed(result)
+      return type(result) ~= "table" or result.timedOut or result.exitCode ~= 0
+    end
+    local function reportFailure()
+      noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.autotype-failed"))
+    end
+    local started = noctalia.runAsync({ "wtype", "-s", "400", "--", username }, function(result)
+      if failed(result) then
+        reportFailure()
+        return
+      end
+      local typing = noctalia.runAsync({ "wtype", "-s", "100", "-k", "Tab", "-s", "150", "--", password }, function(r)
+        if failed(r) then
+          reportFailure()
+        end
+      end)
+      if not typing then
+        reportFailure()
       end
     end)
     if not started then
-      noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.autotype-failed"))
+      reportFailure()
       return
     end
     noctalia.notify(noctalia.tr("title"), noctalia.tr("autotyping"))

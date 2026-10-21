@@ -131,10 +131,10 @@ Do not pass API secrets or the master password on the CLI. Use the panels.
 - Master passwords and API keys are never stored in plugin settings or on disk.
 - Shell `offline_mode` blocks launcher HTTP to `bw serve` until it is off.
 - Generate uses warm `bw serve` (`GET /generate`), CLI fallback if unreachable.
-- Autotype runs `wtype` directly (no shell) with the username, a Tab, and the
-  password as one literal-text argument after `--`, so a leading `-` is never
-  parsed as an option. They are briefly visible in the process list while it
-  types, the same tradeoff as every wtype-based autotyper.
+- Autotype runs `wtype` directly (no shell), twice: the username, then a real
+  Tab key press and the password. Each credential is literal text after `--`,
+  so a leading `-` is never parsed as an option. They are briefly visible in the
+  process list while it types, the same tradeoff as every wtype-based autotyper.
 - The field picker receives field keys, labels, and the plain text of URIs,
   notes, and text custom fields (secure notes included). Passwords and hidden
   custom fields never reach the panel; the service resolves them by key on copy.
