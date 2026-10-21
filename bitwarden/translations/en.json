@@ -1,7 +1,10 @@
 {
+  "autotyping": "Autotyping credentials…",
   "copied": "Copied to clipboard",
   "errors": {
     "api-key-required": "Enter both client id and client secret",
+    "autotype-failed": "wtype could not type the credentials",
+    "autotype-unavailable": "Autotype needs both a username and a password on this entry",
     "encode-failed": "Could not encode unlock request",
     "field-empty": "That field is empty for this item",
     "generate-failed": "Could not generate a password",
@@ -12,11 +15,17 @@
     "password-required": "Enter your master password",
     "request-failed": "Request failed",
     "sync-failed": "Could not sync the vault",
-    "vault-locked": "Vault is locked"
+    "vault-locked": "Vault is locked",
+    "wtype-missing": "wtype is not installed (required for autotype)"
   },
   "generated": "Generated password copied",
   "generated-passphrase": "Generated passphrase copied",
   "launcher": {
+    "field-notes": "Notes",
+    "field-password": "Password",
+    "field-totp": "TOTP",
+    "field-uri": "URI",
+    "field-username": "Username",
     "generate": "Generate Password",
     "generate-hint": "Copy a new password (settings control length/charset)",
     "generate-passphrase": "Generate Passphrase",
@@ -44,11 +53,14 @@
   "logged-in": "Logged in, unlock with your master password",
   "logged-out": "Logged out of Bitwarden CLI",
   "panel": {
+    "autotype": "Autotype",
     "client-id-label": "Client ID",
     "client-id-placeholder": "user.…",
     "client-secret-label": "Client Secret",
     "client-secret-placeholder": "Client secret",
     "close": "Cancel",
+    "fields-title": "Copy a Field",
+    "fields-unavailable": "No fields available for this item",
     "login": "Log In",
     "login-blurb": "From the web vault: Settings → Security → Keys → View API key. You can also run bw login once in a terminal instead.",
     "password-label": "Master password",

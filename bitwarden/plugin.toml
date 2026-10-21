@@ -2,7 +2,7 @@
 
 id = "noctalia/bitwarden"
 name = "Bitwarden"
-version = "1.2.1"
+version = "1.4.1"
 plugin_api = 17
 author = "noctalia"
 license = "MIT"
@@ -161,6 +161,22 @@ type = "string"
 label_key = "settings.server_url.label"
 description_key = "settings.server_url.description"
 default = ""
+
+[[panel]]
+id = "fields"
+entry = "fields.luau"
+width = 460
+height = 560
+placement = "floating"
+position = "center"
+keyboard_focus = "exclusive"
+dismiss_on_outside_click = true
+capture_keys = [
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
+  "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+  "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+  "u", "v", "w", "x", "y", "z",
+]
 
 [[service]]
 id = "service"

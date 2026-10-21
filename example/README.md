@@ -9,7 +9,7 @@ shortcut.
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/example` |
-| Entries | Bar widgets: `hello`, `declarative`; service: `ticker`; shortcut: `toggle`; launcher: `finder`; panels: `panel`, `dnd` |
+| Entries | Bar widgets: `hello`, `declarative`; service: `ticker`; shortcut: `toggle`; launcher: `finder`; panels: `panel`, `dnd`; layer: `banner` |
 | Launcher Prefix | `/ex` |
 
 ## Usage
@@ -57,7 +57,17 @@ noctalia msg panel-toggle noctalia/example:dnd
 
 Both panels respect the shell's `shell.show_close_buttons` setting. Only an
 explicit `false` hides the close button; a missing setting keeps it visible.
-This plugin requires Noctalia plugin API 26.
+This plugin requires Noctalia plugin API 36.
+
+The `banner` layer is a plugin-owned layer-shell surface: a strip stretched across
+the top of the focused output that reserves its height, with a close button. It
+exists only while shown, and the `ticker` service drives it:
+
+```sh
+noctalia msg plugin noctalia/example:ticker all layer-toggle  # show / hide
+noctalia msg plugin noctalia/example:ticker all layer-move    # top <-> bottom edge
+noctalia msg plugin noctalia/example:ticker all layer-idle    # show after 5 s idle, hide on input; again = off
+```
 
 The panel includes a **Color picker** section. Click **Choose color** to open
 Noctalia's native dialog; applying a color updates the swatch and displays the

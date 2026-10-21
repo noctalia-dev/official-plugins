@@ -6,8 +6,8 @@
 
 id = "noctalia/example"
 name = "Example"
-version = "1.3.2"
-plugin_api = 26
+version = "1.4.0"
+plugin_api = 36
 author = "noctalia"
 license = "MIT"
 dependencies = []
@@ -92,3 +92,18 @@ width = 560
 height = 460
 placement = "floating"
 position = "center"
+
+# Layer: a plugin-owned layer-shell surface (plugin_api 36), stretched across the top
+# edge at its content's height and reserving that space. Lazy: it exists only while
+# shown. The ticker service drives it over IPC:
+#   noctalia msg plugin noctalia/example:ticker all layer-toggle
+#   noctalia msg plugin noctalia/example:ticker all layer-move
+#   noctalia msg plugin noctalia/example:ticker all layer-idle   (noctalia.idle, API 35)
+[[layer]]
+id = "banner"
+entry = "banner.luau"
+layer = "top"
+anchors = ["top", "left", "right"]
+exclusive_zone = "auto"
+keyboard = "on_demand"
+output = "focused"

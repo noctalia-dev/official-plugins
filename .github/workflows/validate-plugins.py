@@ -157,7 +157,7 @@ ROOT_FIELDS = set(ROOT_STRING_FIELDS) | set(ROOT_ARRAY_FIELDS) | set(ENTRY_TYPES
 }
 BASE_ENTRY_FIELDS = {"id", "entry"}
 ENTRY_FIELDS = {
-    "widget": BASE_ENTRY_FIELDS | {"setting", "actions"},
+    "widget": BASE_ENTRY_FIELDS | {"setting", "actions", "hover_highlight"},
     "panel": BASE_ENTRY_FIELDS
     | {
         "setting",
@@ -811,6 +811,12 @@ class Validator:
         entry: dict[str, Any],
         plugin_api: Any,
     ) -> None:
+        if "hover_highlight" in entry:
+            if not is_int(plugin_api) or plugin_api < 34:
+                self.add_context_error(manifest_path, context, "hover_highlight requires plugin_api >= 34")
+            elif not isinstance(entry["hover_highlight"], bool):
+                self.add_context_error(manifest_path, context, "hover_highlight must be a bool")
+
         if "actions" not in entry:
             return
 

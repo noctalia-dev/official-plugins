@@ -13,9 +13,9 @@ servers work if you already pointed the CLI at them with `bw config server`
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/bitwarden` |
-| Entries | Service `service`, launcher `finder`, panels `unlock` / `login` |
+| Entries | Service `service`, launcher `finder`, panels `unlock` / `login` / `fields` |
 | Launcher prefix | `/bw` |
-| Dependency | `bitwarden-cli` (`bw` on `PATH`) |
+| Dependency | `bitwarden-cli` (`bw` on `PATH`); optional: `wtype` for the Autotype button |
 
 ## Requirements
 
@@ -77,9 +77,14 @@ Open the launcher and type `/bw`:
 | **Lock vault** | Locks the local serve session |
 | **Sync vault** | Pulls latest vault data |
 | **Start bw serve** | Shown when serve is offline |
-| Vault items | Listed when unlocked; Enter copies the configured field (password by default) |
+| Vault items | Listed when unlocked. Enter opens the entry when it has custom fields (a picker panel lists every copyable field; digits 1–9/0 then letters a–z copy the numbered one), or copies the configured field (`password` by default) when it does not. The picker also has an **Autotype** button: types the username, then Tab, then the password into the previously focused window after a short delay (requires [wtype](https://github.com/atx/wtype)) |
 
-When unlocked, `/bw` lists vault items (capped). Keep typing to filter by name, username, or URI.
+When unlocked, `/bw` lists vault items (capped). Typing fuzzy-matches the actions and the vault items
+(name, username, or URI) and ranks them together, best match first, so `/bw unl` selects **Unlock vault**
+and `/bw ghb` finds a GitHub login. The item list is fetched once per `/bw` and matched locally as you type.
+Only each item's id, name, type, username and first URI are kept in memory between keystrokes, never
+passwords, TOTP seeds, notes or card data; Enter fetches the secret by id. That metadata stays cached until
+the vault locks, a sync completes, or `/bw` is reopened.
 
 ## Settings
 
@@ -89,7 +94,7 @@ When unlocked, `/bw` lists vault items (capped). Keep typing to filter by name, 
 | `auto_serve` | bool | `true` | Start `bw serve` when unreachable |
 | `vault_timeout` | select | `on_restart` | Auto-lock after inactivity (`30`/`60`/`240` min), `on_restart`, `never` (until serve stops), or `custom` |
 | `vault_timeout_custom_minutes` | int | `15` | Minutes when `vault_timeout` is `custom` (1–10080) |
-| `hide_actions_when_searching` | bool | `false` | Hide pinned actions (generate, lock, sync, etc.) once you start typing, so matching vault items appear first |
+| `hide_actions_when_searching` | bool | `false` | Hide pinned actions (generate, lock, sync, etc.) once you start typing, so only vault items are matched (actions stay searchable while locked or logged out) |
 | `server_url` | string | _(empty)_ | Passed to `bw config server` before API-key login |
 | `copy_field` | select | `password` | Field to copy: password, username, totp, uri |
 | `notify_on_copy` | bool | `true` | Notify after a successful copy |
@@ -113,6 +118,7 @@ noctalia msg plugin noctalia/bitwarden:service all generate
 noctalia msg plugin noctalia/bitwarden:service all generate passphrase
 noctalia msg panel-toggle noctalia/bitwarden:login
 noctalia msg panel-toggle noctalia/bitwarden:unlock
+noctalia msg panel-toggle noctalia/bitwarden:fields
 ```
 
 Do not pass API secrets or the master password on the CLI. Use the panels.
@@ -125,3 +131,13 @@ Do not pass API secrets or the master password on the CLI. Use the panels.
 - Master passwords and API keys are never stored in plugin settings or on disk.
 - Shell `offline_mode` blocks launcher HTTP to `bw serve` until it is off.
 - Generate uses warm `bw serve` (`GET /generate`), CLI fallback if unreachable.
+- Autotype runs `wtype` directly (no shell), twice: the username, then a real
+  Tab key press and the password. Each credential is literal text after `--`,
+  so a leading `-` is never parsed as an option. They are briefly visible in the
+  process list while it types, the same tradeoff as every wtype-based autotyper.
+- The field picker receives field keys, labels, and the plain text of URIs,
+  notes, and text custom fields (secure notes included). Passwords and hidden
+  custom fields never reach the panel; the service resolves them by key on copy.
+  The panel consumes that state once on open and drops it on every close and
+  whenever the vault locks or logs out, so a reopened picker starts empty.
+  Nothing is written to disk.

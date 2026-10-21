@@ -1,8 +1,8 @@
 --!strict
--- Type definitions for the Noctalia plugin API (plugin_api 33).
+-- Type definitions for the Noctalia plugin API (plugin_api 39).
 --
 -- luau-lsp *definition file*: it declares the host-injected globals (noctalia.*,
--- barWidget.*, shortcut.*, launcher.*, desktopWidget.*, panel.*, ui.*) so authors
+-- barWidget.*, shortcut.*, launcher.*, desktopWidget.*, panel.*, layer.*, ui.*) so authors
 -- get autocomplete and typo diagnostics. Annotations are a runtime no-op.
 -- See README.md ("Editor setup") for pointing luau-lsp at this file.
 --
@@ -161,6 +161,63 @@ export type NoctaliaSound = {
   play: (name: string) -> (),
 }
 
+-- Compositor idle notification. API 35. callback(true) after `seconds` without user
+-- input, callback(false) on the next input. Honors idle inhibitors unless
+-- ignoreInhibitors is set. At most 8 watches per entry; released on reload/stop.
+export type NoctaliaIdle = {
+  watch: (seconds: number, callback: (idle: boolean) -> (), options: { ignoreInhibitors: boolean? }?) -> number,
+  unwatch: (id: number) -> boolean, -- false for an unknown id
+}
+
+export type LayerAnchor = "top" | "bottom" | "left" | "right"
+
+-- Runtime properties for noctalia.layer.configure; same value sets as the [[layer]]
+-- manifest keys. Unknown keys are a Lua error. API 36.
+export type LayerProps = {
+  layer: ("background" | "bottom" | "top" | "overlay")?,
+  anchors: { LayerAnchor }?, -- distinct values
+  width: number?, -- logical px, 0..65536; 0 = stretch when anchored to both sides, else content
+  height: number?,
+  margins: { top: number?, right: number?, bottom: number?, left: number? }?, -- missing sides = 0
+  exclusiveZone: (number | "auto")?, -- integer >= -1, or "auto"
+  keyboard: ("none" | "on_demand" | "exclusive")?,
+  clickThrough: boolean?,
+  output: string?, -- "all" | "focused" | connector name e.g. "DP-1"
+}
+
+-- Drives this plugin's own [[layer]] entries by local id ("saver"). Idempotent and
+-- applied asynchronously; configure applies to live instances and future shows. API 36.
+export type NoctaliaLayer = {
+  show: (entryId: string) -> (),
+  hide: (entryId: string) -> (),
+  configure: (entryId: string, props: LayerProps) -> (),
+}
+
+-- One concrete event instance from noctalia.calendarEvents(); recurring events arrive
+-- already expanded. API 37.
+export type CalendarEvent = {
+  id: string, -- iCal UID / provider id; a meeting on two calendars has two ids unless [calendar] dedupe_events
+  title: string,
+  calendarName: string,
+  colorHex: string, -- owning calendar's color, "" when unknown
+  location: string, -- raw LOCATION, may be ""
+  url: string, -- resolved http(s) meeting link, "" when none; already scheme-filtered
+  startMs: number, -- wall-clock ms, same base as nowMs()
+  endMs: number,
+  allDay: boolean, -- times are midnight-aligned
+}
+
+export type OsdOptions = {
+  progress: number?, -- fill level 0..1, clamped; NaN raises. Omit for a text-only popup
+  inactive: boolean?, -- muted icon/text, as the built-in popups use for "off" states
+}
+
+-- API 39. `icon` is a glyph name (same names ui.glyph accepts) and
+-- must not be empty; `value` is the text beside it, defaulting to "".
+export type NoctaliaOsd = {
+  show: (icon: string, value: string?, opts: OsdOptions?) -> (),
+}
+
 export type Noctalia = {
   log: (msg: string) -> (),
 
@@ -211,6 +268,9 @@ export type Noctalia = {
 
   copyToClipboard: (text: string, mimeType: string) -> boolean,
   clipboardText: () -> string?, -- nil when empty or non-text
+  -- Read-only snapshot of the shell's synced calendars; nil until the first successful
+  -- sync, so nil means "unknown", not "empty". API 37.
+  calendarEvents: () -> { CalendarEvent }?,
   getenv: (name: string) -> string?,
   expandPath: (path: string) -> string,
   formatTime: (pattern: string, unixSeconds: number?, timezone: string?) -> string,
@@ -274,6 +334,9 @@ export type Noctalia = {
 
   state: NoctaliaState,
   sound: NoctaliaSound,
+  idle: NoctaliaIdle,
+  layer: NoctaliaLayer,
+  osd: NoctaliaOsd,
   json: NoctaliaJson,
   string: NoctaliaString,
 }
@@ -609,10 +672,11 @@ export type UiScrollProps = {
   revealKey: string?, -- scrolls the descendant with this key into view (API 33); re-applies only when it changes or the child reappears
 }
 
--- ui.dragSource (panels only, API 5). Marks a subtree draggable: a grip glyph, or a whole
--- row through previewAncestor. dragType and payload are required - a missing, mistyped,
--- empty or over-limit value disables the control for that render. Limits: payload 16 KiB,
--- dragType 256 bytes.
+-- ui.dragSource (panels, API 5; bar widgets, API 38). Marks a subtree draggable: a grip
+-- glyph, or a whole row through previewAncestor. dragType and payload are required - a
+-- missing, mistyped, empty or over-limit value disables the control for that render.
+-- Limits: payload 16 KiB, dragType 256 bytes. In a bar widget the ghost stays inside the
+-- widget's own extent.
 export type UiDragSourceProps = {
   key: string?,
   width: number?,
@@ -638,9 +702,16 @@ export type UiDragSourceProps = {
   tooltip: string?,
   previewAncestor: number?, -- integer 0..8 parent levels the ghost shows; 1 previews the row around a grip
   liftFromLayout: boolean?, -- remove the previewed row from layout while dragging
+  -- API 38. The grab hand on hover (default) suits a grip; a source that wraps a whole
+  -- clickable item sets false for the plain pointer. Dragging always shows the grabbing hand.
+  grabCursor: boolean?,
+  -- API 38. A press released inside the source before the drag threshold: how a source
+  -- that wraps a whole item stays clickable, since its input area covers the item. A
+  -- completed drag, or a press that slides off the edge, never fires it.
+  onClick: UiClickHandler?,
 }
 
--- ui.dropZone (panels only, API 5). Flex container that accepts drops; accepts, value and
+-- ui.dropZone (panels, API 5; bar widgets, API 38). Flex container that accepts drops; accepts, value and
 -- onDrop are required (`accepts = {}` accepts nothing). Nested zones resolve to the
 -- deepest accepting zone, hitSlop zones first, closest wins. The host moves nothing: the
 -- callback mutates the plugin's model and re-renders. Limits: value/onDrop/each accepts
@@ -669,7 +740,10 @@ export type UiDropZoneProps = {
   onDrop: UiDropHandler,
   direction: ("column" | "row")?,
   enabled: boolean?,
-  expandOnDrag: boolean?, -- a fixed-height zone animates to the dragged row's height
+  -- A thin zone animates to the dragged item's size along its thin axis while targeted:
+  -- a 3px-high rule between rows grows in height, a 4px-wide one between the members of
+  -- a row grows in width (API 38; height only before).
+  expandOnDrag: boolean?,
   hitSlop: number?, -- extra drag-only hit distance, without changing layout or clicks
 }
 
@@ -766,6 +840,14 @@ declare panel: {
   setNeedsFrameTick: (needs: boolean) -> (), -- onFrameTick(deltaMs) while open (API 18)
 }
 
+-- ── layer.* - [[layer]] declarative UI (API 36) ─────────────────────────────
+
+declare layer: {
+  render: (tree: UiNode) -> (),
+  setNeedsFrameTick: (on: boolean) -> (), -- onFrameTick(deltaMs) while the layer is shown
+  outputName: () -> string?, -- connector of the output this instance draws on
+}
+
 -- ── Entry-point callbacks ────────────────────────────────────────────────────
 --
 -- Your entry defines the globals the host calls, as plain global functions - the
@@ -780,8 +862,9 @@ declare panel: {
 --                                               -- steps is whole wheel detents (negative = up / left),
 --                                               -- startsGesture is true only on the first step of a flick
 --   function onQuery(text) / onActivate(id) end -- launcher provider
---   function onFrameTick(deltaMs) end           -- desktop widget, or open panel (API 18); after
---                                               -- setNeedsFrameTick(true), frames coalesced
+--   function onFrameTick(deltaMs) end           -- desktop widget, open panel (API 18), or shown
+--                                               -- layer (API 36); after setNeedsFrameTick(true),
+--                                               -- frames coalesced
 --   function onAudioSpectrum(valuesCsv, stateCsv) end -- audio-reactive bar widget
 --   function onOpen(context) / onClose() end    -- panel lifecycle
 --   function onKey(chord, pressed) end          -- panel: a capture_keys chord, verbatim from the

@@ -11,6 +11,8 @@ local serveStartCooldown = 0
 local nextSlowPollTick = 0
 local statusInFlight = false
 local opInFlight = false
+-- bumped after each successful sync; the launcher drops its item cache on change
+local syncCount = 0
 local lastStatusKey = ""
 local pendingClear = nil -- { text, ticksLeft }
 local servePortStarted = nil -- port bw serve was started on by this runtime (nil = none)
@@ -620,10 +622,100 @@ local function extractField(item, field)
     end
     return nil
   end
+  if type(field) == "string" and field:sub(1, 4) == "uri:" then
+    local index = tonumber(field:sub(5))
+    if index ~= nil and type(login) == "table" and type(login.uris) == "table" then
+      local u = login.uris[index]
+      if type(u) == "table" and type(u.uri) == "string" and u.uri ~= "" then
+        return u.uri
+      end
+    end
+    return nil
+  end
+  if type(field) == "string" and field:sub(1, 7) == "custom:" then
+    local index = tonumber(field:sub(8))
+    -- the picker keys fields by array index so duplicate names can never
+    -- shadow each other
+    if index ~= nil and type(item.fields) == "table" then
+      local f = item.fields[index]
+      if type(f) == "table" and type(f.value) == "string" and f.value ~= "" then
+        return f.value
+      end
+    end
+    return nil
+  end
   return nil
 end
 
-local function copyItemField(itemId)
+local function autotypeItem(payload)
+  local id = type(payload) == "table" and payload.id or nil
+  if type(id) ~= "string" or id == "" then
+    return
+  end
+  if status.vault ~= "unlocked" then
+    noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.vault-locked"))
+    return
+  end
+  if not noctalia.commandExists("wtype") then
+    noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.wtype-missing"))
+    return
+  end
+  httpJson("GET", `/object/item/{noctalia.string.urlEncode(id)}`, nil, function(data, err)
+    if err ~= nil then
+      noctalia.notifyError(noctalia.tr("title"), err)
+      return
+    end
+    local item = data
+    if type(data) == "table" and type(data.data) == "table" and data.id == nil then
+      item = data.data
+    end
+    local login = type(item) == "table" and item.login or nil
+    local username = type(login) == "table" and type(login.username) == "string" and login.username or nil
+    local password = type(login) == "table" and type(login.password) == "string" and login.password or nil
+    if username == nil or password == nil then
+      noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.autotype-unavailable"))
+      return
+    end
+    touchUnlockActivity()
+    -- Two wtype runs, argv form (no shell). Each sleeps before its first key:
+    -- wtype can drop the first key sent right after it uploads its keymap, and
+    -- the previously focused window needs time to regain the keyboard after
+    -- the panel closes. Tab is a real key press (-k Tab) followed by a pause,
+    -- so the target can move focus before the password starts; a literal \t
+    -- inside one text argument lost the Tab and the next character. Each
+    -- credential is literal text after `--`, so a leading "-" is never parsed
+    -- as an option. Tradeoff (documented in README): they remain visible in
+    -- wtype's process arguments while it runs, like every wtype-based
+    -- autotyper.
+    local function failed(result)
+      return type(result) ~= "table" or result.timedOut or result.exitCode ~= 0
+    end
+    local function reportFailure()
+      noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.autotype-failed"))
+    end
+    local started = noctalia.runAsync({ "wtype", "-s", "400", "--", username }, function(result)
+      if failed(result) then
+        reportFailure()
+        return
+      end
+      local typing = noctalia.runAsync({ "wtype", "-s", "100", "-k", "Tab", "-s", "150", "--", password }, function(r)
+        if failed(r) then
+          reportFailure()
+        end
+      end)
+      if not typing then
+        reportFailure()
+      end
+    end)
+    if not started then
+      reportFailure()
+      return
+    end
+    noctalia.notify(noctalia.tr("title"), noctalia.tr("autotyping"))
+  end)
+end
+
+local function copyItemField(itemId, fieldOverride)
   if type(itemId) ~= "string" or itemId == "" then
     return
   end
@@ -632,18 +724,13 @@ local function copyItemField(itemId)
     return
   end
   local field = cfg("copy_field")
+  if type(fieldOverride) == "string" and fieldOverride ~= "" then
+    field = fieldOverride
+  end
   if type(field) ~= "string" or field == "" then
     field = "password"
   end
-  -- try /object/<field>, else full item
-  local path = `/object/{field}/{noctalia.string.urlEncode(itemId)}`
-  httpJson("GET", path, nil, function(data, err)
-    local value = if err == nil then parseSecretValue(data) else nil
-    if value ~= nil then
-      touchUnlockActivity()
-      copySecret(value, "copied")
-      return
-    end
+  local function copyFromItem()
     httpJson("GET", `/object/item/{noctalia.string.urlEncode(itemId)}`, nil, function(itemData, itemErr)
       if itemErr ~= nil then
         noctalia.notifyError(noctalia.tr("title"), itemErr)
@@ -653,7 +740,7 @@ local function copyItemField(itemId)
       if type(itemData) == "table" and type(itemData.data) == "table" and itemData.id == nil then
         item = itemData.data
       end
-      value = extractField(item, field)
+      local value = extractField(item, field)
       if value == nil or value == "" then
         noctalia.notifyError(noctalia.tr("title"), noctalia.tr("errors.field-empty"))
         return
@@ -661,6 +748,21 @@ local function copyItemField(itemId)
       touchUnlockActivity()
       copySecret(value, "copied")
     end)
+  end
+  -- indexed picker keys (uri:N, custom:N) have no /object/<field> endpoint
+  if string.find(field, ":", 1, true) ~= nil then
+    copyFromItem()
+    return
+  end
+  -- try /object/<field>, else full item
+  httpJson("GET", `/object/{field}/{noctalia.string.urlEncode(itemId)}`, nil, function(data, err)
+    local value = if err == nil then parseSecretValue(data) else nil
+    if value ~= nil then
+      touchUnlockActivity()
+      copySecret(value, "copied")
+      return
+    end
+    copyFromItem()
   end)
 end
 
@@ -794,6 +896,8 @@ local function doSync()
     if status.vault == "unlocked" then
       touchUnlockActivity()
     end
+    syncCount += 1
+    noctalia.state.set("synced", syncCount)
     noctalia.notify(noctalia.tr("title"), noctalia.tr("synced"))
     pollStatus()
   end)
@@ -819,10 +923,14 @@ function onIpc(event, payload)
     pollStatus()
   elseif event == "copy" then
     local id = payload
+    local field = nil
     if type(payload) == "table" then
       id = payload.id
+      field = payload.field
     end
-    copyItemField(id)
+    copyItemField(id, field)
+  elseif event == "autotype" then
+    autotypeItem(payload)
   elseif event == "generate" then
     local mode = "password"
     if type(payload) == "table" then

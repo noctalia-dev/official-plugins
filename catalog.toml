@@ -11,15 +11,21 @@
 [[plugin]]
 id = "noctalia/example"
 name = "Example"
-version = "1.3.2"
-updated_at = 1791673845
+version = "1.4.0"
+updated_at = 1792537367
 added_at = 1781039692
 author = "noctalia"
 license = "MIT"
 icon = "puzzle"
 description = "A reference plugin demonstrating every supported entry type and common runtime APIs."
-plugin_api = 26
+plugin_api = 36
 tags = ["demo"]
+
+[[plugin.release]]
+plugin_api = 26
+version = "1.3.2"
+updated_at = 1791673845
+rev = "cf84bca0131189c9ae4057136340418b335bf969"
 
 [[plugin.release]]
 plugin_api = 9
@@ -42,15 +48,21 @@ rev = "5082ed5f85e795513b8485e4cedc66d5a2c816ff"
 [[plugin]]
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.3.7"
-updated_at = 1791674455
+version = "1.4.1"
+updated_at = 1792318656
 added_at = 1781039692
 author = "noctalia"
 license = "MIT"
 icon = "video"
 description = "Record the screen with gpu-screen-recorder."
-plugin_api = 3
+plugin_api = 17
 tags = ["recording", "video"]
+
+[[plugin.release]]
+plugin_api = 3
+version = "1.4.0"
+updated_at = 1791801466
+rev = "ad6fdd9487bb3ff0d5375a940ec0c8056b588768"
 
 [[plugin]]
 id = "noctalia/bongocat"
@@ -188,8 +200,8 @@ rev = "5082ed5f85e795513b8485e4cedc66d5a2c816ff"
 [[plugin]]
 id = "noctalia/bitwarden"
 name = "Bitwarden"
-version = "1.2.0"
-updated_at = 1790428815
+version = "1.4.0"
+updated_at = 1792548685
 added_at = 1784735852
 author = "noctalia"
 license = "MIT"
