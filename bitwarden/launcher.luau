@@ -74,10 +74,12 @@ local function actionRows()
   return rows
 end
 
+local rankRows -- defined below; publishActions runs from the status watcher
+
 local function publishActions()
   -- drop in-flight search so late responses can't repaint
   dropFetch()
-  launcher.setResults(lastQuery, actionRows())
+  launcher.setResults(lastQuery, rankRows(noctalia.string.trim(lastQuery), nil))
 end
 
 local function applyStatus(st)
@@ -166,7 +168,8 @@ end
 -- True when `text` is one or more whole words of `title` ("sync", "log out").
 local function namesWholeWords(text, title)
   local padded = " " .. string.lower(title) .. " "
-  return string.find(padded, " " .. string.lower(text) .. " ", 1, true) ~= nil
+  local words = string.gsub(string.lower(text), "%s+", " ")
+  return string.find(padded, " " .. words .. " ", 1, true) ~= nil
 end
 
 -- Best fuzzy score of `text` over the given fields; nil when none match.
@@ -199,21 +202,23 @@ end
 -- text keeps the plain order: actions, then items. With
 -- hide_actions_when_searching, a non-empty text ranks items only while
 -- unlocked; locked or logged out, the actions are all there is to match.
-local function rankRows(text, items)
+function rankRows(text, items)
   local scored = {}
-  local function add(row, score, isItem)
+  -- `rank` orders the rows here; the host only ever sees the raw fuzzy score
+  local function add(row, score, isItem, rank)
     row.score = score
-    table.insert(scored, { row = row, score = score, isItem = isItem, order = #scored })
+    table.insert(scored, { row = row, score = rank or score, isItem = isItem, order = #scored })
   end
   local hideActions = text ~= "" and vaultStatus == "unlocked" and hideActionsWhenSearching()
   local actions = if hideActions then {} else actionRows()
   for _, row in actions do
     local score = if text == "" then 0 else bestScore(text, row.title)
     if score ~= nil then
+      local rank = score
       if text ~= "" and not namesWholeWords(text, row.title) then
-        score -= ACTION_HANDICAP
+        rank -= ACTION_HANDICAP
       end
-      add(row, score, false)
+      add(row, score, false, rank)
     end
   end
   if type(items) == "table" then
