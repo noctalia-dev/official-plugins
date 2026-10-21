@@ -2,7 +2,7 @@
 
 id = "noctalia/bitwarden"
 name = "Bitwarden"
-version = "1.2.0"
+version = "1.2.1"
 plugin_api = 17
 author = "noctalia"
 license = "MIT"
