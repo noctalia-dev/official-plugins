@@ -12,7 +12,7 @@
 
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.4.1"
+version = "1.4.2"
 plugin_api = 17
 author = "noctalia"
 license = "MIT"
@@ -302,6 +302,11 @@ entry = "recorder_service.luau"
 [[widget]]
 id = "recorder"
 entry = "recorder.luau"
+
+# "none" lets middle clicks reach onMiddleClick (save replay), the host's
+# middle = "settings-open-widget" default would swallow it. User bindings win.
+[widget.actions]
+middle = "none"
 
 # Control-center quick tile. Mirrors the recorder's state and drives it through
 # the plugin's shared state channel (no shell-out, no IPC PATH dependency).
