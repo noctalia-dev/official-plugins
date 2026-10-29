@@ -11,19 +11,19 @@ local LAYOUTS = {
   { id = "scrolling", glyph = "columns-3", key = "layout.scrolling" },
   { id = "dwindle", glyph = "binary-tree", key = "layout.dwindle" },
   { id = "master", glyph = "layout-sidebar", key = "layout.master" },
-  { id = "floating", glyph = "app-window", key = "layout.floating" },
+  { id = "stacking", glyph = "app-window", key = "layout.floating" },
 }
 local LAYOUT_GLYPHS = {
   scrolling = "columns-3",
   dwindle = "binary-tree",
   master = "layout-sidebar",
-  floating = "app-window",
+  stacking = "app-window",
 }
 local LAYOUT_KEYS = {
   scrolling = "layout.scrolling",
   dwindle = "layout.dwindle",
   master = "layout.master",
-  floating = "layout.floating",
+  stacking = "layout.floating",
 }
 local WIDTH_PRESETS = { "0.333", "0.5", "0.667", "1.0" }
 local WIDTH_LABELS = { "⅓", "½", "⅔", "1" }
@@ -183,8 +183,8 @@ local function windowSection(window, layout)
       glyph = entry.glyph,
       tooltip = tr(entry.key),
       selected = window ~= nil and window[entry.state] == true,
-      -- A floating workspace cannot tile individual windows.
-      enabled = entry.action ~= "window-toggle-floating" or layout ~= "floating",
+      -- A stacking workspace cannot tile individual windows.
+      enabled = entry.action ~= "window-toggle-floating" or layout ~= "stacking",
       flexGrow = 1,
       onClick = function()
         request(entry.action)
