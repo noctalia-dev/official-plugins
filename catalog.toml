@@ -299,8 +299,8 @@ rev = "4933b1c459459af3a0f9d14898b76ce0564d43b3"
 [[plugin]]
 id = "noctalia/umbriel-companion"
 name = "Umbriel Companion"
-version = "1.2.1"
-updated_at = 1792983685
+version = "1.2.2"
+updated_at = 1793289249
 added_at = 1788152189
 author = "noctalia"
 license = "MIT"
