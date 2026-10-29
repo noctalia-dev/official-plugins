@@ -16,7 +16,7 @@ local LAYOUT_KEYS = {
   scrolling = "layout.scrolling",
   dwindle = "layout.dwindle",
   master = "layout.master",
-  stacking = "layout.floating",
+  stacking = "layout.stacking",
 }
 
 local snapshot = { available = false, workspaces = {}, submap_ready = false }

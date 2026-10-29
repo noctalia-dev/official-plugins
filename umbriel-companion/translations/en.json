@@ -5,9 +5,9 @@
   },
   "layout": {
     "dwindle": "Dwindle",
-    "floating": "Floating",
     "master": "Master",
     "scrolling": "Scrolling",
+    "stacking": "Stacking",
     "unknown": "Unknown"
   },
   "notify": {
@@ -48,7 +48,7 @@
       }
     },
     "scroll_cycles_layout": {
-      "description": "Scroll over the widget to cycle scrolling, dwindle, master, and floating on the focused workspace.",
+      "description": "Scroll over the widget to cycle scrolling, dwindle, master, and stacking on the focused workspace.",
       "label": "Scroll cycles the layout"
     },
     "show_layout_name": {

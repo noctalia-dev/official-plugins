@@ -11,7 +11,7 @@ local LAYOUTS = {
   { id = "scrolling", glyph = "columns-3", key = "layout.scrolling" },
   { id = "dwindle", glyph = "binary-tree", key = "layout.dwindle" },
   { id = "master", glyph = "layout-sidebar", key = "layout.master" },
-  { id = "stacking", glyph = "app-window", key = "layout.floating" },
+  { id = "stacking", glyph = "app-window", key = "layout.stacking" },
 }
 local LAYOUT_GLYPHS = {
   scrolling = "columns-3",
@@ -23,7 +23,7 @@ local LAYOUT_KEYS = {
   scrolling = "layout.scrolling",
   dwindle = "layout.dwindle",
   master = "layout.master",
-  stacking = "layout.floating",
+  stacking = "layout.stacking",
 }
 local WIDTH_PRESETS = { "0.333", "0.5", "0.667", "1.0" }
 local WIDTH_LABELS = { "⅓", "½", "⅔", "1" }
