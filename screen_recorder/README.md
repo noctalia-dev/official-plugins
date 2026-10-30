@@ -9,7 +9,7 @@ Control Center.
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/screen_recorder` |
-| Entries | Service: `service`; bar widget: `recorder`; shortcut: `toggle` |
+| Entries | Service: `service`; bar widget: `recorder`; shortcut: `toggle`; layer: `overlay` |
 
 ## Requirements
 
@@ -51,11 +51,17 @@ Disabling or reloading the plugin, or exiting Noctalia, stops an active capture.
 When `video_source` is `region`, starting a capture or replay first opens a
 `slurp` picker: drawing an area records it and cancelling returns to idle.
 
+While a region capture runs, a dimmed cutout overlay with a thin accent ring
+shows the recorded bounds. The overlay ignores clicks, and nothing is drawn
+inside the region, so the recording is unaffected. Turn it off with the
+`region_indicator` setting.
+
 ## Settings
 
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `video_source` | `select` | `portal` | Capture `focused`, `portal` or `region`. |
+| `region_indicator` | `bool` | `true` | Dims everything outside the picked region while a region recording or replay buffer runs. |
 | `directory` | `folder` | `~/Videos/Recordings` | Output folder, falling back to `~/Videos/Recordings`. |
 | `filename_pattern` | `string` | `recording_%Y%m%d_%H%M%S` | Date-format filename pattern without extension. |
 | `frame_rate` | `int` | `60` | Capture frame rate from 1 to 240. |

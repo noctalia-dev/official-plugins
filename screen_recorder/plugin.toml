@@ -3,6 +3,7 @@
 # session; the bar [[widget]] and control-center [[shortcut]] are thin clients that
 # mirror the recorder's "status" and drive it through the "command" channel - so a
 # recording can be started even with no widget placed.
+# While a region capture is live, a [[layer]] dims everything outside the picked area.
 #
 # Click mapping (widget): left = stop capture/start recording, right = replay toggle/save,
 # middle = save replay. The shortcut mirrors left/right.
@@ -12,8 +13,8 @@
 
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.4.2"
-plugin_api = 17
+version = "1.5.0"
+plugin_api = 36
 author = "noctalia"
 license = "MIT"
 dependencies = ["gpu-screen-recorder", "slurp"]
@@ -32,6 +33,13 @@ options = [
   { value = "portal", label_key = "settings.video_source.options.portal" },
   { value = "region", label_key = "settings.video_source.options.region"},
 ]
+
+[[setting]]
+key = "region_indicator"
+type = "bool"
+label_key = "settings.region_indicator.label"
+description_key = "settings.region_indicator.description"
+default = true
 
 [[setting]]
 key = "directory"
@@ -313,3 +321,18 @@ middle = "none"
 [[shortcut]]
 id = "toggle"
 entry = "shortcut.luau"
+
+# Region indicator: full-screen [[layer]], shown by the service only while a
+# region capture is live, geometry arrives via the "regionIndicator" state key.
+# Covers the whole output, click-through, never draws inside the region.
+[[layer]]
+id = "overlay"
+entry = "region_overlay.luau"
+layer = "overlay"
+anchors = ["top", "bottom", "left", "right"]
+width = 0
+height = 0
+exclusive_zone = -1
+click_through = true
+keyboard = "none"
+output = "all"

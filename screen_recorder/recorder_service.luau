@@ -115,6 +115,25 @@ local function publishStatus()
     noctalia.state.set("status", { state = state, available = isAvailable })
 end
 
+-- Region indicator ([[layer]]): shown while a region capture is live, hidden on
+-- idle. Driven from setState so it always tracks regionGeometry's lifetime.
+local overlayShown = false
+
+local function updateRegionOverlay()
+    local active = cfg("region_indicator") and regionGeometry ~= nil
+      and state ~= "idle"
+      or false
+    if active == overlayShown then return end
+    overlayShown = active
+    if active then
+      noctalia.state.set("regionIndicator", { geometry = regionGeometry })
+      noctalia.layer.show("overlay")
+    else
+      noctalia.state.set("regionIndicator", nil)
+      noctalia.layer.hide("overlay")
+    end
+end
+
 local function setState(nextState)
     if state == nextState then return end
     state = nextState
@@ -122,6 +141,7 @@ local function setState(nextState)
     if nextState == "idle" then
         regionGeometry = nil
     end
+    updateRegionOverlay()
 end
 
 local function detectProcessStateAsync(callback)
@@ -781,6 +801,11 @@ function onExit()
         log("stopping capture (service exit)")
         signalRecorder("INT", false, true)
     end
+end
+
+-- Re-evaluate the region overlay when settings change mid-capture.
+function onConfigChanged()
+    updateRegionOverlay()
 end
 
 -- The widget and shortcut drive the recorder by publishing to this channel.
