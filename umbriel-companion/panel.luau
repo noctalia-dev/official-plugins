@@ -3,8 +3,8 @@
 --
 -- Umbriel applies `workspace-set-layout` to the active workspace of the focused
 -- output, so the header names that workspace instead of leaving the target
--- implicit. Everything else in here is the same deal: a button is one
--- `umbriel msg` action, sent through the service on the "umbriel.request"
+-- implicit. Everything else in here is the same deal: a button is one typed
+-- Umbriel action request, sent through the service on the "umbriel.request"
 -- channel, and the answer arrives as a fresh "umbriel.state" snapshot.
 
 local LAYOUTS = {
@@ -25,7 +25,7 @@ local LAYOUT_KEYS = {
   master = "layout.master",
   stacking = "layout.stacking",
 }
-local WIDTH_PRESETS = { "0.333", "0.5", "0.667", "1.0" }
+local WIDTH_PRESETS = { 1 / 3, 0.5, 2 / 3, 1 }
 local WIDTH_LABELS = { "⅓", "½", "⅔", "1" }
 local WINDOW_ACTIONS = {
   { glyph = "app-window", action = "window-toggle-floating", key = "panel.float", state = "floating" },
@@ -47,14 +47,23 @@ local function layoutLabel(layout)
   return tr(LAYOUT_KEYS[layout] or "layout.unknown")
 end
 
-local function request(action)
-  noctalia.state.set("umbriel.request", { action = action })
+-- `request` is Umbriel's typed action request without `cmd`.
+local function request(actionRequest)
+  noctalia.state.set("umbriel.request", { request = actionRequest })
 end
 
--- Workspace selector accepted by every workspace-scoped action: the name is
--- ambiguous across outputs, "<name>/<output>" never is.
-local function selectorOf(workspace)
-  return `{workspace.name} --output {workspace.output}`
+-- Workspace-scoped actions take a position number or an exact name; the output
+-- keeps either unambiguous across outputs.
+local function workspaceRequest(action, workspace)
+  return {
+    action = action,
+    workspace = workspace.named == true and workspace.name or workspace.index,
+    output = workspace.output,
+  }
+end
+
+local function selectorLabel(workspace)
+  return `{workspace.name} ({workspace.output})`
 end
 
 local function sectionTitle(key)
@@ -96,7 +105,7 @@ local function layoutPicker(focused)
       enabled = focused ~= nil,
       flexGrow = 1,
       onClick = function()
-        request(`workspace-set-layout {layout.id}`)
+        request({ action = "workspace-set-layout", layout = layout.id })
       end,
     }))
   end
@@ -118,14 +127,14 @@ local function layoutExtras(focused)
         glyph = "minus",
         tooltip = tr("panel.master_decrease"),
         onClick = function()
-          request("layout-master-count-decrease")
+          request({ action = "layout-master-count-decrease" })
         end,
       }),
       ui.button({
         glyph = "plus",
         tooltip = tr("panel.master_increase"),
         onClick = function()
-          request("layout-master-count-increase")
+          request({ action = "layout-master-count-increase" })
         end,
       }),
     })
@@ -139,7 +148,7 @@ local function layoutExtras(focused)
         variant = "outline",
         flexGrow = 1,
         onClick = function()
-          request("column-center")
+          request({ action = "column-center" })
         end,
       }),
     })
@@ -170,9 +179,9 @@ local function windowSection(window, layout)
       text = WIDTH_LABELS[index],
       variant = "outline",
       flexGrow = 1,
-      tooltip = tr("panel.width_tooltip", { percent = math.floor(tonumber(fraction) * 100 + 0.5) }),
+      tooltip = tr("panel.width_tooltip", { percent = math.floor(fraction * 100 + 0.5) }),
       onClick = function()
-        request(`window-set-primary-extent {fraction}`)
+        request({ action = "window-set-primary-extent", fraction = fraction })
       end,
     }))
   end
@@ -187,7 +196,7 @@ local function windowSection(window, layout)
       enabled = entry.action ~= "window-toggle-floating" or layout ~= "stacking",
       flexGrow = 1,
       onClick = function()
-        request(entry.action)
+        request({ action = entry.action })
       end,
     }))
   end
@@ -218,7 +227,7 @@ local function workspaceRows()
       }))
     end
 
-    local selector = selectorOf(workspace)
+    local selector = workspaceRequest("workspace-switch", workspace)
     table.insert(rows, ui.button({
       key = `ws-{workspace.id}`,
       text = `{workspace.name} - {layoutLabel(workspace.layout)}`,
@@ -228,18 +237,18 @@ local function workspaceRows()
       variant = workspace.active == true and "outline" or "ghost",
       tooltip = tr("panel.row_tooltip"),
       onClick = function()
-        request(`workspace-switch {selector}`)
+        request(selector)
       end,
       onRightClick = function()
         panel.openContextMenu({
           items = {
-            { kind = "header", label = selector },
+            { kind = "header", label = selectorLabel(workspace) },
             { id = "switch", label = tr("panel.switch") },
             { id = "move-window", label = tr("panel.move_window") },
             { id = "move-column", label = tr("panel.move_column") },
           },
           onActivate = "onWorkspaceMenu",
-          context = selector,
+          context = workspace.id,
         })
       end,
     }))
@@ -294,14 +303,22 @@ local function render()
   panel.render(ui.column({ flexGrow = 1, gap = 8, padding = 10 }, children))
 end
 
+local MENU_ACTIONS = {
+  ["switch"] = "workspace-switch",
+  ["move-window"] = "window-move-to-workspace",
+  ["move-column"] = "column-move-to-workspace",
+}
+
 function onWorkspaceMenu(actionId, context)
-  local selector = tostring(context)
-  if actionId == "switch" then
-    request(`workspace-switch {selector}`)
-  elseif actionId == "move-window" then
-    request(`window-move-to-workspace {selector}`)
-  elseif actionId == "move-column" then
-    request(`column-move-to-workspace {selector}`)
+  local action = MENU_ACTIONS[actionId]
+  if action == nil then
+    return
+  end
+  for _, workspace in ipairs(snapshot.workspaces or {}) do
+    if workspace.id == tostring(context) then
+      request(workspaceRequest(action, workspace))
+      return
+    end
   end
 end
 

@@ -8,11 +8,11 @@ Manifest id `noctalia/umbriel-companion`.
 
 - `bar` - bar widget. Shows the focused workspace layout by default, or the active submap when selected in its settings. Click opens the panel; a scroll flick cycles scrolling → dwindle → master → stacking. The widget hides itself outside an Umbriel session.
 - `panel` - the layout panel, attached to the widget. Open it without a widget with `noctalia msg panel-toggle noctalia/umbriel-companion:panel`.
-- `service` - the only entry that talks to the compositor. It holds `umbriel subscribe workspaces,windows,submap` open, republishes every pushed line as the snapshot each UI entry reads, and runs every requested `umbriel msg` action.
+- `service` - the only entry that talks to the compositor. It holds `umbriel subscribe workspaces,windows,submap` open, republishes every pushed line as the snapshot each UI entry reads, and sends every requested action to Umbriel's IPC socket as a typed request.
 
 ## Requirements
 
-- Noctalia plugin API 43 or newer.
+- Noctalia plugin API 45 or newer.
 - `umbriel` on `PATH`, inside a running Umbriel session, with the `stacking` layout name and the `workspaces`, `windows`, and `submap` subscription families. Every other compositor gets a hidden widget and an inert panel.
 
 The service uses `UMBRIEL_SOCKET` when set, otherwise `$XDG_RUNTIME_DIR/umbriel-$WAYLAND_DISPLAY.sock`, just like the Umbriel CLI. It retries the connection every second while disconnected, so a late IPC socket at login or a compositor restart does not require restarting Noctalia. This also supports systemd user services that inherit `WAYLAND_DISPLAY` without `UMBRIEL_SOCKET`.

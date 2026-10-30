@@ -9,12 +9,13 @@
 #            cycles the layout
 # panel   -> layout picker, layout-specific actions, focused-window actions,
 #            and a workspace switcher
-# service -> the only entry that shells out to `umbriel`
+# service -> the only entry that talks to Umbriel: `umbriel subscribe` for
+#            state, typed IPC requests for actions
 
 id = "noctalia/umbriel-companion"
 name = "Umbriel Companion"
-version = "1.2.4"
-plugin_api = 43
+version = "1.3.0"
+plugin_api = 45
 author = "noctalia"
 license = "MIT"
 dependencies = ["umbriel"]

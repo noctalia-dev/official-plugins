@@ -169,6 +169,14 @@ export type NoctaliaIdle = {
   unwatch: (id: number) -> boolean, -- false for an unknown id
 }
 
+-- Umbriel IPC actions. API 45. `request` is Umbriel's typed action request without
+-- `cmd`, e.g. { action = "workspace-set-layout", layout = "dwindle" }. Returns false
+-- when no Umbriel socket is found. callback(ok, err) once Umbriel answers or the
+-- request fails; omit it for fire-and-forget. At most 16 pending callbacks per entry.
+export type NoctaliaUmbriel = {
+  action: (request: { action: string, [string]: any }, callback: ((ok: boolean, err: string?) -> ())?) -> boolean,
+}
+
 export type LayerAnchor = "top" | "bottom" | "left" | "right"
 
 -- Runtime properties for noctalia.layer.configure; same value sets as the [[layer]]
@@ -336,6 +344,7 @@ export type Noctalia = {
   sound: NoctaliaSound,
   idle: NoctaliaIdle,
   layer: NoctaliaLayer,
+  umbriel: NoctaliaUmbriel,
   osd: NoctaliaOsd,
   json: NoctaliaJson,
   string: NoctaliaString,

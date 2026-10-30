@@ -6,12 +6,13 @@
 -- stdout, one JSON object per line, so the service holds it open and republishes
 -- each line as a snapshot the UI entries read. A retry tick connects when the
 -- socket becomes ready; a connected session only reads the event stream.
+-- Actions go straight to the IPC socket as typed requests.
 --
 --   noctalia.runStream(cmd, onLine)   long-lived child, one callback per line
+--   noctalia.umbriel.action(request, cb)              one typed action, no child
 --   noctalia.state.set("umbriel.state", snapshot)     one snapshot, one re-render
 --   noctalia.state.watch("umbriel.request", handler)  actions from bar and panel
 
-local COMMAND_TIMEOUT_MS = 2000
 local RECONNECT_INTERVAL_MS = 1000
 -- runStream has no exit callback. Report termination on stdout so the next
 -- retry can reconnect, including when the child starts but cannot connect.
@@ -125,21 +126,19 @@ local function startStream()
   end
 end
 
-local function runAction(action)
-  local actionParts = {}
-
-  for word in action:gmatch("%S+") do
-    table.insert(actionParts, word)
-  end
-
-  noctalia.runAsync({ "umbriel", "msg", table.unpack(actionParts) }, function(result)
-    -- Nothing to refresh on success: any resulting state change arrives on the
-    -- stream by itself.
-    if result.exitCode ~= 0 or result.timedOut then
-      local reason = noctalia.string.trim(result.stderr)
-      noctalia.notifyError(noctalia.tr("notify.action_failed", { action = action }), reason)
+-- `request` is Umbriel's typed action request without `cmd`, for example
+-- { action = "workspace-set-layout", layout = "dwindle" }.
+local function runAction(request)
+  -- Nothing to refresh on success: any resulting state change arrives on the
+  -- stream by itself.
+  local accepted = noctalia.umbriel.action(request, function(ok, err)
+    if not ok then
+      noctalia.notifyError(noctalia.tr("notify.action_failed", { action = request.action }), err)
     end
-  end, COMMAND_TIMEOUT_MS)
+  end)
+  if not accepted then
+    noctalia.notifyError(noctalia.tr("notify.action_failed", { action = request.action }))
+  end
 end
 
 noctalia.state.watch("umbriel.request", function(value)
@@ -147,8 +146,8 @@ noctalia.state.watch("umbriel.request", function(value)
     return
   end
   startStream()
-  if available and type(value.action) == "string" and value.action ~= "" then
-    runAction(value.action)
+  if available and type(value.request) == "table" and type(value.request.action) == "string" then
+    runAction(value.request)
   end
 end)
 
