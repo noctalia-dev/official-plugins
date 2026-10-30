@@ -148,7 +148,7 @@ function onScroll(_axis, steps, startsGesture)
 
   local delta = steps >= 0 and 1 or -1
   local target = LAYOUT_ORDER[((index - 1 + delta) % #LAYOUT_ORDER) + 1]
-  noctalia.state.set("umbriel.request", { action = `workspace-set-layout:{target}` })
+  noctalia.state.set("umbriel.request", { action = `workspace-set-layout {target}` })
 end
 
 noctalia.state.watch("umbriel.state", function(value)

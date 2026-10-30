@@ -54,7 +54,7 @@ end
 -- Workspace selector accepted by every workspace-scoped action: the name is
 -- ambiguous across outputs, "<name>/<output>" never is.
 local function selectorOf(workspace)
-  return `{workspace.name}/{workspace.output}`
+  return `{workspace.name} --output {workspace.output}`
 end
 
 local function sectionTitle(key)
@@ -96,7 +96,7 @@ local function layoutPicker(focused)
       enabled = focused ~= nil,
       flexGrow = 1,
       onClick = function()
-        request(`workspace-set-layout:{layout.id}`)
+        request(`workspace-set-layout {layout.id}`)
       end,
     }))
   end
@@ -172,7 +172,7 @@ local function windowSection(window, layout)
       flexGrow = 1,
       tooltip = tr("panel.width_tooltip", { percent = math.floor(tonumber(fraction) * 100 + 0.5) }),
       onClick = function()
-        request(`window-set-primary-extent:{fraction}`)
+        request(`window-set-primary-extent {fraction}`)
       end,
     }))
   end
@@ -228,7 +228,7 @@ local function workspaceRows()
       variant = workspace.active == true and "outline" or "ghost",
       tooltip = tr("panel.row_tooltip"),
       onClick = function()
-        request(`workspace-switch:{selector}`)
+        request(`workspace-switch {selector}`)
       end,
       onRightClick = function()
         panel.openContextMenu({
@@ -297,11 +297,11 @@ end
 function onWorkspaceMenu(actionId, context)
   local selector = tostring(context)
   if actionId == "switch" then
-    request(`workspace-switch:{selector}`)
+    request(`workspace-switch {selector}`)
   elseif actionId == "move-window" then
-    request(`window-move-to-workspace:{selector}`)
+    request(`window-move-to-workspace {selector}`)
   elseif actionId == "move-column" then
-    request(`column-move-to-workspace:{selector}`)
+    request(`column-move-to-workspace {selector}`)
   end
 end
 
