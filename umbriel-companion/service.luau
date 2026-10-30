@@ -126,7 +126,13 @@ local function startStream()
 end
 
 local function runAction(action)
-  noctalia.runAsync({ "umbriel", "msg", action }, function(result)
+  local actionParts = {}
+
+  for word in action:gmatch("%S+") do
+    table.insert(actionParts, word)
+  end
+
+  noctalia.runAsync({ "umbriel", "msg", table.unpack(actionParts) }, function(result)
     -- Nothing to refresh on success: any resulting state change arrives on the
     -- stream by itself.
     if result.exitCode ~= 0 or result.timedOut then
