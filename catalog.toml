@@ -299,15 +299,21 @@ rev = "4933b1c459459af3a0f9d14898b76ce0564d43b3"
 [[plugin]]
 id = "noctalia/umbriel-companion"
 name = "Umbriel Companion"
-version = "1.2.4"
-updated_at = 1793357685
+version = "1.3.0"
+updated_at = 1793362354
 added_at = 1788152189
 author = "noctalia"
 license = "MIT"
 icon = "layout-columns"
 description = "Show Umbriel layout or submap state and drive workspace and window actions from the bar."
-plugin_api = 43
+plugin_api = 45
 tags = ["umbriel", "bar", "panel", "utility"]
+
+[[plugin.release]]
+plugin_api = 43
+version = "1.2.4"
+updated_at = 1793357685
+rev = "8a9f8efe35b4be921d2a4b2db2d426a0e1ccd7b0"
 
 [[plugin.release]]
 plugin_api = 28
