@@ -34,6 +34,8 @@ local LANGUAGES = {
   no = { "norwegian", "norvegien" },
   pl = { "polish", "polonais" },
   pt = { "portuguese", "portugais" },
+  ["pt-BR"] = { "portuguese (brazil)", "portuguese brazil", "portugues brasileiro", "brazilian portuguese", "brazilian", "brasil", "brazil" },
+  ["pt-PT"] = { "portuguese (portugal)", "portuguese portugal", "portugues de portugal", "portugal", "european portuguese" },
   ro = { "romanian", "roumain" },
   ru = { "russian", "russe" },
   sk = { "slovak", "slovaque" },
@@ -53,16 +55,62 @@ local pending = {}
 
 -- Resolve a token to a language code: a known alias, or a bare 2–3 letter code.
 local function resolveLang(token)
+  if type(token) ~= "string" or token == "" then
+    return nil
+  end
   local lower = token:lower()
   for code, aliases in LANGUAGES do
-    if code == lower or table.find(aliases, lower) then
+    if code:lower() == lower or table.find(aliases, lower) then
       return code
     end
   end
   if lower:match("^%a%a%a?$") then
     return lower
   end
+  -- Hyphenated language codes (e.g. pt-PT, pt-BR, zh-CN, es-419). The Google
+  -- endpoint is case-sensitive on the subtag, so normalize to lowercase primary
+  -- with an uppercase 2-letter subtag (digits stay as-is).
+  local primary, sub = token:match("^(%a%a)%-(.+)$")
+  if primary and sub then
+    primary = primary:lower()
+    if sub:match("^%d+$") then
+      return primary .. "-" .. sub
+    elseif #sub == 2 then
+      return primary .. "-" .. sub:upper()
+    else
+      return primary .. "-" .. sub:lower()
+    end
+  end
   return nil
+end
+
+-- Normalize a configured/stored target code (may be an alias) into the form the
+-- providers expect. Keeps hyphenated subtags cased correctly instead of blindly
+-- lowercasing (which broke pt-PT on Google).
+local function normalizeTarget(code)
+  if type(code) ~= "string" then
+    return "en"
+  end
+  local trimmed = noctalia.string.trim(code)
+  if trimmed == "" then
+    return "en"
+  end
+  local resolved = resolveLang(trimmed)
+  if resolved then
+    return resolved
+  end
+  local primary, sub = trimmed:match("^(%a+)%-(.+)$")
+  if primary and sub then
+    primary = primary:lower()
+    if sub:match("^%d+$") then
+      return primary .. "-" .. sub
+    elseif #sub == 2 then
+      return primary .. "-" .. sub:upper()
+    else
+      return primary .. "-" .. sub:lower()
+    end
+  end
+  return trimmed:lower()
 end
 
 -- Google returns [[[ "segment", "orig", ... ], ...], ...]; the translation is the
@@ -210,8 +258,7 @@ local function resultRow(entry)
 end
 
 function onQuery(query)
-  local defaultTarget = noctalia.getConfig("target_lang")
-  defaultTarget = if type(defaultTarget) == "string" and defaultTarget ~= "" then defaultTarget:lower() else "en"
+  local defaultTarget = normalizeTarget(noctalia.getConfig("target_lang"))
 
   local text = noctalia.string.trim(query)
   if text == "" then
