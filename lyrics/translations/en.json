@@ -1,4 +1,11 @@
 {
+  "ipc": {
+    "offset": "Lyrics offset {value}",
+    "offset_usage": "Use offset +MS, offset -MS, offset MS or offset reset",
+    "status": "{title}\nSource: {source}\nRecording: {recording} s, track: {track} s\nOffset: {offset}",
+    "title": "Lyrics",
+    "unknown": "Unknown command: {event}"
+  },
   "settings": {
     "active_color": {
       "description": "Color of the current lyric line as it is sung",
@@ -27,10 +34,6 @@
     "shadow": {
       "description": "Draw a shadow behind the text",
       "label": "Shadow"
-    },
-    "sync_offset_ms": {
-      "description": "Positive values show lyrics earlier; negative values delay them. Milliseconds.",
-      "label": "Lyrics Sync Adjustment (ms)"
     },
     "width": {
       "description": "Width of the lyric rows in pixels",

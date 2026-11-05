@@ -666,7 +666,8 @@ function M.matchNetease(body, raw)
         end
         local match = newMatch(field(song, "name", "string"), table.concat(names, ", "), "", math.floor(milliseconds))
         match.sourceId = string.format("%.0f", id)
-        addCandidate(candidates, match, raw, 0)
+        -- Among equally good matches the plainest title wins, e.g. the song over its "(for Cover)" backing track.
+        addCandidate(candidates, match, raw, -#text.tokens(match.track.title))
       end
     end
     return choose(candidates)
@@ -699,7 +700,7 @@ function M.matchKugou(body, raw)
           math.floor(seconds) * 1000
         )
         match.sourceId = hash
-        addCandidate(candidates, match, raw, 0)
+        addCandidate(candidates, match, raw, -#text.tokens(match.track.title))
       end
     end
     return choose(candidates)

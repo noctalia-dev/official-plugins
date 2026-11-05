@@ -63,6 +63,20 @@ function M.isLyricsSource(provider)
   return SOURCE_ORDER[provider] ~= nil
 end
 
+local DISPLAY_NAMES = {
+  sidecar = "local .lrc file",
+  [M.LRCMUX] = "lrcmux",
+  [M.LYRICSPLUS] = "LyricsPlus",
+  [M.LRCLIB] = "LRCLIB",
+  [M.KUGOU_LYRIC] = "KuGou",
+  [M.NETEASE_LYRIC] = "NetEase",
+}
+
+-- The name of a lyrics source as shown to users.
+function M.displayName(source)
+  return DISPLAY_NAMES[source] or source or "?"
+end
+
 local function encode(value)
   return noctalia.string.urlEncode(value)
 end
@@ -113,8 +127,8 @@ function M.lyricsPlusUrl(track)
   return url
 end
 
-function M.lrclibUrl(track)
-  return "https://lrclib.net/api/search?q=" .. encode(catalog.searchText(track))
+function M.lrclibUrl(query)
+  return "https://lrclib.net/api/search?q=" .. encode(query)
 end
 
 function M.kugouSongUrl(query)

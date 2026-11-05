@@ -12,7 +12,6 @@ local function clamp(value, low, high)
 end
 
 local LINE_COUNT = clamp(math.floor(noctalia.getConfig("line_count") or 3), 1, 15)
-local SYNC_OFFSET_MS = clamp(noctalia.getConfig("sync_offset_ms") or 0, -10000, 10000)
 local COLOR = noctalia.getConfig("color")
 local ACTIVE_COLOR = noctalia.getConfig("active_color")
 local SHADOW = noctalia.getConfig("shadow") == true
@@ -297,7 +296,8 @@ local function refresh()
   elseif lyrics.instrumental then
     newKey = "status:instrumental"
   elseif #lines > 0 then
-    local positionMs = player.positionMs + SYNC_OFFSET_MS
+    -- The service's per-track offset: positive shows lyrics earlier, negative later.
+    local positionMs = player.positionMs + (lyrics.offsetMs or 0)
     newLine = selectLine(lines, positionMs)
     newKey = "line:" .. generation .. ":" .. tostring(newLine)
     local playing = player.status == "Playing"

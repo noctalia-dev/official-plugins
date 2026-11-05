@@ -4,12 +4,14 @@
 --
 --   { key, busName, trackId, title, lengthMs,
 --     status = "idle" | "loading" | "ready" | "not_found" | "error" | "offline",
+--     source, recordingDurationMs, offsetMs,
 --     instrumental, lines = { { timeMs, endMs?, text, words = { { first, last, startMs, endMs } } } }, plain }
 --
 -- A `<name>.lrc` file beside a local track wins. Otherwise the track is identified on Deezer (MusicBrainz as a
--- fallback) and lrcmux, LyricsPlus and LRCLIB are asked in turn, then KuGou and NetEase as a last resort, stopping as
--- soon as synced lyrics made for a recording of the playing length are found. Results are cached in memory and on
--- disk so replays and restarts do not query again.
+-- fallback) and lrcmux, LyricsPlus and LRCLIB are asked in turn, stopping as soon as synced lyrics made for a recording
+-- of the playing length are found. When none match that length, KuGou and NetEase are asked as well and the synced
+-- lyrics whose line timings agree with the other sources win. Results are cached in memory and on disk so replays and
+-- restarts do not query again. Per-track timing offsets set over IPC are kept on disk too.
 
 local catalog = require("./catalog.luau")
 local lrc = require("./lrc.luau")
@@ -46,6 +48,10 @@ local MAX_SIDECAR_BYTES = 512 * 1024
 -- Remembered per-player details are forgotten once a player has not been active for this long.
 local PLAYER_MEMORY_MS = 10 * MINUTE_MS
 local PRUNE_INTERVAL_MS = 30 * SECOND_MS
+-- Line timings from two sources further apart than this disagree.
+local AGREE_MS = 1000
+local MAX_OFFSETS = 500
+local MAX_OFFSET_MS = 30 * SECOND_MS
 
 local offline = noctalia.getSetting("shell.offline_mode") == true
 
@@ -185,7 +191,11 @@ local function sidecarLyrics(url)
     return nil
   end
   local result = lrc.parseSidecar(body)
-  return if result.status == "ready" then result else nil
+  if result.status ~= "ready" then
+    return nil
+  end
+  result.source = "sidecar"
+  return result
 end
 
 -- ── Disk cache ──────────────────────────────────────────────────────────────
@@ -279,6 +289,7 @@ local function storeDisk(key, rawTrack, result, now)
       plain = result.plain,
       instrumental = result.instrumental,
       recordingDurationMs = result.recordingDurationMs,
+      source = result.source,
     }),
   }
   while diskCount > MAX_DISK_ENTRIES do
@@ -312,10 +323,101 @@ local function loadDiskResult(key, now)
   result.plain = decoded.plain or {}
   result.instrumental = decoded.instrumental == true
   result.recordingDurationMs = decoded.recordingDurationMs or 0
+  result.source = decoded.source or ""
   for _, line in ipairs(result.lines) do
     line.words = line.words or {}
   end
   return result, record
+end
+
+-- ── Per-track offsets ───────────────────────────────────────────────────────
+-- Timing corrections for a recording whose lyrics run early or late, e.g. a music video with a longer intro. Keyed on
+-- the media url (without playback position parameters) or else the title and artists, never the player's bus name,
+-- so they survive browser restarts.
+
+local offsetsPath = nil
+local offsets = {} -- offset key -> { offsetMs, usedAt }
+local offsetCount = 0
+
+local function offsetKey(player)
+  local url = player.url or ""
+  if url ~= "" and not isFileUrl(url) then
+    url = string.gsub(url, "#.*$", "")
+    for _, param in ipairs({ "t", "start", "time_continue" }) do
+      url = string.gsub(url, "([?&])" .. param .. "=[^&]*&?", "%1")
+    end
+    url = string.gsub(url, "[?&]$", "")
+  end
+  if url ~= "" then
+    return "url:" .. url
+  end
+  return "track:" .. text.matchKey(player.title or "") .. "\0" .. text.matchKey(joinedArtists(player))
+end
+
+local function loadOffsets()
+  local dir = noctalia.pluginDataDir()
+  if dir == nil then
+    return
+  end
+  offsetsPath = dir .. "/offsets.json"
+  local body = noctalia.readFile(offsetsPath)
+  local decoded = if body ~= nil then noctalia.json.decode(body) else nil
+  if type(decoded) ~= "table" then
+    return
+  end
+  for key, record in pairs(decoded) do
+    if type(key) == "string" and type(record) == "table" and type(record.offsetMs) == "number" then
+      offsets[key] = { offsetMs = record.offsetMs, usedAt = tonumber(record.usedAt) or 0 }
+      offsetCount += 1
+    end
+  end
+end
+
+local function saveOffsets()
+  if offsetsPath == nil then
+    return
+  end
+  local temporary = offsetsPath .. ".tmp"
+  local written, err = noctalia.writeFile(temporary, noctalia.json.encode(offsets))
+  if written then
+    written, err = noctalia.renameFile(temporary, offsetsPath)
+  end
+  if not written then
+    noctalia.log(`lyrics: cannot save offsets: {err}`)
+  end
+end
+
+local function trackOffset(player)
+  local record = offsets[offsetKey(player)]
+  return if record ~= nil then record.offsetMs else 0
+end
+
+local function setTrackOffset(player, offsetMs, now)
+  local key = offsetKey(player)
+  offsetMs = math.clamp(math.floor(offsetMs + 0.5), -MAX_OFFSET_MS, MAX_OFFSET_MS)
+  if offsetMs == 0 then
+    if offsets[key] ~= nil then
+      offsets[key] = nil
+      offsetCount -= 1
+    end
+  else
+    if offsets[key] == nil then
+      offsetCount += 1
+    end
+    offsets[key] = { offsetMs = offsetMs, usedAt = now }
+    while offsetCount > MAX_OFFSETS do
+      local oldestKey, oldest = nil, nil
+      for candidateKey, record in pairs(offsets) do
+        if oldest == nil or record.usedAt < oldest.usedAt then
+          oldestKey, oldest = candidateKey, record
+        end
+      end
+      offsets[oldestKey] = nil
+      offsetCount -= 1
+    end
+  end
+  saveOffsets()
+  return offsetMs
 end
 
 -- ── Lookups ─────────────────────────────────────────────────────────────────
@@ -348,6 +450,10 @@ local function newEntry(key, player, rawTrack)
     skipped = false,
     best = nil,
     bestProvider = nil,
+    -- Every synced result so far, compared against each other when no single one matches the playing length.
+    candidates = {},
+    -- Lyrics-only sources already retried with the short query.
+    retriedShort = {},
     sourceDurationMs = 0,
     result = nil,
     expiresAt = 0,
@@ -370,6 +476,8 @@ local function resetLookup(entry, rawTrack)
   entry.skipped = false
   entry.best = nil
   entry.bestProvider = nil
+  entry.candidates = {}
+  entry.retriedShort = {}
   entry.sourceDurationMs = 0
   entry.result = nil
 end
@@ -422,6 +530,9 @@ local function consider(entry, provider, result)
   if quality == 0 then
     return
   end
+  if quality >= 2 then
+    table.insert(entry.candidates, { result = result, provider = provider })
+  end
   local wanted = wantedMs(entry)
   local function rank(lyrics, source)
     local q = lyricsQuality(lyrics)
@@ -455,9 +566,95 @@ local function settled(entry)
   return wanted <= 0 or lengthMatches(entry.best, wanted)
 end
 
+-- Line start times keyed on the line's words, in order of appearance, so repeated chorus lines pair up by occurrence.
+local function lineTimes(result)
+  local times = {}
+  for _, line in ipairs(result.lines) do
+    local key = text.matchKey(line.text)
+    if key ~= "" then
+      local list = times[key]
+      if list == nil then
+        list = {}
+        times[key] = list
+      end
+      table.insert(list, line.timeMs)
+    end
+  end
+  return times
+end
+
+-- For each candidate, the number of its lines that more of the other sources contradict than confirm.
+local function disputedLines(candidates)
+  local maps = {}
+  for i, candidate in ipairs(candidates) do
+    maps[i] = lineTimes(candidate.result)
+  end
+  local counts = {}
+  for i, map in ipairs(maps) do
+    local disputed = 0
+    for key, list in pairs(map) do
+      for occurrence, timeMs in ipairs(list) do
+        local agree, disagree = 0, 0
+        for j, other in ipairs(maps) do
+          local otherTime = if j ~= i and other[key] ~= nil then other[key][occurrence] else nil
+          if otherTime ~= nil then
+            if math.abs(otherTime - timeMs) <= AGREE_MS then
+              agree += 1
+            else
+              disagree += 1
+            end
+          end
+        end
+        if disagree > agree then
+          disputed += 1
+        end
+      end
+    end
+    counts[i] = disputed
+  end
+  return counts
+end
+
+-- Among several synced results: one made for the playing length, then the one the other sources agree with most,
+-- then the preferred source.
+local function mostTrusted(entry)
+  local candidates = entry.candidates
+  local disputed = disputedLines(candidates)
+  local wanted = wantedMs(entry)
+  local bestIndex, bestRank = nil, nil
+  for i, candidate in ipairs(candidates) do
+    local rank = {
+      if lengthMatches(candidate.result, wanted) then 1 else 0,
+      -disputed[i],
+      -providers.sourceOrder(candidate.provider),
+    }
+    local better = bestRank == nil
+    if not better then
+      for k = 1, #rank do
+        if rank[k] ~= bestRank[k] then
+          better = rank[k] > bestRank[k]
+          break
+        end
+      end
+    end
+    if better then
+      bestIndex, bestRank = i, rank
+    end
+  end
+  local summary = {}
+  for i, candidate in ipairs(candidates) do
+    table.insert(summary, `{candidate.provider}={disputed[i]}`)
+  end
+  local chosen = candidates[bestIndex]
+  noctalia.log(`lyrics: compared sources (disputed lines: {table.concat(summary, ", ")}), using {chosen.provider}`)
+  return chosen.result
+end
+
 local function finishBest(entry)
   local result
-  if entry.best ~= nil then
+  if #entry.candidates >= 2 then
+    result = mostTrusted(entry)
+  elseif entry.best ~= nil then
     result = entry.best
   elseif entry.hadError or entry.skipped or not entry.answered then
     -- Not every source could be asked, so the lyrics may still exist.
@@ -474,6 +671,41 @@ local function sourceQuery(entry)
     return entry.track.title .. " " .. entry.track.artist
   end
   return catalog.searchText(entry.rawTrack)
+end
+
+-- A narrower query for a source whose search found nothing. For a track identified in a catalog: the catalog title and
+-- the one catalog artist the player's metadata also names (else the first). Otherwise: the cleaned player title alone,
+-- without the uploader and without "by", e.g. "crazy chomin" for a "Crazy (feat. Yina) by chomin" video from the
+-- "DJMAX ARCHIVE" channel. Matching still scores results against the full metadata, so a loose query cannot pick
+-- another song.
+local function shortQuery(entry)
+  if entry.track == entry.rawTrack or entry.track.title == "" then
+    local words = {}
+    for _, word in ipairs(text.tokens(catalog.searchText({ title = entry.rawTrack.title, artist = "" }))) do
+      if word ~= "by" then
+        table.insert(words, word)
+      end
+    end
+    return if #words > 0 then table.concat(words, " ") else nil
+  end
+  local artists = {}
+  for artist in string.gmatch(entry.track.artist, "[^,]+") do
+    artist = string.match(artist, "^%s*(.-)%s*$")
+    if artist ~= "" then
+      table.insert(artists, artist)
+    end
+  end
+  if #artists == 0 then
+    return nil
+  end
+  local mentioned = text.matchKey(entry.rawTrack.title .. " " .. entry.rawTrack.artist)
+  for _, artist in ipairs(artists) do
+    local key = text.matchKey(artist)
+    if key ~= "" and string.find(mentioned, key, 1, true) then
+      return entry.track.title .. " " .. artist
+    end
+  end
+  return entry.track.title .. " " .. artists[1]
 end
 
 local function requestMusicBrainz(entry)
@@ -498,7 +730,7 @@ local function requestLyricsPlus(entry)
 end
 
 local function requestLrclib(entry)
-  enqueue(entry, providers.LRCLIB, providers.lrclibUrl(entry.track))
+  enqueue(entry, providers.LRCLIB, providers.lrclibUrl(catalog.searchText(entry.track)))
 end
 
 local function requestKugou(entry)
@@ -528,12 +760,9 @@ local function advance(entry, provider)
   elseif provider == providers.LYRICSPLUS then
     requestLrclib(entry)
   elseif provider == providers.LRCLIB then
-    -- KuGou and NetEase are a last resort: only asked when no other source has synced lyrics.
-    if entry.best ~= nil and lyricsQuality(entry.best) >= 2 then
-      finishBest(entry)
-    else
-      requestKugou(entry)
-    end
+    -- No synced lyrics for a recording of the playing length so far: KuGou and NetEase either supply some or let the
+    -- sources be compared.
+    requestKugou(entry)
   elseif
     provider == providers.KUGOU_SONG
     or provider == providers.KUGOU_SEARCH
@@ -641,6 +870,12 @@ local function handleResponse(entry, provider, response)
           end
           return
         end
+        local short = if entry.retriedShort[provider] then nil else shortQuery(entry)
+        if short ~= nil and short ~= sourceQuery(entry) then
+          entry.retriedShort[provider] = true
+          enqueue(entry, provider, (if kugou then providers.kugouSongUrl else providers.neteaseSearchUrl)(short))
+          return
+        end
       end
     elseif answered then
       entry.answered = true
@@ -694,6 +929,15 @@ local function handleResponse(entry, provider, response)
   elseif answered then
     entry.answered = true
   end
+  if provider == providers.LRCLIB and responseOk and result.status == "not_found" and not entry.retriedShort[provider] then
+    local short = shortQuery(entry)
+    if short ~= nil and short ~= catalog.searchText(entry.track) then
+      entry.retriedShort[provider] = true
+      enqueue(entry, provider, providers.lrclibUrl(short))
+      return
+    end
+  end
+  result.source = provider
   if result.status == "ready" and result.instrumental then
     complete(entry, result)
     return
@@ -916,7 +1160,7 @@ local published = nil
 local function publish(player, hasTrack)
   local value
   if not hasTrack then
-    value = { key = "", busName = "", trackId = "", title = "", lengthMs = 0, status = "idle" }
+    value = { key = "", busName = "", trackId = "", title = "", lengthMs = 0, status = "idle", offsetMs = 0 }
   else
     local result = subject.result
     value = {
@@ -926,17 +1170,28 @@ local function publish(player, hasTrack)
       title = player.title,
       lengthMs = player.lengthMs or 0,
       status = if result == nil then "loading" else result.status,
+      offsetMs = trackOffset(player),
     }
   end
   local result = if hasTrack then subject.result else nil
-  local signature = `{value.key}\0{value.status}\0{value.busName}\0{value.trackId}\0{value.title}\0{value.lengthMs}`
+  local signature =
+    `{value.key}\0{value.status}\0{value.busName}\0{value.trackId}\0{value.title}\0{value.lengthMs}\0{value.offsetMs}`
   if published ~= nil and published.signature == signature and published.result == result then
     return
+  end
+  if result ~= nil and result.status == "ready" and (published == nil or published.result ~= result) then
+    noctalia.log(
+      `lyrics: "{value.title}" from {providers.displayName(result.source)}`
+        .. ` (recording {result.recordingDurationMs // 1000} s, track {value.lengthMs // 1000} s,`
+        .. ` offset {value.offsetMs} ms)`
+    )
   end
   published = { signature = signature, result = result }
   value.instrumental = result ~= nil and result.instrumental or false
   value.lines = if result ~= nil and result.status == "ready" then result.lines else {}
   value.plain = if result ~= nil and result.status == "ready" then result.plain else {}
+  value.source = if result ~= nil and result.status == "ready" then result.source or "" else ""
+  value.recordingDurationMs = if result ~= nil then result.recordingDurationMs or 0 else 0
   noctalia.state.set("lyrics", value)
 end
 
@@ -1035,6 +1290,7 @@ local function poll()
 end
 
 loadDisk()
+loadOffsets()
 poll()
 noctalia.setUpdateInterval(POLL_MS)
 
@@ -1045,4 +1301,51 @@ end
 function onConfigChanged()
   offline = noctalia.getSetting("shell.offline_mode") == true
   poll()
+end
+
+local function formatOffset(offsetMs)
+  return string.format("%+.1f s", offsetMs / 1000)
+end
+
+-- noctalia msg plugin noctalia/lyrics:service all offset +250|-250|<ms>|reset
+-- noctalia msg plugin noctalia/lyrics:service all status
+function onIpc(event, payload)
+  local player = noctalia.mediaPlayer()
+  if player == nil then
+    noctalia.notify(noctalia.tr("ipc.title"), noctalia.tr("status.nothing-playing"))
+    return
+  end
+  if event == "offset" then
+    local arg = payload or ""
+    local current = trackOffset(player)
+    local target
+    if arg == "reset" then
+      target = 0
+    elseif string.match(arg, "^[+-]%d+$") then
+      target = current + tonumber(arg)
+    elseif string.match(arg, "^%d+$") then
+      target = tonumber(arg)
+    else
+      noctalia.notifyError(noctalia.tr("ipc.title"), noctalia.tr("ipc.offset_usage"))
+      return
+    end
+    local applied = setTrackOffset(player, target, noctalia.nowMs())
+    noctalia.osd.show("clock", noctalia.tr("ipc.offset", { value = formatOffset(applied) }))
+    poll()
+  elseif event == "status" then
+    local result = subject.result
+    local source = if result ~= nil and result.status == "ready" then providers.displayName(result.source) else "-"
+    noctalia.notify(
+      noctalia.tr("ipc.title"),
+      noctalia.tr("ipc.status", {
+        title = player.title,
+        source = source,
+        recording = tostring(if result ~= nil then (result.recordingDurationMs or 0) // 1000 else 0),
+        track = tostring((player.lengthMs or 0) // 1000),
+        offset = formatOffset(trackOffset(player)),
+      })
+    )
+  else
+    noctalia.notifyError(noctalia.tr("ipc.title"), noctalia.tr("ipc.unknown", { event = event }))
+  end
 end

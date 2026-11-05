@@ -41,9 +41,6 @@ Lines** and the other options in its settings. No API key is required.
   `width` or lower `font_size` for songs with long lines.
 - Loading, missing lyrics, instrumental tracks, offline mode, request failures
   and an idle player each show their own status message.
-- Use `sync_offset_ms` (**Lyrics Sync Adjustment**) when a recording's lyric
-  timestamps lead or lag the audio, for example a music video with a longer
-  intro than the studio recording. The player clock itself is left unchanged.
 
 ### Lookup
 
@@ -60,12 +57,21 @@ identifies the recording through [Deezer](https://www.deezer.com/) and
 2. [LyricsPlus](https://github.com/ibratabian17/lyricsplus)
 3. [LRCLIB](https://lrclib.net/)
 4. [KuGou](https://www.kugou.com/) and [NetEase Cloud Music](https://music.163.com/),
-   only as a last resort when none of the above has synced lyrics
+   only when none of the above has synced lyrics timed for a recording of the
+   playing length
+
+When LRCLIB, KuGou or NetEase finds nothing for the full metadata, it is
+searched once more with just the song title and its artist, leaving out the
+uploader's channel name (for example `Crazy chomin` for a
+`Crazy (feat. Yina) by chomin` video from the `DJMAX ARCHIVE` channel).
 
 Lyrics timed for a recording whose length matches the playing track are
-preferred; otherwise the first synced lyrics in that order are used, and plain
-text only when nothing is synced. Recordings up to 30 seconds longer or shorter
-than the playing track are still matched, with closer timing preferred.
+preferred. When none match, the synced lyrics from every source that has them
+are compared line by line, and the version whose line timings the other
+sources confirm wins (lyrics databases are partly crowd-sourced, and a single
+wrong timestamp is enough to throw a song off); ties go to the earlier source
+in the list. Plain text is used only when nothing is synced. Recordings up to
+30 seconds longer or shorter than the playing track are still matched.
 Ambiguous or unrelated recordings are rejected rather than showing another
 song's lyrics.
 
@@ -75,6 +81,34 @@ updates do not invalidate found lyrics, and a temporary failure keeps the last
 lyrics for the unchanged track visible. A provider that fails or rate-limits is
 skipped for a while, and a failed lookup is retried after 30 seconds, then
 with doubling delays up to 10 minutes.
+
+### Timing offset per track
+
+Lyric timestamps follow the studio recording, so a music video with a longer
+intro shows them early. Shift the lyrics of the playing track and the plugin
+remembers the offset for that track (keyed on its media URL, or its title and
+artist when the player reports no URL):
+
+```sh
+noctalia msg plugin noctalia/lyrics:service all offset -250   # show lyrics 250 ms later
+noctalia msg plugin noctalia/lyrics:service all offset +250   # show lyrics 250 ms earlier
+noctalia msg plugin noctalia/lyrics:service all offset 1500   # set it to +1.5 s
+noctalia msg plugin noctalia/lyrics:service all offset reset
+```
+
+Bind the first two to keys for quick adjustments; each change shows the new
+offset in the OSD.
+
+### Which source was used
+
+```sh
+noctalia msg plugin noctalia/lyrics:service all status
+```
+
+shows the playing track, the lyrics source, the length of the recording the
+lyrics were timed for and the track's offset. The same line is written to the
+Noctalia log whenever new lyrics are shown, which helps compare reports of the
+same song.
 
 ### Privacy
 
@@ -91,7 +125,6 @@ and other tracks show "Lyrics unavailable in offline mode".
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `line_count` | `int` | `3` | Number of lyric rows, from 1 to 15. |
-| `sync_offset_ms` | `int` | `0` | Timing adjustment from -10000 to 10000 ms, in 100 ms steps. Positive values show lyrics earlier; negative values delay them. |
 | `font_size` | `int` | `22` | Text size in pixels. The row height follows it. |
 | `width` | `int` | `640` | Width of the lyric rows in pixels. Longer lines end with an ellipsis. |
 | `color` | `color` | `on_surface_variant` | Color of the surrounding lines and status messages. |
