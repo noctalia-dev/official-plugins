@@ -1,0 +1,48 @@
+{
+  "settings": {
+    "active_color": {
+      "description": "Color of the current lyric line as it is sung",
+      "label": "Active Color"
+    },
+    "color": {
+      "description": "Color of the surrounding lines and status messages",
+      "label": "Color"
+    },
+    "font_size": {
+      "description": "Text size in pixels. Lines wider than the widget end with an ellipsis.",
+      "label": "Font Size"
+    },
+    "hide_when_idle": {
+      "description": "Hide the widget while the player is paused or stopped",
+      "label": "Hide When Idle"
+    },
+    "hide_when_no_media": {
+      "description": "Hide the widget when no media player is active",
+      "label": "Hide Without Media"
+    },
+    "line_count": {
+      "description": "Number of lyric rows, from 1 to 15",
+      "label": "Visible Lines"
+    },
+    "shadow": {
+      "description": "Draw a shadow behind the text",
+      "label": "Shadow"
+    },
+    "sync_offset_ms": {
+      "description": "Positive values show lyrics earlier; negative values delay them. Milliseconds.",
+      "label": "Lyrics Sync Adjustment (ms)"
+    },
+    "width": {
+      "description": "Width of the lyric rows in pixels",
+      "label": "Width"
+    }
+  },
+  "status": {
+    "error": "Could not load lyrics",
+    "instrumental": "Instrumental",
+    "loading": "Loading lyrics…",
+    "not_found": "No lyrics found",
+    "nothing-playing": "Nothing playing",
+    "offline": "Lyrics unavailable in offline mode"
+  }
+}

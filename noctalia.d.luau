@@ -215,6 +215,24 @@ export type CalendarEvent = {
   allDay: boolean, -- times are midnight-aligned
 }
 
+-- The shell's active MPRIS player from noctalia.mediaPlayer() (same choice as the bar media
+-- widget). API 51.
+export type MediaPlayer = {
+  busName: string, -- e.g. "org.mpris.MediaPlayer2.spotify"
+  identity: string,
+  desktopEntry: string,
+  status: string, -- "Playing" | "Paused" | "Stopped"
+  trackId: string,
+  title: string,
+  artists: { string },
+  album: string,
+  url: string, -- xesam:url, "" when absent
+  artUrl: string,
+  positionMs: number, -- projected to the moment of the call while playing (rate-scaled)
+  lengthMs: number, -- 0 when unknown
+  rate: number,
+}
+
 export type OsdOptions = {
   progress: number?, -- fill level 0..1, clamped; NaN raises. Omit for a text-only popup
   inactive: boolean?, -- muted icon/text, as the built-in popups use for "off" states
@@ -279,6 +297,8 @@ export type Noctalia = {
   -- Read-only snapshot of the shell's synced calendars; nil until the first successful
   -- sync, so nil means "unknown", not "empty". API 37.
   calendarEvents: () -> { CalendarEvent }?,
+  -- Active MPRIS player, nil when none. Cheap enough to poll every frame. API 51.
+  mediaPlayer: () -> MediaPlayer?,
   getenv: (name: string) -> string?,
   expandPath: (path: string) -> string,
   formatTime: (pattern: string, unixSeconds: number?, timezone: string?) -> string,
@@ -461,6 +481,33 @@ export type UiLabelProps = {
   maxWidth: number?,
   maxLines: number?,
   textAlign: ("start" | "center" | "end")?,
+  shadow: boolean?, -- desktop-widget text shadow (API 51)
+}
+
+-- ui.fillLabel (API 51). One line (ellipsized at the end) with a progressive color fill.
+-- fillRanges is a flat { first1, last1, first2, last2, ... } array of 1-based inclusive byte
+-- positions in text (string.find results), one pair per segment; absent = the whole text, pairs
+-- off character boundaries are ignored. fillProgress p fills floor(p) segments fully and the next
+-- one by p - floor(p). Changing only fillProgress does not reshape the text.
+export type UiFillLabelProps = {
+  key: string?,
+  width: number?,
+  height: number?,
+  flexGrow: number?,
+  opacity: number?,
+  visible: boolean?,
+  text: string?,
+  fontSize: number?,
+  color: UiColor?,
+  fontWeight: ("thin" | "light" | "normal" | "medium" | "semibold" | "bold" | "heavy")?,
+  fontFamily: string?,
+  baseline: ("text" | "textFixedHeight" | "inkCentered" | "pictographic")?,
+  maxWidth: number?,
+  textAlign: ("start" | "center" | "end")?,
+  shadow: boolean?,
+  fillColor: UiColor?, -- default "primary"
+  fillRanges: { number }?,
+  fillProgress: number?, -- >= 0, default 0
 }
 
 -- ui.markdown. Read-only block; re-parsed only when text or the surface scale changes. API 21.
@@ -814,6 +861,7 @@ declare ui: {
   dropZone: (props: UiDropZoneProps, children: { UiNode }?) -> UiNode,
   box: (props: UiBoxProps?) -> UiNode,
   label: (props: UiLabelProps?) -> UiNode,
+  fillLabel: (props: UiFillLabelProps?) -> UiNode,
   markdown: (props: UiMarkdownProps?) -> UiNode,
   glyph: (props: UiGlyphProps?) -> UiNode,
   image: (props: UiImageProps?) -> UiNode,
@@ -886,6 +934,7 @@ declare desktopWidget: {
   render: (tree: UiNode) -> (),
   setWantsSecondTicks: (wants: boolean) -> (), -- run update() on second boundaries
   setNeedsFrameTick: (needs: boolean) -> (), -- deliver onFrameTick(deltaMs) every frame
+  setVisible: (visible: boolean) -> (), -- hide the whole widget, background included (API 51)
 }
 
 -- ── panel.* - [[panel]] declarative UI ───────────────────────────────────────

@@ -1,0 +1,96 @@
+# Synced lyrics for the active media player, shown as a desktop widget.
+#
+# service -> follows the active MPRIS player, looks lyrics up (sidecar .lrc file,
+#            then online providers), caches them and publishes noctalia.state "lyrics"
+# desktop -> renders the published lyrics in time with playback
+
+id = "noctalia/lyrics"
+name = "Lyrics"
+version = "1.0.0"
+plugin_api = 51
+author = "noctalia"
+license = "MIT"
+dependencies = []
+tags = ["music", "media", "desktop"]
+icon = "microphone-2"
+description = "Synced lyrics for the playing track on your desktop, with word-by-word highlighting."
+
+[[service]]
+id = "service"
+entry = "service.luau"
+
+[[desktop_widget]]
+id = "desktop"
+entry = "desktop.luau"
+
+  [[desktop_widget.setting]]
+  key = "line_count"
+  type = "int"
+  label_key = "settings.line_count.label"
+  description_key = "settings.line_count.description"
+  default = 3
+  min = 1
+  max = 15
+
+  [[desktop_widget.setting]]
+  key = "sync_offset_ms"
+  type = "int"
+  label_key = "settings.sync_offset_ms.label"
+  description_key = "settings.sync_offset_ms.description"
+  default = 0
+  min = -10000
+  max = 10000
+  step = 100
+
+  [[desktop_widget.setting]]
+  key = "font_size"
+  type = "int"
+  label_key = "settings.font_size.label"
+  description_key = "settings.font_size.description"
+  default = 22
+  min = 8
+  max = 96
+
+  [[desktop_widget.setting]]
+  key = "width"
+  type = "int"
+  label_key = "settings.width.label"
+  description_key = "settings.width.description"
+  default = 640
+  min = 100
+  max = 4000
+
+  [[desktop_widget.setting]]
+  key = "color"
+  type = "color"
+  label_key = "settings.color.label"
+  description_key = "settings.color.description"
+  default = "on_surface_variant"
+
+  [[desktop_widget.setting]]
+  key = "active_color"
+  type = "color"
+  label_key = "settings.active_color.label"
+  description_key = "settings.active_color.description"
+  default = "primary"
+
+  [[desktop_widget.setting]]
+  key = "shadow"
+  type = "bool"
+  label_key = "settings.shadow.label"
+  description_key = "settings.shadow.description"
+  default = true
+
+  [[desktop_widget.setting]]
+  key = "hide_when_no_media"
+  type = "bool"
+  label_key = "settings.hide_when_no_media.label"
+  description_key = "settings.hide_when_no_media.description"
+  default = false
+
+  [[desktop_widget.setting]]
+  key = "hide_when_idle"
+  type = "bool"
+  label_key = "settings.hide_when_idle.label"
+  description_key = "settings.hide_when_idle.description"
+  default = false
