@@ -320,3 +320,16 @@ plugin_api = 28
 version = "1.2.0"
 updated_at = 1792749089
 rev = "4f0442067408fb5ef0cbf6eda5a5c6dddbc40ed7"
+
+[[plugin]]
+id = "noctalia/lyrics"
+name = "Lyrics"
+version = "1.0.0"
+updated_at = 1793890707
+added_at = 1793890707
+author = "noctalia"
+license = "MIT"
+icon = "microphone-2"
+description = "Synced lyrics for the playing track on your desktop, with word-by-word highlighting."
+plugin_api = 51
+tags = ["music", "media", "desktop"]
