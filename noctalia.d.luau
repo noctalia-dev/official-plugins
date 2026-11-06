@@ -309,8 +309,14 @@ export type Noctalia = {
   nowMs: () -> number, -- the only sub-second clock; formatTime and os.time are whole-second (API 12)
 
   -- System monitor. nil when [system.monitor] is disabled. The first systemStats call
-  -- opts this plugin into its optional CPU/GPU probes. API 12.
+  -- enables CPU temperature sampling. GPU values are cached; this call does not enable
+  -- GPU sampling. API 12; explicit GPU monitoring is required from API 46 onward.
   systemStats: () -> SystemStats?,
+  -- Request GPU temperature, usage and VRAM sampling for this entry. API 46.
+  -- Repeated requests are idempotent. Release with false when no longer displaying GPU
+  -- stats (including panel onClose); unloading also releases the request. Returns false
+  -- if enabling without a monitor service. gpu_poll_seconds = 0 still disables probing.
+  setGpuMonitoring: (enabled: boolean) -> boolean,
   -- Per-core usage in /proc/stat order; nil until the first delta lands. Offline cores are
   -- absent, so length can change and an index is not a core id.
   cpuCores: () -> { number }?,
