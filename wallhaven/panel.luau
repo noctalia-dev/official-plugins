@@ -1,8 +1,9 @@
 --!nonstrict
 -- Wallhaven wallpaper browser panel.
 --
--- Browse search results with category and purity filters and pagination, download the full
--- image into the configured wallpaper directory, then apply it via noctalia.setWallpaper.
+-- Browse search results with category and purity filters and pagination. Clicking a result
+-- previews the full image from the cache; only applying it moves it into the configured
+-- wallpaper directory and calls noctalia.setWallpaper.
 
 local API_BASE = "https://wallhaven.cc/api/v1"
 local CACHE_DIR = (noctalia.getenv("XDG_STATE_HOME") or ((noctalia.getenv("HOME") or "") .. "/.local/state")) .. "/noctalia/wallhaven/thumbs"
@@ -17,6 +18,9 @@ local TILE_BORDER_RATED = 3
 local TILE_BORDER_SELECTED = 3
 local TILE_LABEL_GAP = 4
 local TILE_LABEL_FONT = 11
+local PREVIEW_HEIGHT = 640 -- what the panel leaves between its header and the preview buttons
+local PREVIEW_PROGRESS_MS = 100
+local PREVIEW_PROGRESS_WIDTH = 240
 
 local closeButton = true
 
@@ -27,6 +31,10 @@ local wallpapers = {}
 local loading = false
 local errorMessage = ""
 local selectedId = ""
+local preview = nil -- wallpaper being previewed
+local previewPath = nil -- its full image, once downloaded
+local previewProgress = 0 -- 0..1 while downloading
+local previewTickMs = 0
 local applying = false
 
 local puritySfw = true
@@ -52,7 +60,7 @@ local thumbActive = 0
 
 local render
 local fetchWallpapers
-local applyWallpaper
+local openPreview
 
 local sortOptions = { "relevance", "random", "date_added", "views", "favorites", "toplist", "hot" }
 local sortIndex = 2
@@ -409,7 +417,7 @@ end
 
 local function pickWallpaper(id)
   selectedId = id
-  applyWallpaper(id)
+  openPreview(id)
 end
 
 local function fileExtension(wallpaper)
@@ -428,47 +436,55 @@ local function findWallpaper(id)
   return nil
 end
 
-applyWallpaper = function(id)
-  if applying then
+local function previewCachePath(wallpaper)
+  return `{CACHE_DIR}/{wallpaper.id}-full{fileExtension(wallpaper)}`
+end
+
+local function closePreview()
+  if preview == nil or applying then
     return
   end
+  if previewPath ~= nil then
+    noctalia.removeFile(previewPath)
+  end
+  preview = nil
+  previewPath = nil
+end
+
+openPreview = function(id)
   local wallpaper = findWallpaper(id)
-  if wallpaper == nil then
-    return
-  end
-  local imageUrl = wallpaper.path
+  local imageUrl = wallpaper and wallpaper.path
   if type(imageUrl) ~= "string" or imageUrl == "" then
     noctalia.notifyError(tr("title"), tr("download_failed"))
     return
   end
 
-  applying = true
+  local dest = previewCachePath(wallpaper)
+  preview = wallpaper
+  previewPath = nil
+  previewProgress = 0
   render()
 
-  local destDir = downloadDir()
-  local dest = `{destDir}/wallhaven-{id}{fileExtension(wallpaper)}`
-  noctalia.runAsync(`mkdir -p {shellQuote(destDir)}`, function(mkdirRes)
-    if mkdirRes == nil or mkdirRes.exitCode ~= 0 then
-      applying = false
-      noctalia.notifyError(tr("title"), tr("download_failed"))
-      render()
+  local started = noctalia.download(imageUrl, dest, function(ok)
+    if preview == nil or preview.id ~= id then
+      noctalia.removeFile(dest) -- left the preview while this was downloading
       return
     end
-
-    noctalia.download(imageUrl, dest, function(downloadOk)
-      if not downloadOk then
-        applying = false
-        noctalia.notifyError(tr("title"), tr("download_failed"))
-        render()
-        return
-      end
-
-      noctalia.setWallpaper(dest)
-      applying = false
-      noctalia.notify(tr("title"), tr("applied"))
-      render()
-    end)
+    if ok then
+      previewPath = dest
+    else
+      closePreview()
+      noctalia.notifyError(tr("title"), tr("download_failed"))
+    end
+    render()
   end)
+  if not started then
+    closePreview()
+    noctalia.notifyError(tr("title"), tr("download_failed"))
+    render()
+    return
+  end
+  panel.setNeedsFrameTick(true)
 end
 
 local function parseSearchResponse(body)
@@ -688,9 +704,53 @@ local function wallpaperGrid()
   return ui.column({ gap = 12, align = "stretch" }, rows)
 end
 
+local function previewView()
+  return ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, {
+    -- Scrolls when a short screen shrinks the panel, so the buttons stay reachable.
+    ui.scroll({ flexGrow = 1 }, {
+      ui.image({
+        width = PANEL_WIDTH - PANEL_PADDING,
+        height = PREVIEW_HEIGHT,
+        path = previewPath or thumbPaths[preview.id],
+        fit = "contain",
+      }),
+    }),
+    ui.row({ align = "center", justify = "space_between", gap = 8 }, {
+      ui.button({
+        key = "preview_back",
+        text = tr("preview_back"),
+        glyph = "chevron-left",
+        variant = "ghost",
+        onClick = "onPreviewBack",
+        enabled = not applying,
+      }),
+      if previewPath == nil then
+        ui.row({ gap = 8, align = "center" }, {
+          ui.label({ text = tr("applying"), color = "on_surface_variant" }),
+          ui.progress({
+            width = PREVIEW_PROGRESS_WIDTH,
+            height = 6,
+            radius = 3,
+            progress = previewProgress,
+            fill = "primary",
+            track = "surface_container",
+          }),
+        })
+      else
+        ui.label({ text = preview.resolution or preview.id, color = "on_surface_variant" }),
+      ui.button({
+        key = "preview_apply",
+        text = tr("preview_apply"),
+        variant = "primary",
+        onClick = "onPreviewApply",
+        enabled = previewPath ~= nil and not applying,
+      }),
+    }),
+  })
+end
+
 render = function()
   normalizePurityFilters()
-  local pageLabel = if applying then tr("applying") else `Page {page}`
 
   local headerContent = {
     ui.label({ text = tr("title"), fontSize = 16, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
@@ -699,9 +759,9 @@ render = function()
     table.insert(headerContent, ui.button({ glyph = "close", onClick = "onCloseClicked" }))
   end
 
-  panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, {
-    ui.row({ align = "center", justify = "space_between", gap = 8 }, headerContent),
-
+  local header = ui.row({ align = "center", justify = "space_between", gap = 8 }, headerContent)
+  -- Hidden rather than dropped during a preview, so the grid keeps its scroll position.
+  local browse = ui.column({ key = "browse", visible = preview == nil, flexGrow = 1, gap = 12, align = "stretch" }, {
     ui.row({ gap = 8, align = "center" }, {
       ui.input({
         key = "search",
@@ -740,13 +800,13 @@ render = function()
         else
           ui.button({
             key = "page_label",
-            text = pageLabel,
+            text = `Page {page}`,
             variant = "ghost",
             tooltip = tr("page_jump_tooltip"),
             onClick = "onPageLabelClicked",
-            enabled = not loading and not applying,
+            enabled = not loading,
           })),
-        ui.label({ text = if applying then "" else `/ {totalPages}`, color = "on_surface_variant" }),
+        ui.label({ text = `/ {totalPages}`, color = "on_surface_variant" }),
         ui.button({
           key = "next_page",
           glyph = "chevron-right",
@@ -756,13 +816,78 @@ render = function()
         }),
       }),
     }),
-  }))
+  })
+
+  local children = { header, browse }
+  if preview ~= nil then
+    table.insert(children, previewView())
+  end
+  panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, children))
 end
 
 function onOpen(_context)
   closeButton = noctalia.getSetting("shell.show_close_buttons") ~= false
   normalizePurityFilters()
   fetchWallpapers()
+end
+
+function onClose()
+  closePreview()
+  render() -- a reopened panel starts from the last tree, which must not name the deleted file
+end
+
+function onExit()
+  closePreview() -- a script reload or shell exit may not run onClose
+end
+
+function onFrameTick(deltaMs)
+  if preview == nil or previewPath ~= nil then
+    panel.setNeedsFrameTick(false)
+    return
+  end
+  previewTickMs += deltaMs
+  if previewTickMs < PREVIEW_PROGRESS_MS then
+    return
+  end
+  previewTickMs = 0
+  -- noctalia.download reports no progress, but it writes to <dest>.part until it finishes.
+  local info = noctalia.fileInfo(`{previewCachePath(preview)}.part`)
+  local total = preview.file_size
+  if info ~= nil and type(total) == "number" and total > 0 then
+    previewProgress = math.min(1, info.size / total)
+    render()
+  end
+end
+
+function onPreviewBack()
+  closePreview()
+  render()
+end
+
+function onPreviewApply()
+  if applying or previewPath == nil then
+    return
+  end
+  applying = true
+  render()
+
+  local destDir = downloadDir()
+  local dest = `{destDir}/wallhaven-{preview.id}{fileExtension(preview)}`
+  -- mv, not noctalia.renameFile: the wallpaper directory can be on another filesystem.
+  noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && mv -f {shellQuote(previewPath)} {shellQuote(dest)}`, function(res)
+    applying = false
+    if res == nil or res.exitCode ~= 0 then
+      noctalia.notifyError(tr("title"), tr("apply_failed"))
+      render()
+      return
+    end
+
+    noctalia.setWallpaper(dest)
+    preview = nil
+    previewPath = nil
+    noctalia.notify(tr("title"), tr("applied"))
+    render()
+  end)
 end
 
 function onSearchChange(value)
