@@ -6,6 +6,10 @@
     "missing_zone": "Timezone not in the list: {zone}"
   },
   "settings": {
+    "highlight_working_hours": {
+      "label": "Highlight working hours",
+      "description": "In plan mode, highlight zones where the chosen moment falls inside working hours"
+    },
     "show_add_zone": {
       "description": "Show the input that adds timezones from the panel",
       "label": "Show add-timezone box"
@@ -31,6 +35,14 @@
         "24h": "24-hour",
         "system": "System"
       }
+    },
+    "working_hours_end": {
+      "label": "Working hours end",
+      "description": "Hour at which working hours end (1-24)"
+    },
+    "working_hours_start": {
+      "label": "Working hours start",
+      "description": "First hour counted as working hours (0-23)"
     }
   },
   "title": "World Clock",
@@ -38,6 +50,7 @@
     "add_placeholder": "Europe/Berlin",
     "drag_tooltip": "Drag to reorder",
     "empty": "No timezones yet. Add an IANA zone below.",
-    "label_placeholder": "Label (optional)"
+    "label_placeholder": "Label (optional)",
+    "plan_tooltip": "Plan a time"
   }
 }
