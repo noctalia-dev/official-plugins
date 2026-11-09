@@ -255,8 +255,8 @@ rev = "ea6dfe3fae4d4a755dd05390548b04066250ffe9"
 [[plugin]]
 id = "noctalia/world_clock"
 name = "World Clock"
-version = "1.2.2"
-updated_at = 1792983685
+version = "1.3.0"
+updated_at = 1794195947
 added_at = 1785325491
 author = "noctalia"
 license = "MIT"
