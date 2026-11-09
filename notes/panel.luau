@@ -138,6 +138,22 @@ local function openNote(file)
   render()
 end
 
+local function resetEditor()
+  view = "list"
+  current = nil
+  buffer = ""
+  dirty = false
+  pendingDelete = nil
+end
+
+-- Saves pending edits and returns to the note list.
+local function showList()
+  flush()
+  resetEditor()
+  refreshFiles()
+  render()
+end
+
 local function deleteNote(file)
   local ok, err = noctalia.removeFile(notePath(file))
   if not ok then
@@ -148,12 +164,10 @@ local function deleteNote(file)
     savePins()
   end
   if current == file then
-    current = nil
-    buffer = ""
-    dirty = false
-    view = "list"
+    resetEditor()
+  else
+    pendingDelete = nil
   end
-  pendingDelete = nil
   refreshFiles()
   render()
 end
@@ -167,6 +181,55 @@ local function uniqueNoteName()
     counter += 1
   end
   return name
+end
+
+local function findNote(name)
+  for _, file in ipairs(files) do
+    if file == name or displayName(file) == name then
+      return file
+    end
+  end
+  return nil
+end
+
+-- Resolves a `note:<name>` context. A name that matches no file opens an
+-- empty editor under that name instead, the first edit creates the file.
+local function noteFromContext(name)
+  name = noctalia.string.trim(name):gsub("/", "")
+  if name == "" then
+    return nil
+  end
+  return findNote(name) or (hasSuffix(name) and name or name .. suffix)
+end
+
+-- Explicit panel context, e.g. `panel-toggle noctalia/notes:panel scratchpad`.
+local function applyContext(context)
+  local target = noctalia.string.trim(context or "")
+  if target == "home" or target == "list" then
+    showList()
+    return
+  end
+  if target == "scratchpad" then
+    openNote(scratchName())
+    return
+  end
+  local name = target:match("^note:(.+)$")
+  if name ~= nil then
+    local file = noteFromContext(name)
+    if file ~= nil then
+      openNote(file)
+    else
+      render()
+    end
+    return
+  end
+  local file = findNote(target)
+  if file ~= nil then
+    openNote(file)
+    return
+  end
+  -- Unknown context: fall back to the note list
+  showList()
 end
 
 local function deleteControls(file)
@@ -377,7 +440,7 @@ render = function()
   }))
 end
 
-function onOpen(_context)
+function onOpen(context)
   notesDir = dirs.resolveNotesDir()
   cornerRadiusScale = noctalia.getSetting("shell.corner_radius_scale")
   closeButton = noctalia.getSetting("shell.show_close_buttons") ~= false
@@ -389,10 +452,7 @@ function onOpen(_context)
   suffix = "." .. extension
   -- A note left open under a different extension setting no longer matches.
   if current ~= nil and not hasSuffix(current) then
-    current = nil
-    buffer = ""
-    dirty = false
-    view = "list"
+    resetEditor()
   end
   local ok, err = noctalia.mkdirAll(notesDir)
   if not ok then
@@ -402,16 +462,18 @@ function onOpen(_context)
   refreshFiles()
   pendingDelete = nil
   panel.setWantsSecondTicks(true)
+  -- An explicit IPC context wins over the launcher handoff below.
+  if noctalia.string.trim(context or "") ~= "" then
+    noctalia.state.set("open_home", false)
+    noctalia.state.set("open_note", "")
+    applyContext(context)
+    return
+  end
   -- The launcher entry hands over a target through the shared state: either
   -- the note list ("open_home") or a specific note ("open_note").
   if noctalia.state.get("open_home") == true then
     noctalia.state.set("open_home", false)
-    flush()
-    view = "list"
-    current = nil
-    buffer = ""
-    dirty = false
-    render()
+    showList()
     return
   end
   local target = noctalia.state.get("open_note")
@@ -512,13 +574,7 @@ function onEditorDelete()
 end
 
 function onBack()
-  flush()
-  view = "list"
-  current = nil
-  buffer = ""
-  pendingDelete = nil
-  refreshFiles()
-  render()
+  showList()
 end
 
 function onClosePanel()
