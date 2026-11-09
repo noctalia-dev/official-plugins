@@ -1,6 +1,6 @@
 id = "noctalia/wallhaven"
 name = "Wallhaven"
-version = "1.4.0"
+version = "1.4.1"
 plugin_api = 43
 author = "noctalia"
 license = "MIT"
