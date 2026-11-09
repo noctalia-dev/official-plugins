@@ -130,8 +130,8 @@ rev = "48beb7c3ed4e3b0065c57097237f2525bcb89cd8"
 [[plugin]]
 id = "noctalia/wallhaven"
 name = "Wallhaven"
-version = "1.3.2"
-updated_at = 1792983685
+version = "1.4.0"
+updated_at = 1794195623
 added_at = 1782324517
 author = "noctalia"
 license = "MIT"
