@@ -23,11 +23,12 @@ language and the text to translate.
 ```
 
 When the first word is a known language name, alias, or two- to three-letter
-language code, it is used as the target language. Otherwise the plugin uses the
-configured `target_lang`. If the provider rejects that first word as a language,
-the whole query is translated once more against `target_lang`, and the result
-row says which word was treated as text. Press Enter on a translation result to
-copy it to the clipboard.
+language code, it is used as the target language. A code may carry a region or
+script subtag, such as `pt-PT`, `pt-BR`, `es-419` or `zh-Hans`, in any case.
+Otherwise the plugin uses the configured `target_lang`. If the provider rejects
+that first word as a language, the whole query is translated once more against
+`target_lang`, and the result row says which word was treated as text. Press
+Enter on a translation result to copy it to the clipboard.
 
 ## Requirements
 
@@ -41,7 +42,7 @@ automatically select the free endpoint.
 
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
-| `target_lang` | `string` | `en` | Default target language code when the query does not include one. |
+| `target_lang` | `string` | `en` | Default target language code when the query does not include one, e.g. `de` or `pt-PT`. |
 | `provider` | `select` | `google` | The translation service to use (`google` or `deepl`). |
 | `deepl_api_key` | `string` | `""` | Your DeepL API Key (only required if you choose to use DeepL). |
 

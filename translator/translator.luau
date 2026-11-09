@@ -6,8 +6,9 @@
 -- configured default target. Press Enter on a result to copy it to the clipboard.
 -- Translation uses Google Translate's public `translate_a/single` endpoint or DeepL's `v2/translate` endpoint.
 
--- Common language aliases → ISO code. Any other 2–3 letter token is passed
--- through to the provider as-is, so uncommon languages still work.
+-- Common language aliases → ISO code. Any other 2–3 letter token, optionally with a
+-- region or script subtag (pt-PT, es-419, zh-Hans), is passed through as-is, so
+-- uncommon languages and regional variants still work.
 local LANGUAGES = {
   ar = { "arabic", "arabe" },
   bg = { "bulgarian", "bulgare" },
@@ -51,7 +52,32 @@ local LANGUAGES = {
 local cache = {}
 local pending = {}
 
--- Resolve a token to a language code: a known alias, or a bare 2–3 letter code.
+-- Script subtags providers use for language variants; other 4-letter subtags are
+-- too likely to be English words ("de-iced").
+local SCRIPTS = { hans = "Hans", hant = "Hant" }
+
+-- A 2–3 letter code with an optional region (2 letters or 3 digits) or known script
+-- subtag, in canonical case: Google ignores a lowercase region (pt-pt gives pt-BR).
+local function languageCode(token)
+  local lower = token:lower()
+  if lower:match("^%a%a%a?$") then
+    return lower
+  end
+  local primary, sub = lower:match("^(%a%a%a?)%-(%w+)$")
+  if primary == nil then
+    return nil
+  end
+  if sub:match("^%a%a$") then
+    return `{primary}-{sub:upper()}`
+  elseif sub:match("^%d%d%d$") then
+    return `{primary}-{sub}`
+  elseif SCRIPTS[sub] then
+    return `{primary}-{SCRIPTS[sub]}`
+  end
+  return nil
+end
+
+-- Resolve a token to a language code: a known alias, or a language code.
 local function resolveLang(token)
   local lower = token:lower()
   for code, aliases in LANGUAGES do
@@ -59,10 +85,7 @@ local function resolveLang(token)
       return code
     end
   end
-  if lower:match("^%a%a%a?$") then
-    return lower
-  end
-  return nil
+  return languageCode(token)
 end
 
 -- Google returns [[[ "segment", "orig", ... ], ...], ...]; the translation is the
@@ -210,8 +233,9 @@ local function resultRow(entry)
 end
 
 function onQuery(query)
-  local defaultTarget = noctalia.getConfig("target_lang")
-  defaultTarget = if type(defaultTarget) == "string" and defaultTarget ~= "" then defaultTarget:lower() else "en"
+  local configured = noctalia.getConfig("target_lang")
+  configured = if type(configured) == "string" then noctalia.string.trim(configured) else ""
+  local defaultTarget = if configured == "" then "en" else resolveLang(configured) or configured:lower()
 
   local text = noctalia.string.trim(query)
   if text == "" then
