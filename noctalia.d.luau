@@ -1,5 +1,5 @@
 --!strict
--- Type definitions for the Noctalia plugin API (plugin_api 52).
+-- Type definitions for the Noctalia plugin API (plugin_api 53).
 --
 -- luau-lsp *definition file*: it declares the host-injected globals (noctalia.*,
 -- barWidget.*, shortcut.*, launcher.*, desktopWidget.*, panel.*, layer.*, ui.*) so authors
@@ -169,7 +169,7 @@ export type NoctaliaIdle = {
   unwatch: (id: number) -> boolean, -- false for an unknown id
 }
 
--- Night light snapshot from noctalia.nightlight.state() and watch callbacks. API 52.
+-- Night light snapshot from noctalia.nightlight.state() and watch callbacks. API 53.
 export type NightLightState = {
   enabled: boolean, -- enabled setting, including a runtime override
   force: boolean, -- forced night temperature
@@ -182,7 +182,7 @@ export type NightLightState = {
   nightTemperature: number, -- Kelvin
 }
 
--- Night light control. API 52. Actions use the same runtime overrides as the bar
+-- Night light control. API 53. Actions use the same runtime overrides as the bar
 -- widget and the noctalia CLI; they do not write config.toml. watch delivers the
 -- current snapshot immediately and then on every change, including fade ticks.
 -- At most 8 watches per entry; released on reload/stop.
