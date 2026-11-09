@@ -1,6 +1,6 @@
 # Wallhaven
 
-Browse [Wallhaven](https://wallhaven.cc), download a wallpaper into your Noctalia wallpaper directory, and apply it to all monitors.
+Browse [Wallhaven](https://wallhaven.cc), preview a wallpaper at full size, then save it to your Noctalia wallpaper directory and apply it to all monitors.
 
 ## Plugin
 
@@ -18,7 +18,7 @@ Browse [Wallhaven](https://wallhaven.cc), download a wallpaper into your Noctali
    noctalia msg panel-toggle noctalia/wallhaven:browser
    ```
 
-3. Search by tags, adjust category and purity filters, paginate results (or click the page counter, type a page number, and press Enter), then click a wallpaper to download and apply.
+3. Search by tags, adjust category and purity filters, paginate results (or click the page counter, type a page number, and press Enter), then click a wallpaper to preview it. **Apply** saves it and sets it as your wallpaper; **Back** discards it.
 
 ## Settings
 
@@ -27,7 +27,7 @@ Browse [Wallhaven](https://wallhaven.cc), download a wallpaper into your Noctali
 | `api_key` | `string` | *(empty)* | Optional Wallhaven API key for higher rate limits and NSFW access. |
 | `download_dir` | `folder` | *(empty)* | Optional download override; defaults to your configured wallpaper directory. |
 
-Thumbnail previews are cached under `$XDG_STATE_HOME/noctalia/wallhaven/thumbs` (`~/.local/state/noctalia/wallhaven/thumbs` by default).
+Thumbnails are cached under `$XDG_STATE_HOME/noctalia/wallhaven/thumbs` (`~/.local/state/noctalia/wallhaven/thumbs` by default). The full image being previewed is kept there too, until you apply or discard it; one left behind by a crash or reload is removed the next time the panel opens.
 
 ## Notes
 
