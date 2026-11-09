@@ -44,12 +44,13 @@ end
 -- The host mirrors ui.row children under RTL; resolve the shell language the same
 -- way it does and pre-mirror the hole to keep it at the physical position.
 local RTL_LANGS = " ar ckb dv fa he ps sd ug ur yi "
+-- First non-empty source wins, as in the shell: shell.lang, LC_ALL, LC_MESSAGES, LANG.
 local RTL = false
 for _, tag in ipairs({ noctalia.getSetting("shell.lang") or "", noctalia.getenv("LC_ALL") or "",
     noctalia.getenv("LC_MESSAGES") or "", noctalia.getenv("LANG") or "" }) do
-  local sub = tag ~= "" and tag:lower():match("^([^%-%._]+)")
-  if sub and RTL_LANGS:find(" " .. sub .. " ", 1, true) then
-    RTL = true
+  if tag ~= "" then
+    local sub = tag:lower():match("^([^%-%._]+)")
+    RTL = sub ~= nil and RTL_LANGS:find(" " .. sub .. " ", 1, true) ~= nil
     break
   end
 end
