@@ -27,7 +27,7 @@ Browse [Wallhaven](https://wallhaven.cc), preview a wallpaper at full size, then
 | `api_key` | `string` | *(empty)* | Optional Wallhaven API key for higher rate limits and NSFW access. |
 | `download_dir` | `folder` | *(empty)* | Optional download override; defaults to your configured wallpaper directory. |
 
-Thumbnails are cached under `$XDG_STATE_HOME/noctalia/wallhaven/thumbs` (`~/.local/state/noctalia/wallhaven/thumbs` by default). The full image being previewed is kept there too, until you apply or discard it.
+Thumbnails are cached under `$XDG_STATE_HOME/noctalia/wallhaven/thumbs` (`~/.local/state/noctalia/wallhaven/thumbs` by default). The full image being previewed is kept there too, until you apply or discard it; one left behind by a crash or reload is removed the next time the panel opens.
 
 ## Notes
 

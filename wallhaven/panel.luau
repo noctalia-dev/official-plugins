@@ -825,9 +825,27 @@ render = function()
   panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, children))
 end
 
+-- A crash or a reload mid-download can leave a finished <id>-full.<ext> behind; `.part`
+-- files belong to downloads that may still be running, so they are left alone.
+local function sweepPreviewLeftovers()
+  if preview ~= nil then
+    return
+  end
+  local names = noctalia.listDir(CACHE_DIR)
+  if type(names) ~= "table" then
+    return
+  end
+  for _, name in names do
+    if name:match("%-full%.%a+$") then
+      noctalia.removeFile(`{CACHE_DIR}/{name}`)
+    end
+  end
+end
+
 function onOpen(_context)
   closeButton = noctalia.getSetting("shell.show_close_buttons") ~= false
   normalizePurityFilters()
+  sweepPreviewLeftovers()
   fetchWallpapers()
 end
 
