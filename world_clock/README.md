@@ -51,6 +51,19 @@ On first run the list is seeded with:
 
 Zones are stored under the plugin data directory and survive plugin updates.
 
+### Planning a time
+
+The calendar button in the panel header switches to plan mode. A row appears
+with a day stepper and an hour slider (half-hour steps), both in your local
+time, and every zone then shows that moment instead of now. With **Highlight
+working hours** on, rows whose local hour falls between **Working hours
+start** and **Working hours end** (08:00-20:00 by default) are highlighted. The weekday under each time shows which day the planned moment
+falls on in that zone. Scrub until every zone you care about is highlighted and
+you have a meeting time.
+
+Plan mode is not saved: toggling it off, or closing the panel, returns to live
+time.
+
 ### IPC
 
 ```sh
@@ -74,6 +87,9 @@ noctalia msg plugin noctalia/world_clock:service all clear
 | `time_format` | `select` | `system` | Time format in the panel and the bar: the shell setting, 12-hour, or 24-hour. |
 | `text_size` | `select` | `normal` | Text size in the panel: small, normal, or large. |
 | `show_add_zone` | `bool` | `true` | Show the input that adds timezones from the panel. |
+| `highlight_working_hours` | `bool` | `true` | Plan mode: highlight zones where the chosen moment is inside working hours. |
+| `working_hours_start` | `int` | `8` | First hour of working hours. |
+| `working_hours_end` | `int` | `20` | Hour at which working hours end. |
 
 ## Notes
 
