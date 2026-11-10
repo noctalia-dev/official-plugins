@@ -20,8 +20,8 @@
   "scratchpad": "Scratchpad",
   "settings": {
     "extension": {
-      "description": "Extension for note files (without the dot); only files with this extension are listed",
-      "label": "File Extension"
+      "description": "Comma-separated extensions for note files (without the dot, e.g. 'md, txt, org'); only files with these extensions are listed",
+      "label": "File Extensions"
     },
     "glyph": {
       "label": "Bar Glyph"
