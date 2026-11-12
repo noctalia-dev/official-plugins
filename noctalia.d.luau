@@ -1,5 +1,5 @@
 --!strict
--- Type definitions for the Noctalia plugin API (plugin_api 39).
+-- Type definitions for the Noctalia plugin API (plugin_api 53).
 --
 -- luau-lsp *definition file*: it declares the host-injected globals (noctalia.*,
 -- barWidget.*, shortcut.*, launcher.*, desktopWidget.*, panel.*, layer.*, ui.*) so authors
@@ -166,6 +166,33 @@ export type NoctaliaSound = {
 -- ignoreInhibitors is set. At most 8 watches per entry; released on reload/stop.
 export type NoctaliaIdle = {
   watch: (seconds: number, callback: (idle: boolean) -> (), options: { ignoreInhibitors: boolean? }?) -> number,
+  unwatch: (id: number) -> boolean, -- false for an unknown id
+}
+
+-- Night light snapshot from noctalia.nightlight.state() and watch callbacks. API 53.
+export type NightLightState = {
+  enabled: boolean, -- enabled setting, including a runtime override
+  force: boolean, -- forced night temperature
+  active: boolean, -- currently tinting the screen
+  transitioning: boolean, -- scheduled day/night fade in progress
+  phase: ("day" | "night"),
+  currentTemperature: number, -- Kelvin, -1 when no gamma is applied
+  targetTemperature: number, -- Kelvin, -1 when the schedule is unavailable
+  dayTemperature: number, -- Kelvin
+  nightTemperature: number, -- Kelvin
+}
+
+-- Night light control. API 53. Actions use the same runtime overrides as the bar
+-- widget and the noctalia CLI; they do not write config.toml. watch delivers the
+-- current snapshot immediately and then on every change, including fade ticks.
+-- At most 8 watches per entry; released on reload/stop.
+export type NoctaliaNightLight = {
+  state: () -> NightLightState,
+  setEnabled: (enabled: boolean) -> (),
+  toggle: () -> (),
+  setForce: (force: boolean) -> (),
+  toggleForce: () -> (),
+  watch: (callback: (state: NightLightState) -> ()) -> number,
   unwatch: (id: number) -> boolean, -- false for an unknown id
 }
 
@@ -369,6 +396,7 @@ export type Noctalia = {
   state: NoctaliaState,
   sound: NoctaliaSound,
   idle: NoctaliaIdle,
+  nightlight: NoctaliaNightLight,
   layer: NoctaliaLayer,
   umbriel: NoctaliaUmbriel,
   osd: NoctaliaOsd,
