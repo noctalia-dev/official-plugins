@@ -211,7 +211,8 @@ end
 -- Resolves a `note:<name>` context. A name that matches no file opens an
 -- empty editor under that name instead, the first edit creates the file.
 local function noteFromContext(name)
-  name = noctalia.string.trim(name):gsub("/", "")
+  -- Leading dots would create a hidden file that the note list never shows.
+  name = noctalia.string.trim(name):gsub("/", ""):gsub("^%.+", "")
   if name == "" then
     return nil
   end
