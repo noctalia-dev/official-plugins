@@ -1,9 +1,10 @@
 --!nonstrict
 -- Markdown notes in a full-height side panel.
 --
--- Notes are plain .md files in the configured notes directory. The panel shows
--- a note list and a multiline editor with idle autosave (flushes after a short
--- pause in typing, on navigation, and on panel close).
+-- Notes are plain text files (.md by default) in the configured notes
+-- directory. The panel shows a note list and a multiline editor with idle
+-- autosave (flushes after a short pause in typing, on navigation, and on panel
+-- close).
 
 local AUTOSAVE_IDLE_TICKS = 2 -- 1s panel ticks with no edits before a flush
 local SCRATCHPAD_BASE = "scratchpad"
@@ -11,7 +12,7 @@ local SCRATCHPAD_BASE = "scratchpad"
 local dirs = require("./dirs.luau")
 
 local notesDir = ""
-local suffixes = { ".md", ".markdown", ".txt", ".org", ".todo" } -- "." .. configured extensions, resolved in onOpen
+local suffixes = { ".md" } -- "." .. each configured extension, resolved in onOpen
 local defaultSuffix = ".md"
 local files = {}
 local view = "list" -- "list" | "editor"
