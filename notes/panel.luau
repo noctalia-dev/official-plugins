@@ -1,9 +1,10 @@
 --!nonstrict
 -- Markdown notes in a full-height side panel.
 --
--- Notes are plain .md files in the configured notes directory. The panel shows
--- a note list and a multiline editor with idle autosave (flushes after a short
--- pause in typing, on navigation, and on panel close).
+-- Notes are plain text files (.md by default) in the configured notes
+-- directory. The panel shows a note list and a multiline editor with idle
+-- autosave (flushes after a short pause in typing, on navigation, and on panel
+-- close).
 
 local AUTOSAVE_IDLE_TICKS = 2 -- 1s panel ticks with no edits before a flush
 local SCRATCHPAD_BASE = "scratchpad"
@@ -11,7 +12,8 @@ local SCRATCHPAD_BASE = "scratchpad"
 local dirs = require("./dirs.luau")
 
 local notesDir = ""
-local suffix = ".md" -- "." .. the configured extension, resolved in onOpen
+local suffixes = { ".md" } -- "." .. each configured extension, resolved in onOpen
+local defaultSuffix = ".md"
 local files = {}
 local view = "list" -- "list" | "editor"
 local current = nil -- filename ("foo.md") while the editor is open
@@ -33,12 +35,23 @@ local function tr(key)
   return noctalia.tr(key)
 end
 
+-- The configured suffix `file` ends with, or nil when it matches none.
+local function matchSuffix(file)
+  for _, s in ipairs(suffixes) do
+    if #file > #s and file:sub(-#s) == s then
+      return s
+    end
+  end
+  return nil
+end
+
 local function displayName(file)
-  return file:sub(1, #file - #suffix)
+  local s = matchSuffix(file)
+  return s ~= nil and file:sub(1, #file - #s) or file
 end
 
 local function hasSuffix(name)
-  return #name > #suffix and name:sub(-#suffix) == suffix
+  return matchSuffix(name) ~= nil
 end
 
 local function notePath(file)
@@ -46,7 +59,7 @@ local function notePath(file)
 end
 
 local function scratchName()
-  return SCRATCHPAD_BASE .. suffix
+  return SCRATCHPAD_BASE .. defaultSuffix
 end
 
 -- Pins live in a hidden sidecar inside the notes directory so they sync and
@@ -160,10 +173,10 @@ end
 
 local function uniqueNoteName()
   local base = noctalia.formatTime("%Y-%m-%d %H.%M.%S")
-  local name = base .. suffix
+  local name = base .. defaultSuffix
   local counter = 2
   while noctalia.fileExists(notePath(name)) do
-    name = base .. " (" .. counter .. ")" .. suffix
+    name = base .. " (" .. counter .. ")" .. defaultSuffix
     counter += 1
   end
   return name
@@ -381,12 +394,19 @@ function onOpen(_context)
   notesDir = dirs.resolveNotesDir()
   cornerRadiusScale = noctalia.getSetting("shell.corner_radius_scale")
   closeButton = noctalia.getSetting("shell.show_close_buttons") ~= false
-  local extension = noctalia.string.trim(noctalia.getConfig("extension")):gsub("^%.", "")
-  if extension == "" then
-    noctalia.notifyError(tr("title"), tr("bad_extension"))
-    extension = "md"
+  local rawExt = noctalia.string.trim(noctalia.getConfig("extension"))
+  suffixes = {}
+  for ext in rawExt:gmatch("[^,%s]+") do
+    local clean = ext:gsub("^%.", "")
+    if clean ~= "" then
+      table.insert(suffixes, "." .. clean)
+    end
   end
-  suffix = "." .. extension
+  if #suffixes == 0 then
+    noctalia.notifyError(tr("title"), tr("bad_extension"))
+    suffixes = { ".md" }
+  end
+  defaultSuffix = suffixes[1]
   -- A note left open under a different extension setting no longer matches.
   if current ~= nil and not hasSuffix(current) then
     current = nil
@@ -483,7 +503,7 @@ function onRename(value)
     render()
     return
   end
-  local target = name .. suffix
+  local target = name .. (matchSuffix(current) or defaultSuffix)
   if noctalia.fileExists(notePath(target)) then
     noctalia.notifyError(tr("title"), tr("rename_exists"))
     render()
