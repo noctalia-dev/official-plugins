@@ -212,7 +212,7 @@ local function noteFromContext(name)
   if name == "" then
     return nil
   end
-  return findNote(name) or (hasSuffix(name) and name or name .. suffix)
+  return findNote(name) or (hasSuffix(name) and name or name .. defaultSuffix)
 end
 
 -- Explicit panel context, e.g. `panel-toggle noctalia/notes:panel scratchpad`.
