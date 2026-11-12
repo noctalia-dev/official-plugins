@@ -1,7 +1,6 @@
 {
   "error": {
-    "stream_closed": "Umbriel connection closed; retrying.",
-    "stream_failed": "Could not start the Umbriel event stream; retrying."
+    "stream_closed": "Umbriel connection closed; retrying."
   },
   "layout": {
     "dwindle": "Dwindle",
@@ -27,12 +26,12 @@
     "no_window": "No focused window.",
     "no_workspace": "No focused workspace.",
     "no_workspaces": "No workspaces reported.",
+    "not_running": "Umbriel is not running.",
     "pin": "Toggle pinned",
     "row_tooltip": "Click to switch, right-click for move actions",
     "settings": "Plugin settings",
     "switch": "Switch to this workspace",
     "target": "Focused workspace",
-    "unavailable": "Umbriel is not running, or the umbriel command is not on PATH.",
     "width": "Width",
     "width_tooltip": "Set width to {percent}%",
     "window_section": "Focused window",

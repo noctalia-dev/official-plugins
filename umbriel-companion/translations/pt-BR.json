@@ -1,7 +1,4 @@
 {
-  "error": {
-    "stream_failed": "Não foi possível iniciar `umbriel subscribe workspaces`"
-  },
   "layout": {
     "dwindle": "Dwindle",
     "master": "Master",
@@ -29,7 +26,6 @@
     "settings": "Configurações do Plugin",
     "switch": "Mudar para este espaço de trabalho",
     "target": "Espaço de trabalho em foco",
-    "unavailable": "O Umbriel não está em execução, ou o comando umbriel não está no PATH.",
     "width": "Largura",
     "width_tooltip": "Definir largura para {percent}%",
     "window_section": "Janela em foco",

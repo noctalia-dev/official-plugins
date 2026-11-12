@@ -204,6 +204,23 @@ export type NoctaliaUmbriel = {
   action: (request: { action: string, [string]: any }, callback: ((ok: boolean, err: string?) -> ())?) -> boolean,
 }
 
+-- Session compositor. API 54. name() is the detected compositor: "umbriel", "niri",
+-- "hyprland", "sway", "mango", "dwl", "labwc", "kde", or "unknown".
+-- subscribe opens a connection of its own to the compositor's event stream and calls
+-- callback(event, data) for every message, untouched: Umbriel {"event","data"} lines
+-- (options.events required, e.g. { "workspaces", "windows" }), niri single-key
+-- {Name: payload} objects, Hyprland `name>>data` lines (data as a string). Returns nil
+-- on other compositors. ("error", message) when Umbriel rejects the request;
+-- ("reset", nil) when the connection drops or the entry falls behind (full event queue:
+-- the shell drops the connection and resubscribes), before the compositor's fresh
+-- snapshot follows (Hyprland sends none; re-query it). Discard all state on "reset".
+-- At most 4 subscriptions per entry; released on reload/stop.
+export type NoctaliaCompositor = {
+  name: () -> string,
+  subscribe: (options: { events: { string }? }?, callback: (event: string, data: any) -> ()) -> number?,
+  unsubscribe: (id: number) -> boolean, -- false for an unknown id
+}
+
 export type LayerAnchor = "top" | "bottom" | "left" | "right"
 
 -- Runtime properties for noctalia.layer.configure; same value sets as the [[layer]]
@@ -399,6 +416,7 @@ export type Noctalia = {
   nightlight: NoctaliaNightLight,
   layer: NoctaliaLayer,
   umbriel: NoctaliaUmbriel,
+  compositor: NoctaliaCompositor,
   osd: NoctaliaOsd,
   json: NoctaliaJson,
   string: NoctaliaString,

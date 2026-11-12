@@ -57,7 +57,7 @@ local function updateTooltip(focused, explainEmpty, showSubmap)
   end
 
   if focused == nil then
-    -- A visible widget with no data has a reason: the stream failed to start, or
+    -- A visible widget with no data has a reason: the stream is disconnected, or
     -- the compositor answered and nothing is focused yet. Say which on hover
     -- instead of leaving a mute glyph.
     if explainEmpty then

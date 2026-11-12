@@ -1,7 +1,4 @@
 {
-  "error": {
-    "stream_failed": "无法启动 `umbriel subscribe workspaces`。"
-  },
   "layout": {
     "dwindle": "Dwindle",
     "master": "Master",
@@ -29,7 +26,6 @@
     "settings": "插件设置",
     "switch": "切换到此工作区",
     "target": "焦点工作区",
-    "unavailable": "Umbriel 未运行，或 umbriel 命令不在 PATH 中。",
     "width": "宽度",
     "width_tooltip": "设置宽度为 {percent}%",
     "window_section": "焦点窗口",
