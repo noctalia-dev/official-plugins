@@ -58,7 +58,7 @@ noctalia msg panel-close                         # close the open panel
 | --- | --- |
 | `scratchpad` | Opens the scratchpad note. |
 | `home` / `list` | Shows the note list. |
-| `note:<name>` | Opens the note called `<name>` (with or without the file extension), an unknown name starts an empty note that is created on the first edit. |
+| `note:<name>` | Opens the note called `<name>` (with or without the file extension). An unknown name starts an empty note that is created on the first edit, using the first configured extension. |
 | `<name>` | Opens the note called `<name>`, or shows the list when no note matches. |
 
 ```sh
