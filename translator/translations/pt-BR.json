@@ -1,5 +1,17 @@
 {
   "settings": {
+    "deepl_api_key": {
+      "description": "Requerido somente se o DeepL for selecionado acima",
+      "label": "Chave de API de DeepL "
+    },
+    "provider": {
+      "description": "Selecione o serviço de tradução para usar para obter os resultados",
+      "label": "Provedor de Serviço de Tradução",
+      "options": {
+        "deepl": "DeepL",
+        "google": "Google Traduções"
+      }
+    },
     "target_lang": {
       "description": "Código de idioma usado quando nenhum idioma é especificado (ex.: en, fr, es)",
       "label": "Idioma de Destino Padrão"

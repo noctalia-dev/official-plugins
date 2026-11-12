@@ -48,7 +48,7 @@
       "label": "Ausgabeverzeichnis"
     },
     "filename_pattern": {
-      "description": "Datumsformatmuster ohne Erweiterung; %s für Unix-Zeitstempel verwenden",
+      "description": "Datumsformatmuster ohne Dateiendung; %s für Unix-Zeitstempel verwenden",
       "label": "Dateinamenmuster"
     },
     "frame_rate": {
@@ -73,7 +73,7 @@
       "label": "Replay-Puffer aktivieren"
     },
     "replay_filename_pattern": {
-      "description": "Datumsformatmuster für gespeicherte Replays ohne Erweiterung; %s für Unix-Zeitstempel verwenden",
+      "description": "Datumsformatmuster für gespeicherte Replays ohne Dateiendung; %s für Unix-Zeitstempel verwenden",
       "label": "Replay-Dateinamenmuster"
     },
     "replay_storage": {

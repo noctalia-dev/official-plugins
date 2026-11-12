@@ -5,10 +5,39 @@
     "invalid_zone": "未知时区：{zone}",
     "missing_zone": "列表中没有此时区：{zone}"
   },
+  "settings": {
+    "show_add_zone": {
+      "description": "显示可在面板中添加时区的输入框",
+      "label": "显示添加时区输入框"
+    },
+    "show_clocks": {
+      "description": "在状态栏显示已配置的时钟，而不是仅显示图标",
+      "label": "在状态栏显示时钟"
+    },
+    "text_size": {
+      "description": "面板中的字体大小",
+      "label": "文字大小",
+      "options": {
+        "large": "大",
+        "normal": "正常",
+        "small": "小"
+      }
+    },
+    "time_format": {
+      "description": "面板和状态栏使用的时间格式；“系统”选项遵循 Shell 设置",
+      "label": "时间格式",
+      "options": {
+        "12h": "12 小时制",
+        "24h": "24 小时制",
+        "system": "系统"
+      }
+    }
+  },
   "title": "世界时钟",
   "ui": {
     "add_placeholder": "Europe/Berlin",
     "drag_tooltip": "拖动排序",
-    "empty": "暂无时区。请添加一个 IANA 时区。"
+    "empty": "暂无时区。请添加一个 IANA 时区。",
+    "label_placeholder": "标签（可选）"
   }
 }

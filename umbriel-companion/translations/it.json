@@ -1,8 +1,12 @@
 {
+  "error": {
+    "stream_closed": "Connessione a Umbriel chiusa; riprovando."
+  },
   "layout": {
     "dwindle": "Dwindle",
     "master": "Master",
     "scrolling": "Scrolling",
+    "stacking": "Stacking",
     "unknown": "Sconosciuto"
   },
   "notify": {

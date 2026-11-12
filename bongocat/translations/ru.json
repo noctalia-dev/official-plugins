@@ -1,0 +1,23 @@
+{
+  "settings": {
+    "audio_spectrum": {
+      "label": "Реагировать на звук"
+    },
+    "executable_path": {
+      "label": "Альтернативный бинарник evtest"
+    },
+    "input_devices": {
+      "description": "Предпочитайте /dev/input/by-id/*-event-* или /dev/input/by-path/*-event-*; /dev/input/eventN может измениться после обновления ядра или устройства",
+      "label": "Устройства ввода"
+    },
+    "rave_mode": {
+      "label": "Цвета рейва в такт"
+    },
+    "tappy_mode": {
+      "label": "Тапать в такт"
+    },
+    "use_mpris_filter": {
+      "label": "Реагировать только во время воспроизведения медиа"
+    }
+  }
+}

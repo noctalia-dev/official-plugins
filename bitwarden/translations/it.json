@@ -1,7 +1,10 @@
 {
+  "autotyping": "Autodigitando credenziali...",
   "copied": "Copiato negli appunti",
   "errors": {
     "api-key-required": "Inserisci sia client id che il client secret",
+    "autotype-failed": "wtype non è stato in grado di digitare le credenziali",
+    "autotype-unavailable": "L'autodigitazione richiede sia un username che una password in questa voce",
     "encode-failed": "Impossibile codificare la richiesta di sblocco",
     "field-empty": "Il campo è vuoto per questo oggetto",
     "generate-failed": "Impossibile generare una password",
@@ -12,11 +15,17 @@
     "password-required": "Inserisci la tua master password",
     "request-failed": "Richiesta fallita",
     "sync-failed": "Impossibile sincronizzare il vault",
-    "vault-locked": "Il vault è bloccato"
+    "vault-locked": "Il vault è bloccato",
+    "wtype-missing": "wtype non è installato (richiesto per l'autodigitazione)"
   },
   "generated": "Password generata copiata",
   "generated-passphrase": "Passphrase generata copiata",
   "launcher": {
+    "field-notes": "Note",
+    "field-password": "Password",
+    "field-totp": "TOTP",
+    "field-uri": "URI",
+    "field-username": "Username",
     "generate": "Genera password",
     "generate-hint": "Copia una nuova password (nei settings si impostano lunghezza/set di caratteri)",
     "generate-passphrase": "Genera passphrase",
@@ -44,11 +53,14 @@
   "logged-in": "Loggato, sblocca con la tua password principale",
   "logged-out": "Disconnesso dalla CLI di Bitwarden",
   "panel": {
+    "autotype": "Autodigita",
     "client-id-label": "Client ID",
     "client-id-placeholder": "user...",
     "client-secret-label": "Client Secret",
     "client-secret-placeholder": "Client Secret",
     "close": "Cancella",
+    "fields-title": "Copia un campo",
+    "fields-unavailable": "Nessun campo disponibile per quest'oggetto",
     "login": "Login",
     "login-blurb": "Dal vault web: Impostazioni → Sicurezza → Chiavi → Visualizza chiave API. Puoi anche eseguire bw login una volta in un terminale.",
     "password-label": "Master password",

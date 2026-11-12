@@ -1,0 +1,20 @@
+{
+  "settings": {
+    "deepl_api_key": {
+      "description": "Требуется, только если выше выбран DeepL",
+      "label": "Ключ API DeepL"
+    },
+    "provider": {
+      "description": "Выберите сервис перевода для получения результатов",
+      "label": "Поставщик услуг перевода",
+      "options": {
+        "deepl": "DeepL",
+        "google": "Google Переводчик"
+      }
+    },
+    "target_lang": {
+      "description": "Код языка, используемый, когда язык не указан (например, en, fr, es)",
+      "label": "Язык перевода по умолчанию"
+    }
+  }
+}

@@ -19,6 +19,7 @@
     "maximize": "切换最大化",
     "move_column": "将列移动到此处",
     "move_window": "将窗口移动到此处",
+    "no_window": "无焦点窗口。",
     "no_workspace": "没有焦点工作区。",
     "no_workspaces": "未报告工作区。",
     "pin": "切换固定",
@@ -41,7 +42,7 @@
       }
     },
     "scroll_cycles_layout": {
-      "description": "滚动小组件循环切换焦点工作区的 Scrolling、Dwindle 和 Master 布局。",
+      "description": "滚动小组件循环切换焦点工作区的 Scrolling、Dwindle、Master 和 Floating 布局。",
       "label": "滚动切换布局"
     },
     "show_layout_name": {

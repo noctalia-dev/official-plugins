@@ -5,39 +5,55 @@
   "category_anime": "Аниме",
   "category_general": "Общее",
   "category_people": "Люди",
+  "clear_resolution": "Очистить",
   "download_failed": "Не удалось загрузить",
   "empty": "Обои не найдены.",
   "error": "Запрос не выполнен",
+  "filter_aspect_ratio": "Соотношение сторон",
   "filter_categories": "Категории",
   "filter_purity": "Контент",
+  "filter_resolution": "Разрешение",
   "filter_sort": "Сортировка",
   "loading": "Загрузка обоев…",
+  "page_jump_tooltip": "Перейти к странице",
   "purity_nsfw": "NSFW",
   "purity_sfw": "SFW",
   "purity_sketchy": "Сомнительно",
+  "ratio_any": "Любоe",
+  "ratio_portrait": "Все портретные",
+  "ratio_wide": "Все широкие",
+  "resolution_height_placeholder": "Высота",
+  "resolution_mode_atleast": "Не менее",
+  "resolution_mode_exact": "Точно",
+  "resolution_mode_label": "Режим",
+  "resolution_width_placeholder": "Ширина",
   "search": "Поиск",
   "search_placeholder": "Поиск тегов (напр. природа, ночной город)",
   "settings": {
     "api_key": {
-      "description": "Необязательный ключ API Wallhaven для повышенных лимитов и доступа к NSFW.",
+      "description": "Необязательный API-ключ Wallhaven для увеличения лимита запросов и доступа к материалам для взрослых",
       "label": "Ключ API"
     },
     "download_dir": {
-      "description": "Необязательная замена для загрузки в полном разрешении. Пустое значение использует папку обоев Noctalia.",
-      "label": "Папка загрузки"
+      "description": "Необязательный путь для загрузки изображений в полном разрешении. Если оставить поле пустым, будет использоваться папка обоев Noctalia",
+      "label": "Каталог загрузок"
     },
     "glyph": {
-      "label": "Глиф панели"
+      "label": "Символ панели"
     }
   },
   "sort": {
     "options": {
       "date_added": "Дата добавления",
       "favorites": "Избранное",
+      "hot": "Популярное",
       "random": "Случайно",
       "relevance": "Релевантность",
+      "toplist": "Топ-лист",
       "views": "Просмотры"
     }
   },
+  "sort_asc": "По возрастанию",
+  "sort_desc": "По убыванию",
   "title": "Wallhaven"
 }

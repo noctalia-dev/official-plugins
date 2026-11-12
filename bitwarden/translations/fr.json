@@ -15,6 +15,9 @@
   "generated": "Mot de passe généré copié",
   "generated-passphrase": "Phrase de passe générée copiée",
   "launcher": {
+    "field-notes": "Notes",
+    "field-password": "Mot de passe",
+    "field-username": "Nom d'utilisateur",
     "generate": "Générer un mot de passe",
     "generate-passphrase": "Générer une phrase de passe",
     "generate-passphrase-hint": "Copie une nouvelle phrase de passe",

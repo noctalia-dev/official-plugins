@@ -7,8 +7,8 @@
   },
   "settings": {
     "highlight_working_hours": {
-      "label": "Highlight working hours",
-      "description": "In plan mode, highlight zones where the chosen moment falls inside working hours"
+      "description": "In plan mode, highlight zones where the chosen moment falls inside working hours",
+      "label": "Highlight working hours"
     },
     "show_add_zone": {
       "description": "Show the input that adds timezones from the panel",
@@ -37,12 +37,12 @@
       }
     },
     "working_hours_end": {
-      "label": "Working hours end",
-      "description": "Hour at which working hours end (1-24)"
+      "description": "Hour at which working hours end (1-24)",
+      "label": "Working hours end"
     },
     "working_hours_start": {
-      "label": "Working hours start",
-      "description": "First hour counted as working hours (0-23)"
+      "description": "First hour counted as working hours (0-23)",
+      "label": "Working hours start"
     }
   },
   "title": "World Clock",

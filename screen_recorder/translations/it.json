@@ -6,6 +6,7 @@
     "recording-failed": "Registrazione fallita",
     "recording-saved": "Registrazione salvata",
     "recording-stopped-early": "gpu-screen-recorder è terminato senza salvare. Controlla i log Noctalia per dettagli.",
+    "region-picker-missing": "Installa slurp per catturare una regione",
     "replay-active": "Replay buffer attivo",
     "replay-failed": "Replay fallito",
     "replay-saved": "Replay salvato",
@@ -174,7 +175,8 @@
       "label": "Sorgente Video",
       "options": {
         "focused": "Attivo",
-        "portal": "Portale"
+        "portal": "Portale",
+        "region": "Regione"
       }
     }
   },
