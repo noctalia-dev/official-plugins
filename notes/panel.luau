@@ -168,9 +168,12 @@ local function showList()
 end
 
 local function deleteNote(file)
-  local ok, err = noctalia.removeFile(notePath(file))
-  if not ok then
-    noctalia.notifyError(tr("title"), err or "")
+  -- A draft opened via `note:<name>` has no file until its first save.
+  if noctalia.fileExists(notePath(file)) then
+    local ok, err = noctalia.removeFile(notePath(file))
+    if not ok then
+      noctalia.notifyError(tr("title"), err or "")
+    end
   end
   if pins[file] ~= nil then
     pins[file] = nil
@@ -572,11 +575,14 @@ function onRename(value)
     return
   end
   flush()
-  local ok, err = noctalia.renameFile(notePath(current), notePath(target))
-  if not ok then
-    noctalia.notifyError(tr("title"), err or "")
-    render()
-    return
+  -- An unsaved draft (no file yet) is renamed in place; the first save creates it.
+  if noctalia.fileExists(notePath(current)) then
+    local ok, err = noctalia.renameFile(notePath(current), notePath(target))
+    if not ok then
+      noctalia.notifyError(tr("title"), err or "")
+      render()
+      return
+    end
   end
   if pins[current] ~= nil then
     pins[current] = nil
