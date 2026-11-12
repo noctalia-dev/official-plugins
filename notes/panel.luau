@@ -34,22 +34,23 @@ local function tr(key)
   return noctalia.tr(key)
 end
 
-local function displayName(file)
+-- The configured suffix `file` ends with, or nil when it matches none.
+local function matchSuffix(file)
   for _, s in ipairs(suffixes) do
     if #file > #s and file:sub(-#s) == s then
-      return file:sub(1, #file - #s)
+      return s
     end
   end
-  return file
+  return nil
+end
+
+local function displayName(file)
+  local s = matchSuffix(file)
+  return s ~= nil and file:sub(1, #file - #s) or file
 end
 
 local function hasSuffix(name)
-  for _, s in ipairs(suffixes) do
-    if #name > #s and name:sub(-#s) == s then
-      return true
-    end
-  end
-  return false
+  return matchSuffix(name) ~= nil
 end
 
 local function notePath(file)
@@ -501,14 +502,7 @@ function onRename(value)
     render()
     return
   end
-  local ext = defaultSuffix
-  for _, s in ipairs(suffixes) do
-    if #current > #s and current:sub(-#s) == s then
-      ext = s
-      break
-    end
-  end
-  local target = name .. ext
+  local target = name .. (matchSuffix(current) or defaultSuffix)
   if noctalia.fileExists(notePath(target)) then
     noctalia.notifyError(tr("title"), tr("rename_exists"))
     render()

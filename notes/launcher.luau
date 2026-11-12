@@ -33,22 +33,19 @@ local function settings()
   return dir, suffixes, suffixes[1]
 end
 
-local function hasSuffix(name, suffixes)
+-- The configured suffix `file` ends with, or nil when it matches none.
+local function matchSuffix(file, suffixes)
   for _, s in ipairs(suffixes) do
-    if #name > #s and name:sub(-#s) == s then
-      return true
+    if #file > #s and file:sub(-#s) == s then
+      return s
     end
   end
-  return false
+  return nil
 end
 
 local function displayName(file, suffixes)
-  for _, s in ipairs(suffixes) do
-    if #file > #s and file:sub(-#s) == s then
-      return file:sub(1, #file - #s)
-    end
-  end
-  return file
+  local s = matchSuffix(file, suffixes)
+  return s ~= nil and file:sub(1, #file - #s) or file
 end
 
 local function noteFiles(dir, suffixes)
@@ -56,7 +53,7 @@ local function noteFiles(dir, suffixes)
   local list = noctalia.listDir(dir)
   if list ~= nil then
     for _, name in ipairs(list) do
-      if hasSuffix(name, suffixes) and name:sub(1, 1) ~= "." then
+      if matchSuffix(name, suffixes) ~= nil and name:sub(1, 1) ~= "." then
         table.insert(out, name)
       end
     end
