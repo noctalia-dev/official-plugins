@@ -4,7 +4,6 @@
     "settings": "플러그인 설정",
     "switch": "이 작업 공간으로 전환",
     "target": "포커스된 작업 공간",
-    "unavailable": "Umbriel이 실행 중이지 않거나 umbriel 명령어가 PATH에 등록되어 있지 않습니다.",
     "width": "너비",
     "width_tooltip": "너비가 {percent}%로 설정됨",
     "workspaces": "작업 공간"

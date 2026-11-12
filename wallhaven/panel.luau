@@ -57,6 +57,7 @@ local thumbPaths = {} -- id -> cache file path
 local thumbPending = {} -- id -> true while downloading
 local thumbQueue = {} -- wallpapers waiting for a download slot
 local thumbActive = 0
+local needsInitialFetch = false
 
 local render
 local fetchWallpapers
@@ -826,27 +827,24 @@ render = function()
 end
 
 -- A crash or a reload mid-download can leave a finished <id>-full.<ext> behind; `.part`
--- files belong to downloads that may still be running, so they are left alone.
+-- files belong to downloads that may still be running, so they are left alone. The sweep
+-- runs detached: listing thousands of cached thumbs can blow the callback CPU budget.
+-- Plain globs only — runAsync's quoting strips backslashes, so escapes like `\( \)` break.
 local function sweepPreviewLeftovers()
   if preview ~= nil then
     return
   end
-  local names = noctalia.listDir(CACHE_DIR)
-  if type(names) ~= "table" then
-    return
-  end
-  for _, name in names do
-    if name:match("%-full%.%a+$") then
-      noctalia.removeFile(`{CACHE_DIR}/{name}`)
-    end
-  end
+  noctalia.runAsync(`rm -f {shellQuote(CACHE_DIR)}/*-full.jpg {shellQuote(CACHE_DIR)}/*-full.png`)
 end
 
 function onOpen(_context)
   closeButton = noctalia.getSetting("shell.show_close_buttons") ~= false
   normalizePurityFilters()
   sweepPreviewLeftovers()
-  fetchWallpapers()
+  -- A freshly loaded script has little CPU budget left; fetch on the next frame, whose
+  -- callback gets a full budget.
+  needsInitialFetch = true
+  panel.setNeedsFrameTick(true)
 end
 
 function onClose()
@@ -859,6 +857,10 @@ function onExit()
 end
 
 function onFrameTick(deltaMs)
+  if needsInitialFetch then
+    needsInitialFetch = false
+    fetchWallpapers()
+  end
   if preview == nil or previewPath ~= nil then
     panel.setNeedsFrameTick(false)
     return

@@ -75,7 +75,7 @@ context switches the open panel in place.
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `notes_dir` | `folder` | `$XDG_DOCUMENTS_DIR/Notes` | Where the note files live. `$XDG_DOCUMENTS_DIR` expands to your localized Documents folder, or `~/Documents` if none is set. If that folder has no `Notes` yet but `~/Documents/Notes` (the pre-1.1.0 default) exists, the old folder keeps being used. Created on first open if missing. |
-| `extension` | `string` | `md` | Extension for note files (without the dot). Only files with this extension are listed. |
+| `extension` | `string` | `md` | Comma-separated extensions for note files, without the dot (e.g. `md, txt, org`). Only files with these extensions are listed. New notes and the scratchpad use the first one; renaming a note keeps its extension. |
 | `glyph` | `glyph` | `notes` | Bar widget icon. |
 
 ## Notes

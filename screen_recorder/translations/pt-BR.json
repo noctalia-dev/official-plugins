@@ -1,6 +1,6 @@
 {
   "notify": {
-    "launch-failed": "Não foi possível iniciar o gpu-screen-recorder",
+    "launch-failed": "Não foi possível executar o gpu-screen-recorder",
     "no-monitor": "Não foi possível detectar o monitor em foco",
     "portal-not-running": "O xdg-desktop-portal não está em execução",
     "recording-failed": "Falha na gravação",
@@ -28,6 +28,7 @@
       "label": "Fonte de Áudio",
       "options": {
         "both": "Saída + Microfone",
+        "custom": "Personalizado",
         "default_input": "Microfone",
         "default_output": "Saída do Sistema",
         "none": "Sem Áudio"
@@ -43,6 +44,10 @@
     "copy_to_clipboard": {
       "label": "Copiar Caminho para a Área de Transferência"
     },
+    "custom_audio_sources": {
+      "description": "Fontes de áudio do gpu-screen-recorder separadas por vírgula.",
+      "label": "Fontes Personalizadas de Áudio"
+    },
     "directory": {
       "description": "Usa ~/Videos/Recordings como padrão quando vazio",
       "label": "Diretório de Saída"
@@ -53,6 +58,13 @@
     },
     "frame_rate": {
       "label": "Taxa de Quadros"
+    },
+    "frame_rate_mode": {
+      "label": "Modo de Taxa de Quadros",
+      "options": {
+        "cfr": "Constante (CFR)",
+        "vfr": "Variable (VFR)"
+      }
     },
     "glyph_idle": {
       "label": "Símbolo: Inativo"
@@ -73,6 +85,10 @@
     },
     "hide_inactive": {
       "label": "Ocultar Widget Quando Inativo"
+    },
+    "post_save_script": {
+      "description": "Script para rodar depois que uma gravação ou replay for salva(o).",
+      "label": "Script Pós-salvamento"
     },
     "quality": {
       "label": "Qualidade",
@@ -110,6 +126,18 @@
     "show_cursor": {
       "label": "Mostrar Cursor"
     },
+    "video_bitrate": {
+      "description": "Número inteiro positivo para bitrate in kbps usado pelo modo CBR",
+      "label": "Taxa de Bits do Vídeo (kbps)"
+    },
+    "video_bitrate_mode": {
+      "label": "Modo de Taxa de Bits",
+      "options": {
+        "cbr": "Taxa de Bits Constante (CBR)",
+        "qp": "Qualidade Constante (QP)",
+        "vbr": "Taxa de Bits Variada (VBR)"
+      }
+    },
     "video_codec": {
       "label": "Codec de Vídeo",
       "options": {
@@ -120,9 +148,26 @@
         "vp9": "VP9"
       }
     },
+    "video_encoder": {
+      "description": "Codificação de CPU somente suporta H264, GPU é acelerada por hardware",
+      "label": "Codificador de Vídeo",
+      "options": {
+        "cpu": "CPU",
+        "gpu": "GPU"
+      }
+    },
     "video_qp": {
       "description": "Valores mais baixos produzem maior qualidade e arquivos maiores.",
       "label": "Qualidade do Vídeo (QP)"
+    },
+    "video_quality": {
+      "label": "Qualidade de Vídeo",
+      "options": {
+        "high": "Alta",
+        "medium": "Média",
+        "ultra": "Ultra",
+        "very_high": "Muito Alta"
+      }
     },
     "video_source": {
       "description": "Modo de captura do GPU Screen Recorder; \"Focado\" grava o monitor em foco do Noctalia",

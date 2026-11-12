@@ -2,44 +2,22 @@
 -- Umbriel Companion service - the only entry that talks to the compositor.
 --
 -- Umbriel pushes its workspace list, window list, and active submap over the IPC
--- event stream. `umbriel subscribe workspaces,windows,submap` is that stream on
--- stdout, one JSON object per line, so the service holds it open and republishes
--- each line as a snapshot the UI entries read. A retry tick connects when the
--- socket becomes ready; a connected session only reads the event stream.
+-- event stream. noctalia.compositor.subscribe opens a connection to that stream
+-- for this service alone; Umbriel answers with a snapshot of each family, then
+-- every change, and the service republishes the state the UI entries read.
 -- Actions go straight to the IPC socket as typed requests.
 --
---   noctalia.runStream(cmd, onLine)   long-lived child, one callback per line
+--   noctalia.compositor.subscribe(options, onEvent)   the event stream, no child
 --   noctalia.umbriel.action(request, cb)              one typed action, no child
 --   noctalia.state.set("umbriel.state", snapshot)     one snapshot, one re-render
 --   noctalia.state.watch("umbriel.request", handler)  actions from bar and panel
 
-local RECONNECT_INTERVAL_MS = 1000
--- runStream has no exit callback. Report termination on stdout so the next
--- retry can reconnect, including when the child starts but cannot connect.
-local STREAM_COMMAND = [[umbriel subscribe workspaces,windows,submap; printf '\n{"event":"umbriel-companion-disconnected"}\n']]
-
 local available = false
-local streaming = false
 local workspaces = {}
 local windows = {}
 local submap = ""
 local submapReady = false
 local streamError = nil
-
--- A shell started by systemd can inherit WAYLAND_DISPLAY without UMBRIEL_SOCKET.
--- Follow the CLI's fallback, scoped to this display rather than another session.
-local function socketPath()
-  local explicit = noctalia.getenv("UMBRIEL_SOCKET")
-  if explicit ~= nil and explicit ~= "" then
-    return explicit
-  end
-  local runtimeDir = noctalia.getenv("XDG_RUNTIME_DIR")
-  local display = noctalia.getenv("WAYLAND_DISPLAY")
-  if runtimeDir ~= nil and runtimeDir ~= "" and display ~= nil and display ~= "" then
-    return `{runtimeDir}/umbriel-{display}.sock`
-  end
-  return nil
-end
 
 -- A window's `focused` flag is per workspace. `active` would name the one window
 -- holding keyboard focus, but the open panel takes that, so the target is the
@@ -73,35 +51,34 @@ local function publish()
   })
 end
 
-local function onLine(line)
-  local decoded = noctalia.json.decode(line)
-  if type(decoded) ~= "table" then
-    return
-  end
-  if decoded.event == "umbriel-companion-disconnected" then
-    streaming = false
+local function onEvent(event, data)
+  -- The connection to the compositor dropped; the shell reconnects on its own
+  -- and Umbriel sends fresh snapshots once the stream is back.
+  if event == "reset" then
     available = false
     workspaces = {}
     windows = {}
     submap = ""
     submapReady = false
-    streamError = noctalia.tr("error.stream_closed")
+    if streamError == nil then
+      streamError = noctalia.tr("error.stream_closed")
+    end
     publish()
     return
   end
-  -- The stream reports its own rejection on the first line and then closes;
-  -- every other line is one subscribed state snapshot.
-  if type(decoded.err) == "string" then
-    streamError = decoded.err
+  -- Umbriel rejected the subscription; a "reset" follows and the retry sends the
+  -- same request.
+  if event == "error" then
+    streamError = if type(data) == "string" and data ~= "" then data else noctalia.tr("error.stream_closed")
     publish()
     return
   end
-  if decoded.event == "workspaces" and type(decoded.data) == "table" then
-    workspaces = decoded.data
-  elseif decoded.event == "windows" and type(decoded.data) == "table" then
-    windows = decoded.data
-  elseif decoded.event == "submap" and (decoded.data == nil or type(decoded.data) == "string") then
-    submap = decoded.data or ""
+  if event == "workspaces" and type(data) == "table" then
+    workspaces = data
+  elseif event == "windows" and type(data) == "table" then
+    windows = data
+  elseif event == "submap" and (data == nil or type(data) == "string") then
+    submap = data or ""
     submapReady = true
   else
     return
@@ -109,21 +86,6 @@ local function onLine(line)
   available = true
   streamError = nil
   publish()
-end
-
-local function startStream()
-  if streaming then
-    return
-  end
-  local path = socketPath()
-  if path == nil or not noctalia.fileExists(path) or not noctalia.commandExists("umbriel") then
-    return
-  end
-  streaming = noctalia.runStream(STREAM_COMMAND, onLine)
-  if not streaming then
-    streamError = noctalia.tr("error.stream_failed")
-    publish()
-  end
 end
 
 -- `request` is Umbriel's typed action request without `cmd`, for example
@@ -145,16 +107,14 @@ noctalia.state.watch("umbriel.request", function(value)
   if type(value) ~= "table" then
     return
   end
-  startStream()
   if available and type(value.request) == "table" and type(value.request.action) == "string" then
     runAction(value.request)
   end
 end)
 
-function update()
-  startStream()
-end
-
-noctalia.setUpdateInterval(RECONNECT_INTERVAL_MS)
 publish()
-startStream()
+-- Other compositors have event streams too, with their own event names (Hyprland
+-- also sends "submap"), so only Umbriel's is read.
+if noctalia.compositor.name() == "umbriel" then
+  noctalia.compositor.subscribe({ events = { "workspaces", "windows", "submap" } }, onEvent)
+end

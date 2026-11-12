@@ -1,5 +1,5 @@
 {
-  "bad_extension": "Ungültige Dateierweiterungseinstellung – md wird verwendet",
+  "bad_extension": "Ungültige Dateiendungseinstellung – md wird verwendet",
   "confirm_delete": "Löschen?",
   "counts": "{words} Wörter · {chars} Zeichen",
   "editing": "Wird bearbeitet…",
@@ -20,8 +20,8 @@
   "scratchpad": "Scratchpad",
   "settings": {
     "extension": {
-      "description": "Erweiterung für Notizdateien (ohne Punkt); nur Dateien mit dieser Erweiterung werden aufgelistet",
-      "label": "Dateierweiterung"
+      "description": "Dateiendung für Notizdateien (ohne Punkt); nur Dateien mit dieser Endung werden aufgelistet",
+      "label": "Dateiendung"
     },
     "glyph": {
       "label": "Leistensymbol"

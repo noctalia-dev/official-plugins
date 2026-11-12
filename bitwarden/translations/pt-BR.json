@@ -110,6 +110,10 @@
       "description": "Incluir letras maiúsculas nas senhas geradas",
       "label": "Incluir Maiúsculas"
     },
+    "hide_actions_when_searching": {
+      "description": "Ocultar as ações fixadas (gerar, bloquear, sincronizar, etc.) uma vez que você comece a digitar, então itens correspondentes do cofre apareceriam primeiro",
+      "label": "Ocultar Ações Enquanto Busca"
+    },
     "notify_on_copy": {
       "description": "Exibir uma notificação após copiar um campo do cofre ou um segredo gerado",
       "label": "Notificar ao Copiar"

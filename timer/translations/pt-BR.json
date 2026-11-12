@@ -1,5 +1,13 @@
 {
   "settings": {
+    "alarm": {
+      "description": "Continue apitando até que o temporizador seja dispensado, ignorando a duração do alarme",
+      "label": "Alarme Persistente"
+    },
+    "alarm_duration": {
+      "description": "Quantidade de segundos em que o alarme apita depois que o temporizador finaliza. 0 silencia.",
+      "label": "Duração do alarme (segundos)"
+    },
     "color": {
       "description": "Cor de destaque para o tempo e a barra de progresso",
       "label": "Cor"

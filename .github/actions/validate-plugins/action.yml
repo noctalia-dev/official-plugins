@@ -1,0 +1,31 @@
+name: Validate Noctalia plugins
+description: Test the shared validator and validate the caller's plugin checkout.
+inputs:
+  profile:
+    description: Validation policy (official or community).
+    required: true
+  root:
+    description: Path to the caller's plugin checkout.
+    required: false
+    default: ${{ github.workspace }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.14'
+
+    - name: Install validator dependencies
+      shell: bash
+      run: python3 -m pip install -r "$GITHUB_ACTION_PATH/requirements.txt"
+
+    - name: Test official and community validation profiles
+      shell: bash
+      run: python3 -m unittest discover -s "$GITHUB_ACTION_PATH" -p 'test_validate_plugins.py'
+
+    - name: Validate caller's plugin manifests
+      shell: bash
+      env:
+        VALIDATION_PROFILE: ${{ inputs.profile }}
+        VALIDATION_ROOT: ${{ inputs.root }}
+      run: python3 "$GITHUB_ACTION_PATH/validate-plugins.py" --profile "$VALIDATION_PROFILE" --root "$VALIDATION_ROOT"

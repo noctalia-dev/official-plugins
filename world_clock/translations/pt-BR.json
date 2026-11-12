@@ -5,10 +5,39 @@
     "invalid_zone": "Fuso horário desconhecido: {zone}",
     "missing_zone": "Fuso horário não está na lista: {zone}"
   },
+  "settings": {
+    "show_add_zone": {
+      "description": "Mostrar a entrada que adiciona fuso horário do painel",
+      "label": "Mostrar caixa de adição de fuso horário"
+    },
+    "show_clocks": {
+      "description": "Mostrar os relógios configurados na barra ao invés de somente ícone",
+      "label": "Mostrar relógios na barra"
+    },
+    "text_size": {
+      "description": "Tamanho da fonte no painel",
+      "label": "Tamanho de texto",
+      "options": {
+        "large": "Grande",
+        "normal": "Normal",
+        "small": "Pequeno"
+      }
+    },
+    "time_format": {
+      "description": "Formato de hora para o painel e barra; Sistema segue as definições do shell",
+      "label": "Formato de hora",
+      "options": {
+        "12h": "12-horas",
+        "24h": "24-horas",
+        "system": "Sistema"
+      }
+    }
+  },
   "title": "Relógio Mundial",
   "ui": {
     "add_placeholder": "Europe/Berlin",
     "drag_tooltip": "Arraste para reordenar",
-    "empty": "Nenhum fuso horário ainda. Adicione uma zona IANA abaixo."
+    "empty": "Nenhum fuso horário ainda. Adicione uma zona IANA abaixo.",
+    "label_placeholder": "Rótulo (opcional)"
   }
 }

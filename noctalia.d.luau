@@ -1,5 +1,5 @@
 --!strict
--- Type definitions for the Noctalia plugin API (plugin_api 39).
+-- Type definitions for the Noctalia plugin API (plugin_api 53).
 --
 -- luau-lsp *definition file*: it declares the host-injected globals (noctalia.*,
 -- barWidget.*, shortcut.*, launcher.*, desktopWidget.*, panel.*, layer.*, ui.*) so authors
@@ -169,12 +169,56 @@ export type NoctaliaIdle = {
   unwatch: (id: number) -> boolean, -- false for an unknown id
 }
 
+-- Night light snapshot from noctalia.nightlight.state() and watch callbacks. API 53.
+export type NightLightState = {
+  enabled: boolean, -- enabled setting, including a runtime override
+  force: boolean, -- forced night temperature
+  active: boolean, -- currently tinting the screen
+  transitioning: boolean, -- scheduled day/night fade in progress
+  phase: ("day" | "night"),
+  currentTemperature: number, -- Kelvin, -1 when no gamma is applied
+  targetTemperature: number, -- Kelvin, -1 when the schedule is unavailable
+  dayTemperature: number, -- Kelvin
+  nightTemperature: number, -- Kelvin
+}
+
+-- Night light control. API 53. Actions use the same runtime overrides as the bar
+-- widget and the noctalia CLI; they do not write config.toml. watch delivers the
+-- current snapshot immediately and then on every change, including fade ticks.
+-- At most 8 watches per entry; released on reload/stop.
+export type NoctaliaNightLight = {
+  state: () -> NightLightState,
+  setEnabled: (enabled: boolean) -> (),
+  toggle: () -> (),
+  setForce: (force: boolean) -> (),
+  toggleForce: () -> (),
+  watch: (callback: (state: NightLightState) -> ()) -> number,
+  unwatch: (id: number) -> boolean, -- false for an unknown id
+}
+
 -- Umbriel IPC actions. API 45. `request` is Umbriel's typed action request without
 -- `cmd`, e.g. { action = "workspace-set-layout", layout = "dwindle" }. Returns false
 -- when no Umbriel socket is found. callback(ok, err) once Umbriel answers or the
 -- request fails; omit it for fire-and-forget. At most 16 pending callbacks per entry.
 export type NoctaliaUmbriel = {
   action: (request: { action: string, [string]: any }, callback: ((ok: boolean, err: string?) -> ())?) -> boolean,
+}
+
+-- Session compositor. API 54. name() is the detected compositor: "umbriel", "niri",
+-- "hyprland", "sway", "mango", "dwl", "labwc", "kde", or "unknown".
+-- subscribe opens a connection of its own to the compositor's event stream and calls
+-- callback(event, data) for every message, untouched: Umbriel {"event","data"} lines
+-- (options.events required, e.g. { "workspaces", "windows" }), niri single-key
+-- {Name: payload} objects, Hyprland `name>>data` lines (data as a string). Returns nil
+-- on other compositors. ("error", message) when Umbriel rejects the request;
+-- ("reset", nil) when the connection drops or the entry falls behind (full event queue:
+-- the shell drops the connection and resubscribes), before the compositor's fresh
+-- snapshot follows (Hyprland sends none; re-query it). Discard all state on "reset".
+-- At most 4 subscriptions per entry; released on reload/stop.
+export type NoctaliaCompositor = {
+  name: () -> string,
+  subscribe: (options: { events: { string }? }?, callback: (event: string, data: any) -> ()) -> number?,
+  unsubscribe: (id: number) -> boolean, -- false for an unknown id
 }
 
 export type LayerAnchor = "top" | "bottom" | "left" | "right"
@@ -369,8 +413,10 @@ export type Noctalia = {
   state: NoctaliaState,
   sound: NoctaliaSound,
   idle: NoctaliaIdle,
+  nightlight: NoctaliaNightLight,
   layer: NoctaliaLayer,
   umbriel: NoctaliaUmbriel,
+  compositor: NoctaliaCompositor,
   osd: NoctaliaOsd,
   json: NoctaliaJson,
   string: NoctaliaString,

@@ -1,0 +1,188 @@
+{
+  "notify": {
+    "launch-failed": "Не удалось запустить gpu-screen-recorder",
+    "no-monitor": "Не удалось определить активный монитор",
+    "portal-not-running": "xdg-desktop-portal не запущен",
+    "recording-failed": "Не удалось записать",
+    "recording-saved": "Запись сохранена",
+    "recording-stopped-early": "gpu-screen-recorder завершился без сохранения. Подробности см. в журнале Noctalia.",
+    "region-picker-missing": "Установите slurp для захвата области",
+    "replay-active": "Буфер повтора активен",
+    "replay-failed": "Не удалось выполнить повтор",
+    "replay-saved": "Не удалось выполнить повтор",
+    "replay-stopped": "Буфер повтора остановлен"
+  },
+  "settings": {
+    "audio_bitrate": {
+      "description": "0 = автоматически (128 для Opus/FLAC, 160 для AAC); уменьшите для файлов меньшего размера",
+      "label": "Битрейт аудио (кбит/с)"
+    },
+    "audio_codec": {
+      "label": "Аудиокодек",
+      "options": {
+        "aac": "AAC",
+        "flac": "FLAC",
+        "opus": "Opus"
+      }
+    },
+    "audio_source": {
+      "label": "Источник аудио",
+      "options": {
+        "both": "Вывод + Микрофон",
+        "custom": "Пользавательский",
+        "default_input": "Микрофон",
+        "default_output": "Вывод системы",
+        "none": "Без аудио"
+      }
+    },
+    "color_range": {
+      "label": "Диапазон цветов",
+      "options": {
+        "full": "Полный",
+        "limited": "Ограниченный"
+      }
+    },
+    "copy_to_clipboard": {
+      "label": "Копировать путь в буфер обмена"
+    },
+    "custom_audio_sources": {
+      "description": "Источники аудио gpu-screen-recorder через запятую.",
+      "label": "Свои источники аудио"
+    },
+    "directory": {
+      "description": "Если пусто, по умолчанию используется ~/Videos/Recordings",
+      "label": "Каталог вывода"
+    },
+    "filename_pattern": {
+      "description": "Шаблон формата даты без расширения; используйте %s для метки времени Unix",
+      "label": "Шаблон имени файла"
+    },
+    "frame_rate": {
+      "label": "Частота кадров"
+    },
+    "frame_rate_mode": {
+      "label": "Режим частоты кадров",
+      "options": {
+        "cfr": "Постоянная (CFR)",
+        "vfr": "Переменная (VFR)"
+      }
+    },
+    "glyph_idle": {
+      "label": "Символ: бездействие"
+    },
+    "glyph_pending": {
+      "description": "Отображается, пока начинается запись или буфер повтора.",
+      "label": "Символ: запуск"
+    },
+    "glyph_recording": {
+      "label": "Символ: запись"
+    },
+    "glyph_replaying": {
+      "label": "Символ: буфер повтора"
+    },
+    "glyph_unavailable": {
+      "description": "Отображается, когда gpu-screen-recorder не установлен.",
+      "label": "Символ: недоступно"
+    },
+    "hide_inactive": {
+      "label": "Скрывать виджет при бездействии"
+    },
+    "post_save_script": {
+      "description": "Скрипт, запускаемый после сохранения записи или повтора.",
+      "label": "Скрипт после сохранения"
+    },
+    "quality": {
+      "label": "Качество",
+      "options": {
+        "high": "Высокое",
+        "medium": "Среднее",
+        "ultra": "Ультра",
+        "very_high": "Очень Высокое"
+      }
+    },
+    "replay_duration": {
+      "label": "Секунды повтора"
+    },
+    "replay_enabled": {
+      "label": "Включить буфер повтора"
+    },
+    "replay_filename_pattern": {
+      "description": "Шаблон формата даты для сохранённых повторов без расширения; используйте %s для метки времени Unix",
+      "label": "Шаблон имени файла повтора"
+    },
+    "replay_storage": {
+      "label": "Хранилище повторов",
+      "options": {
+        "disk": "Диск",
+        "ram": "ОЗУ"
+      }
+    },
+    "resolution": {
+      "description": "\"original\" или ШИРИНАxВЫСОТА, например 1920x1080",
+      "label": "Разрешение"
+    },
+    "restore_portal": {
+      "label": "Восстановить сеанс портала"
+    },
+    "show_cursor": {
+      "label": "Показывать курсор"
+    },
+    "video_bitrate": {
+      "description": "Положительное целое значение битрейта в кбит/с для режима CBR",
+      "label": "Битрейт видео (кбит/с)"
+    },
+    "video_bitrate_mode": {
+      "label": "Режим битрейта",
+      "options": {
+        "cbr": "Постоянный битрейт (CBR)",
+        "qp": "Постоянное качество (QP)",
+        "vbr": "Переменный битрейт (VBR)"
+      }
+    },
+    "video_codec": {
+      "label": "Видеокодек",
+      "options": {
+        "av1": "AV1",
+        "h264": "H.264",
+        "hevc": "HEVC",
+        "vp8": "VP8",
+        "vp9": "VP9"
+      }
+    },
+    "video_encoder": {
+      "description": "Кодирование на ЦП поддерживает только H264, GPU — аппаратное ускорение",
+      "label": "Видеокодер",
+      "options": {
+        "cpu": "ЦП",
+        "gpu": "ГП"
+      }
+    },
+    "video_qp": {
+      "description": "Меньшие значения дают более высокое качество и файлы большего размера",
+      "label": "Качество видео (QP)"
+    },
+    "video_quality": {
+      "label": "Качество видео",
+      "options": {
+        "high": "Высокое",
+        "medium": "Среднее",
+        "ultra": "Ультра",
+        "very_high": "Очень высокое"
+      }
+    },
+    "video_source": {
+      "description": "Режим захвата GPU Screen Recorder; «Focused» записывает активный монитор Noctalia",
+      "label": "Источник видео",
+      "options": {
+        "focused": "Активный",
+        "portal": "Портал",
+        "region": "Область"
+      }
+    }
+  },
+  "shortcut": {
+    "record-screen": "Запись экрана",
+    "recording": "Запись",
+    "replay-buffer": "Буфер повтора"
+  }
+}

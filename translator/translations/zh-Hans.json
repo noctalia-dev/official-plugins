@@ -1,5 +1,17 @@
 {
   "settings": {
+    "deepl_api_key": {
+      "description": "仅在上方选择 DeepL 时需要",
+      "label": "DeepL API 密钥"
+    },
+    "provider": {
+      "description": "选择用于获取翻译结果的翻译服务",
+      "label": "翻译服务提供商",
+      "options": {
+        "deepl": "DeepL",
+        "google": "Google 翻译"
+      }
+    },
     "target_lang": {
       "description": "未指定语言时使用的语言代码（例如 en、fr、es）",
       "label": "默认目标语言"

@@ -110,6 +110,10 @@
       "description": "生成密码时包含大写字母",
       "label": "包含大写字母"
     },
+    "hide_actions_when_searching": {
+      "description": "开始输入后隐藏已固定的操作（生成、锁定、同步等），优先显示匹配的密码库项",
+      "label": "搜索时隐藏操作"
+    },
     "notify_on_copy": {
       "description": "复制密码库字段或生成的密码后显示通知",
       "label": "复制后通知"

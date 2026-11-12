@@ -73,7 +73,7 @@ end
 local function unavailableCard()
   return ui.row({ gap = 10, align = "center", padding = 10, radius = 8, fill = "surface_container/0.35" }, {
     ui.glyph({ name = "alert-triangle", size = 20, color = "error" }),
-    ui.label({ text = tr("panel.unavailable"), color = "on_surface_variant", fontSize = 12, wrap = true, flexGrow = 1 }),
+    ui.label({ text = tr("panel.not_running"), color = "on_surface_variant", fontSize = 12, wrap = true, flexGrow = 1 }),
   })
 end
 
@@ -333,8 +333,6 @@ end
 function onOpen(_context)
   closeButton = noctalia.getSetting("shell.show_close_buttons") ~= false
   snapshot = noctalia.state.get("umbriel.state") or snapshot
-  -- Opening the panel also retries a disconnected stream immediately.
-  noctalia.state.set("umbriel.request", {})
   render()
 end
 

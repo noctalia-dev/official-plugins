@@ -1,5 +1,13 @@
 {
   "settings": {
+    "alarm": {
+      "description": "持续响铃直至关闭计时器提醒，不受响铃时长限制",
+      "label": "持续响铃"
+    },
+    "alarm_duration": {
+      "description": "计时结束后的响铃时长（秒）；设为 0 时不响铃。",
+      "label": "响铃时长（秒）"
+    },
     "color": {
       "description": "时间和进度条使用的强调色",
       "label": "颜色"

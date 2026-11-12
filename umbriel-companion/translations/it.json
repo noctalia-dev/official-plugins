@@ -1,11 +1,12 @@
 {
   "error": {
-    "stream_failed": "Impossibile avviare `umbriel subscribe workspaces`."
+    "stream_closed": "Connessione a Umbriel chiusa; riprovando."
   },
   "layout": {
     "dwindle": "Dwindle",
     "master": "Master",
     "scrolling": "Scrolling",
+    "stacking": "Stacking",
     "unknown": "Sconosciuto"
   },
   "notify": {
@@ -30,7 +31,6 @@
     "settings": "Impostazioni del plugin",
     "switch": "Passa a quest'area di lavoro",
     "target": "Spazio di lavoro in focus",
-    "unavailable": "Umbriel non è in esecuzione oppure il comando umbriel non è presente nel PATH.",
     "width": "Larghezza",
     "width_tooltip": "Imposta la larghezza al {percent}%",
     "window_section": "Finestra in focus",

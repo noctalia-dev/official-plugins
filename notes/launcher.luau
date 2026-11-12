@@ -19,19 +19,41 @@ end
 
 local function settings()
   local dir = dirs.resolveNotesDir()
-  local extension = noctalia.string.trim(noctalia.getConfig("extension")):gsub("^%.", "")
-  if extension == "" then
-    extension = "md"
+  local rawExt = noctalia.string.trim(noctalia.getConfig("extension"))
+  local suffixes = {}
+  for ext in rawExt:gmatch("[^,%s]+") do
+    local clean = ext:gsub("^%.", "")
+    if clean ~= "" then
+      table.insert(suffixes, "." .. clean)
+    end
   end
-  return dir, "." .. extension
+  if #suffixes == 0 then
+    suffixes = { ".md" }
+  end
+  return dir, suffixes, suffixes[1]
 end
 
-local function noteFiles(dir, suffix)
+-- The configured suffix `file` ends with, or nil when it matches none.
+local function matchSuffix(file, suffixes)
+  for _, s in ipairs(suffixes) do
+    if #file > #s and file:sub(-#s) == s then
+      return s
+    end
+  end
+  return nil
+end
+
+local function displayName(file, suffixes)
+  local s = matchSuffix(file, suffixes)
+  return s ~= nil and file:sub(1, #file - #s) or file
+end
+
+local function noteFiles(dir, suffixes)
   local out = {}
   local list = noctalia.listDir(dir)
   if list ~= nil then
     for _, name in ipairs(list) do
-      if #name > #suffix and name:sub(-#suffix) == suffix and name:sub(1, 1) ~= "." then
+      if matchSuffix(name, suffixes) ~= nil and name:sub(1, 1) ~= "." then
         table.insert(out, name)
       end
     end
@@ -68,17 +90,17 @@ end
 
 -- Creates a timestamp-named note holding `content` and opens it in the panel.
 local function createNote(content)
-  local dir, suffix = settings()
+  local dir, _, defaultSuffix = settings()
   local ok, err = noctalia.mkdirAll(dir)
   if not ok then
     noctalia.notifyError(tr("title"), err or "")
     return
   end
   local base = noctalia.formatTime("%Y-%m-%d %H.%M.%S")
-  local name = base .. suffix
+  local name = base .. defaultSuffix
   local counter = 2
   while noctalia.fileExists(dir .. "/" .. name) do
-    name = base .. " (" .. counter .. ")" .. suffix
+    name = base .. " (" .. counter .. ")" .. defaultSuffix
     counter += 1
   end
   local body = content
@@ -110,7 +132,7 @@ end
 function onQuery(query)
   local text = noctalia.string.trim(query)
   lastText = text
-  local dir, suffix = settings()
+  local dir, suffixes, defaultSuffix = settings()
   local rows = {}
 
   if text ~= "" then
@@ -128,7 +150,7 @@ function onQuery(query)
     })
   else
     table.insert(rows, {
-      id = "open:" .. SCRATCHPAD_BASE .. suffix,
+      id = "open:" .. SCRATCHPAD_BASE .. defaultSuffix,
       title = tr("scratchpad"),
       subtitle = tr("launcher.open_subtitle"),
       glyph = "pinned",
@@ -152,9 +174,9 @@ function onQuery(query)
 
   local pins = loadPins(dir)
   local matches = {}
-  for _, name in ipairs(noteFiles(dir, suffix)) do
-    if name ~= SCRATCHPAD_BASE .. suffix then
-      local display = name:sub(1, #name - #suffix)
+  for _, name in ipairs(noteFiles(dir, suffixes)) do
+    if name ~= SCRATCHPAD_BASE .. defaultSuffix then
+      local display = displayName(name, suffixes)
       local score = text == "" and 0 or noctalia.fuzzyScore(text, display)
       if score ~= nil then
         table.insert(matches, { name = name, display = display, score = score, pinned = pins[name] == true })
@@ -183,7 +205,7 @@ function onQuery(query)
 end
 
 function onActivate(id)
-  local dir, suffix = settings()
+  local dir, _, defaultSuffix = settings()
 
   if id == "append" then
     if lastText == "" then
@@ -194,7 +216,7 @@ function onActivate(id)
       noctalia.notifyError(tr("title"), err or "")
       return
     end
-    local path = dir .. "/" .. SCRATCHPAD_BASE .. suffix
+    local path = dir .. "/" .. SCRATCHPAD_BASE .. defaultSuffix
     local contents = noctalia.readFile(path) or ""
     local sep = (contents == "" or contents:sub(-1) == "\n") and "" or "\n"
     local wrote, werr = noctalia.writeFile(path, contents .. sep .. lastText .. "\n")

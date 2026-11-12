@@ -1,7 +1,7 @@
 {
   "notify": {
     "launch-failed": "无法启动 gpu-screen-recorder",
-    "no-monitor": "无法检测当前焦点显示器",
+    "no-monitor": "无法检测当前焦点屏幕",
     "portal-not-running": "xdg-desktop-portal 未运行",
     "recording-failed": "录制失败",
     "recording-saved": "录制已保存",
@@ -25,9 +25,10 @@
       }
     },
     "audio_source": {
-      "label": "音频来源",
+      "label": "音频源",
       "options": {
         "both": "输出 + 麦克风",
+        "custom": "自定义",
         "default_input": "麦克风",
         "default_output": "系统输出",
         "none": "无音频"
@@ -43,6 +44,10 @@
     "copy_to_clipboard": {
       "label": "复制路径到剪贴板"
     },
+    "custom_audio_sources": {
+      "description": "gpu-screen-recorder 音频源（逗号分隔）",
+      "label": "自定义音频源"
+    },
     "directory": {
       "description": "留空时使用 ~/Videos/Recordings",
       "label": "输出目录"
@@ -54,11 +59,18 @@
     "frame_rate": {
       "label": "帧率"
     },
+    "frame_rate_mode": {
+      "label": "帧率模式",
+      "options": {
+        "cfr": "恒定帧率（CFR）",
+        "vfr": "可变帧率（VFR）"
+      }
+    },
     "glyph_idle": {
       "label": "图标：空闲"
     },
     "glyph_pending": {
-      "description": "录制或回放缓冲区启动时显示。",
+      "description": "录制或回放缓冲区启动时显示",
       "label": "图标：正在启动"
     },
     "glyph_recording": {
@@ -68,11 +80,15 @@
       "label": "图标：回放缓冲区"
     },
     "glyph_unavailable": {
-      "description": "未安装 gpu-screen-recorder 时显示。",
+      "description": "未安装 gpu-screen-recorder 时显示",
       "label": "图标：不可用"
     },
     "hide_inactive": {
       "label": "空闲时隐藏小组件"
+    },
+    "post_save_script": {
+      "description": "录制或回放保存后执行的脚本",
+      "label": "保存后脚本"
     },
     "quality": {
       "label": "质量",
@@ -110,6 +126,18 @@
     "show_cursor": {
       "label": "显示光标"
     },
+    "video_bitrate": {
+      "description": "CBR 模式使用的视频比特率（kbps）",
+      "label": "视频比特率（kbps）"
+    },
+    "video_bitrate_mode": {
+      "label": "比特率模式",
+      "options": {
+        "cbr": "恒定比特率（CBR）",
+        "qp": "恒定质量（QP）",
+        "vbr": "可变比特率（VBR）"
+      }
+    },
     "video_codec": {
       "label": "视频编码器",
       "options": {
@@ -120,15 +148,32 @@
         "vp9": "VP9"
       }
     },
+    "video_encoder": {
+      "description": "CPU 编码仅支持 H.264，GPU 编码使用硬件加速",
+      "label": "视频编码器",
+      "options": {
+        "cpu": "CPU",
+        "gpu": "GPU"
+      }
+    },
     "video_qp": {
       "description": "较低数值会获得更高质量和更大的文件",
       "label": "视频质量（QP）"
     },
-    "video_source": {
-      "description": "GPU Screen Recorder 捕获模式；“焦点”录制 Noctalia 当前焦点显示器",
-      "label": "视频来源",
+    "video_quality": {
+      "label": "视频质量",
       "options": {
-        "focused": "焦点",
+        "high": "高",
+        "medium": "中",
+        "ultra": "极高",
+        "very_high": "很高"
+      }
+    },
+    "video_source": {
+      "description": "GPU Screen Recorder 捕获模式；“焦点”录制 Noctalia 当前焦点屏幕",
+      "label": "视频源",
+      "options": {
+        "focused": "焦点屏幕",
         "portal": "Portal"
       }
     }

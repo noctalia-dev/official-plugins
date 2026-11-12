@@ -1,0 +1,180 @@
+{
+  "notify": {
+    "launch-failed": "No se pudo iniciar gpu-screen-recorder",
+    "no-monitor": "No se pudo detectar el monitor enfocado",
+    "portal-not-running": "xdg-desktop-portal no se está ejecutando",
+    "recording-failed": "Falló la grabación",
+    "recording-saved": "Grabación guardada",
+    "recording-stopped-early": "gpu-screen-recorder finalizó sin guardar los cambios. Consulte el registro de Noctalia para obtener más información.",
+    "replay-active": "Búfer de repetición activo",
+    "replay-failed": "La repetición falló",
+    "replay-saved": "Repetición guardada",
+    "replay-stopped": "El búfer de repetición se ha detenido"
+  },
+  "settings": {
+    "audio_bitrate": {
+      "description": "0 = automático (128 para Opus/FLAC, 160 para AAC); redúzcalo para archivos más pequeños",
+      "label": "Tasa de bits de audio (kbps)"
+    },
+    "audio_codec": {
+      "label": "Códec de audio",
+      "options": {
+        "aac": "CAA",
+        "flac": "FLAC",
+        "opus": "Opus"
+      }
+    },
+    "audio_source": {
+      "label": "Fuente de audio",
+      "options": {
+        "both": "Salida + Micrófono",
+        "custom": "Personalizado",
+        "default_input": "Micrófono",
+        "default_output": "Salida del sistema",
+        "none": "Sin audio"
+      }
+    },
+    "color_range": {
+      "label": "Gama de colores",
+      "options": {
+        "limited": "Limitado"
+      }
+    },
+    "copy_to_clipboard": {
+      "label": "Copiar ruta al portapapeles"
+    },
+    "custom_audio_sources": {
+      "description": "Fuentes de audio de gpu-screen-recorder separadas por comas.",
+      "label": "Fuentes de audio personalizadas"
+    },
+    "directory": {
+      "description": "Por defecto, cuando está vacío, se guarda en ~/Videos/Recordings",
+      "label": "Directorio de salida"
+    },
+    "filename_pattern": {
+      "description": "Patrón de formato de fecha sin extensión; use %s para la marca de tiempo Unix",
+      "label": "Patrón de nombre de archivo"
+    },
+    "frame_rate_mode": {
+      "label": "Modo de velocidad de fotogramas",
+      "options": {
+        "cfr": "Constante (CFR)",
+        "vfr": "Variable (VFR)"
+      }
+    },
+    "glyph_idle": {
+      "label": "Glifo: Inactivo"
+    },
+    "glyph_pending": {
+      "description": "Se muestra mientras se inicia una grabación o un búfer de repetición.",
+      "label": "Glifo: Iniciando"
+    },
+    "glyph_recording": {
+      "label": "Glifo: Grabando"
+    },
+    "glyph_replaying": {
+      "label": "Glifo: Búfer de repetición"
+    },
+    "glyph_unavailable": {
+      "description": "Se muestra cuando no está instalado gpu-screen-recorder.",
+      "label": "Glifo: No disponible"
+    },
+    "hide_inactive": {
+      "label": "Ocultar widget cuando está inactivo"
+    },
+    "post_save_script": {
+      "description": "Script que se ejecutará después de guardar una grabación o repetición.",
+      "label": "Script posterior al guardado"
+    },
+    "quality": {
+      "label": "Calidad",
+      "options": {
+        "high": "Alta",
+        "medium": "Medio",
+        "ultra": "Ultra",
+        "very_high": "Muy alta"
+      }
+    },
+    "replay_duration": {
+      "label": "Segundos de repetición"
+    },
+    "replay_enabled": {
+      "label": "Habilitar búfer de repetición"
+    },
+    "replay_filename_pattern": {
+      "description": "Patrón de formato de fecha para repeticiones guardadas sin extensión; use %s para la marca de tiempo Unix",
+      "label": "Patrón de nombre de archivo de repetición"
+    },
+    "replay_storage": {
+      "label": "Almacenamiento de repetición",
+      "options": {
+        "disk": "Disco",
+        "ram": "RAM"
+      }
+    },
+    "resolution": {
+      "description": "\"original\" o ANCHOxALTO, por ejemplo, 1920x1080",
+      "label": "Resolución"
+    },
+    "restore_portal": {
+      "label": "Restaurar sesión del portal"
+    },
+    "show_cursor": {
+      "label": "Mostrar cursor"
+    },
+    "video_bitrate": {
+      "description": "Tasa de bits entera positiva en kbps utilizada para el modo CBR",
+      "label": "Tasa de bits de vídeo (kbps)"
+    },
+    "video_bitrate_mode": {
+      "label": "Modo de tasa de bits",
+      "options": {
+        "cbr": "Tasa de bits constante (CBR)",
+        "qp": "Calidad Constante (QP)",
+        "vbr": "Tasa de bits variable (VBR)"
+      }
+    },
+    "video_codec": {
+      "label": "Códec de vídeo",
+      "options": {
+        "av1": "AV1",
+        "h264": "H.264",
+        "hevc": "HEVC"
+      }
+    },
+    "video_encoder": {
+      "description": "La codificación por CPU solo admite H264; la GPU cuenta con aceleración por hardware",
+      "label": "Codificador de vídeo",
+      "options": {
+        "cpu": "CPU",
+        "gpu": "GPU"
+      }
+    },
+    "video_qp": {
+      "description": "Los valores más bajos producen archivos de mayor calidad y tamaño",
+      "label": "Calidad de vídeo (QP)"
+    },
+    "video_quality": {
+      "label": "Calidad de vídeo",
+      "options": {
+        "high": "Alta",
+        "medium": "Medio",
+        "ultra": "Ultra",
+        "very_high": "Muy alta"
+      }
+    },
+    "video_source": {
+      "description": "Modo de captura de GPU Screen Recorder; Focused graba el monitor enfocado de Noctalia",
+      "label": "Fuente del video",
+      "options": {
+        "focused": "Enfocado",
+        "portal": "Portal"
+      }
+    }
+  },
+  "shortcut": {
+    "record-screen": "Grabar pantalla",
+    "recording": "Grabación",
+    "replay-buffer": "Búfer de repetición"
+  }
+}
