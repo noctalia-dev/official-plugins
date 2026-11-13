@@ -47,10 +47,28 @@ type it, press Enter, done.
 ## IPC
 
 ```sh
-noctalia msg panel-toggle noctalia/notes:panel   # toggle the panel
-noctalia msg panel-open noctalia/notes:panel     # open it
+noctalia msg panel-toggle noctalia/notes:panel   # toggle the panel, keeping its last view
+noctalia msg panel-open noctalia/notes:panel     # open it, keeping its last view
 noctalia msg panel-close                         # close the open panel
 ```
+
+`panel-open` and `panel-toggle` accept an optional context:
+
+| Context | Result |
+| --- | --- |
+| `scratchpad` | Opens the scratchpad note. |
+| `home` / `list` | Shows the note list. |
+| `note:<name>` | Opens the note called `<name>` (with or without the file extension). An unknown name starts an empty note that is created on the first edit, using the first configured extension. |
+| `<name>` | Opens the note called `<name>`, or shows the list when no note matches. |
+
+```sh
+noctalia msg panel-toggle noctalia/notes:panel scratchpad
+noctalia msg panel-toggle noctalia/notes:panel home
+noctalia msg panel-toggle noctalia/notes:panel "note:buy milk"
+```
+
+Toggling with the same context on an already open panel closes it, a different
+context switches the open panel in place.
 
 ## Settings
 
