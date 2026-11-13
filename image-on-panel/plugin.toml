@@ -1,0 +1,39 @@
+id = "justadux/image-on-panel"
+name = "Image on Panel"
+version = "1.0.0"
+plugin_api = 39
+author = "justadux"
+license = "MIT"
+dependencies = []
+icon = "photo"
+description = "Renders a custom or random image on the bar."
+tags = ["fun", "bar"]
+
+[[widget]]
+id = "image"
+entry = "panel.luau"
+
+  [[widget.setting]]
+  key = "path"
+  type = "file"
+  label_key = "settings.path.label"
+  description_key = "settings.path.description"
+  default = ""
+
+  [[widget.setting]]
+  key = "size"
+  type = "int"
+  label_key = "settings.size.label"
+  description_key = "settings.size.description"
+  default = 24
+  min = 12
+  max = 64
+
+  [[widget.setting]]
+  key = "radius"
+  type = "int"
+  label_key = "settings.radius.label"
+  description_key = "settings.radius.description"
+  default = 6
+  min = 0
+  max = 32

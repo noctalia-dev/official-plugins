@@ -1,0 +1,16 @@
+{
+  "settings": {
+    "path": {
+      "label": "Image or folder path",
+      "description": "Path to an image file or a directory of images."
+    },
+    "size": {
+      "label": "Image size",
+      "description": "Width and height of the image on the bar in pixels."
+    },
+    "radius": {
+      "label": "Corner radius",
+      "description": "Rounding of the image corners in pixels."
+    }
+  }
+}
