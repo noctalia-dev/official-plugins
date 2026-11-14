@@ -180,18 +180,27 @@ export type NightLightState = {
   targetTemperature: number, -- Kelvin, -1 when the schedule is unavailable
   dayTemperature: number, -- Kelvin
   nightTemperature: number, -- Kelvin
+  temperatureOverride: number, -- Kelvin from setTemperature(), -1 when none (API 56)
 }
 
 -- Night light control. API 53. Actions use the same runtime overrides as the bar
 -- widget and the noctalia CLI; they do not write config.toml. watch delivers the
 -- current snapshot immediately and then on every change, including fade ticks.
 -- At most 8 watches per entry; released on reload/stop.
+-- setTemperature (API 56) shows an integer 1000-10000 K instead of the scheduled
+-- or forced temperature while night light is enabled, with no fade or OSD; nil
+-- clears it. While set, targetTemperature reports it and transitioning is false.
+-- Shared by all plugins and the CLI (last call wins). Cleared by any enable,
+-- disable, toggle or force action (even one that changes nothing), by a config
+-- change to [nightlight] enabled or force, and when the runtime that set it last
+-- reloads or stops.
 export type NoctaliaNightLight = {
   state: () -> NightLightState,
   setEnabled: (enabled: boolean) -> (),
   toggle: () -> (),
   setForce: (force: boolean) -> (),
   toggleForce: () -> (),
+  setTemperature: (kelvin: number?) -> (),
   watch: (callback: (state: NightLightState) -> ()) -> number,
   unwatch: (id: number) -> boolean, -- false for an unknown id
 }
