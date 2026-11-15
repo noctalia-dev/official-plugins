@@ -1,95 +1,82 @@
 # Timer
 
-Timer is a countdown timer with three UI surfaces - a bar widget, a panel, and
-a desktop widget - that are all thin clients of one headless service. They
-share a single countdown through Noctalia's plugin state, so starting, pausing,
-or resetting from any surface updates them all live.
+An all-in-one timekeeping suite — Alarms, Stopwatch, Countdown Timer, and a configurable Pomodoro, with bar widgets, a unified panel, desktop widgets, and full IPC command support.
 
 ## Plugin
 
 | Field | Value |
 | --- | --- |
 | ID | `noctalia/timer` |
-| Entries | Service: `timer`; bar widget: `bar`; panel: `panel`; desktop widget: `desktop` |
+| Entries | Service: `timer`; Bar widget: `bar`; Panel: `panel`; Desktop widgets: `desktop`, `stopwatch`, `pomodoro` |
 
-## Usage
+## Features
 
-### Bar Widget and Panel
+- **Alarms** — One-time or repeating alarms with a countdown to the next one. Toggle, edit or delete them; alarms missed while the machine was off or asleep are reported.
+- **Stopwatch** — Start / Pause / Resume / Reset / Lap Flagging.
+- **Timer** — Set any duration via text input (e.g. `2500` → 25:00) or one-click presets. Adjust time by +/- buttons while running or paused.
+- **Pomodoro** — Focus/break cycle with stage-dot indicator, loop mode, auto-start option, session counter. Skip, Reset current stage, or Reset All.
+- **Flags / Laps** — Record and rename flags across all timed modes.
+- **Alerts / Ringing** — Looping sound and notification alerts with automatic or manual dismissal.
 
-The headless `timer` service owns countdown logic and state. The `bar` widget
-and `panel` communicate with the service through shared plugin state.
+---
 
-Add the `bar` bar widget to your bar. It displays an hourglass icon when idle,
-or the formatted countdown when running. Click the widget to open the timer
-panel for duration input and controls. When the timer completes, clicking the
-bar widget resets it.
+## Desktop Widgets
 
-At zero the alarm beeps for `alarm_duration` seconds (10 by default, 0 silences
-it) and the timer returns to idle. `alarm` keeps it beeping until dismissed
-(click the bar widget, or press Reset in the panel or the desktop widget).
+Add desktop widgets from Noctalia's desktop-widget editor (`noctalia msg desktop-widgets-edit`):
 
-On vertical bars, the widget shows an hourglass with the time as a tooltip.
-On horizontal bars, the widget shows the hourglass and countdown side by side,
-with an option to hide the countdown when idle.
+1. **`noctalia/timer:desktop`** (Unified / Countdown Timer):
+   - Supports setting `mode` (`timer`, `stopwatch`, `pomodoro`, `smart`). Default is `timer`.
+   - Large formatted time display, progress bar, quick `-5m`/`-1m`/`-30s`/`+30s`/`+1m`/`+5m` adjust buttons, Reset, Start/Pause, and Flag controls.
+2. **`noctalia/timer:stopwatch`** (Dedicated Stopwatch):
+   - Direct stopwatch display with Reset, Start/Pause toggle, and Lap Flag button.
+   - Shows latest laps when enabled.
+3. **`noctalia/timer:pomodoro`** (Dedicated Pomodoro):
+   - Stage header (Focus/Break icon, label, cycle count, loop toggle), stage dots, time display, progress bar, `-1m`/`+1m` adjusters, and Skip/Reset/Start/Pause controls.
 
-You can also open the timer panel over IPC:
+All desktop widgets reflect live state from the headless service and display an interactive dismiss banner whenever an alert is ringing.
+
+---
+
+## IPC
+
+Every command is `<mode> <action> [args]`:
 
 ```sh
-noctalia msg panel-toggle noctalia/timer:panel
+noctalia msg plugin noctalia/timer:timer all <mode> <action> [args]
 ```
 
-### Desktop Widget
+| Mode | Actions |
+| --- | --- |
+| `timer` | `start [time]`, `pause`, `toggle`, `resume`, `reset`, `set <time>`, `adjust <±time>`, `flag [name]` |
+| `sw` (or `stopwatch`) | `start`, `pause`, `toggle`, `resume`, `reset`, `flag [name]` |
+| `pomo` (or `pomodoro`) | `start`, `pause`, `toggle`, `resume`, `skip`, `reset`, `reset_all`, `loop`, `adjust <±time>`, `flag [name]` |
+| `alarm` | `add <HH:MM> [label] [days]`, `toggle <n>`, `remove <n>` |
+| `ring` | `stop` |
 
-Add the `desktop` desktop widget from Noctalia's desktop-widget editor. Because
-desktop widgets cannot take keyboard focus, it sets the duration with
-keyboard-free `-1m`/`+1m`/`+5m` buttons instead of typed input, then starts,
-pauses, and resets the countdown.
+A mode on its own toggles it.
 
-The desktop widget owns no timer logic: it drives the same shared countdown as
-the bar widget and panel through the `timer` service, so all three stay in sync,
-and the service sends a notification when the countdown reaches zero.
+- **Times** are `40` (minutes), `25m`, `90s`, `1h30m` or `25:00`. Adjustments take a sign: `+5m`, `-30s`.
+- **Alarm days** are none (once), `daily` (or `everyday`), `weekdays`, `weekend` (or `weekends`) or numbers like `1,3,5` (1 = Mon, 7 = Sun). Quote a label that ends in a number. `<n>` is the `#` shown in the panel.
 
-### IPC
+**A few examples:**
+```sh
+noctalia msg plugin noctalia/timer:timer all timer start 25m
+noctalia msg plugin noctalia/timer:timer all sw flag "Lap 1"
+noctalia msg plugin noctalia/timer:timer all pomo skip
+noctalia msg plugin noctalia/timer:timer all alarm add 07:30 "Wake up" weekdays
+noctalia msg plugin noctalia/timer:timer all ring stop
+```
 
-The countdown can also be driven over Noctalia's IPC, which is useful for
-compositor keybinds (sway, Hyprland) and shell aliases:
+---
 
-    noctalia msg plugin noctalia/timer:timer all start 40   # start a 40 minute countdown
-    noctalia msg plugin noctalia/timer:timer all pause      # pause, or resume when paused
-    noctalia msg plugin noctalia/timer:timer all cancel     # reset to idle (`reset` alias)
+## Bar Widget
 
-`start <minutes>` is ignored while a countdown is running, so repeated calls
-cannot clobber it. Otherwise it starts a fresh countdown of the requested
-duration — also while paused (refreshing the progress baseline) and through a
-ringing completion alarm, which it silences.
+- **Smart Auto** shows only the highest-priority active item, chosen by **Priority Order** (six fixed orderings of **T**imer, **S**topwatch, **P**omodoro; default `T > S > P`).
+- **Show All Active** lists every running item separated by bullets.
+- **Show time in bar** off gives a glyph-only widget in either mode.
+- Clicking while an alert rings immediately stops the sound and opens the panel.
 
-Fractional minutes are rounded down to whole seconds. Invalid inputs,
-durations below one second, and durations that overflow to infinity are ignored
-without changing the current timer.
+---
+## Requirements
 
-## Settings
-
-### Plugin
-
-| Setting | Type | Default | Description |
-| --- | --- | --- | --- |
-| `alarm` | `bool` | `false` | Ignores `alarm_duration` and beeps until the timer is dismissed. |
-| `alarm_duration` | `int` | `10` | Seconds the alarm beeps at zero; `0` silences it. Hidden while `alarm` is on. |
-
-### Bar Widget
-
-| Setting | Type | Default | Description |
-| --- | --- | --- | --- |
-| `show_idle_on_horizontal` | `bool` | `true` | Shows or hides the countdown on horizontal bars when idle. |
-
-### Desktop Widget
-
-| Setting | Type | Default | Description |
-| --- | --- | --- | --- |
-| `color` | `color` | `primary` | Accent color for the time and progress bar. |
-| `show_progress` | `bool` | `true` | Shows or hides the progress bar. |
-
-## Notes
-
-This plugin is a reference implementation for `[[desktop_widget]]` entries,
-`[[widget]]` bar widget entries, and Noctalia's declarative `ui.*` widget tree.
+- Noctalia with `plugin_api` ≥ 22.
