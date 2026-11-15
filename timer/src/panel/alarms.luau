@@ -125,7 +125,7 @@ local function alarmFormView()
         }))
     end
 
-    return ui.column({ gap = 10, align = "stretch", fill = "surface_variant/0.3", radius = 8, padding = 12 }, {
+    return ui.column({ gap = 10, align = "stretch", fill = "surface_container/0.3", radius = 8, padding = 12 }, {
         ui.label({
             text       = alarmForm.editId and tr("alarm.edit_title") or tr("alarm.add_title"),
             fontSize   = 13,

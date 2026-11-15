@@ -1,7 +1,7 @@
 id = "noctalia/timer"
 name = "Timer"
 version = "2.0.7"
-plugin_api = 22
+plugin_api = 43
 author = "noctalia"
 license = "MIT"
 dependencies = []
@@ -54,7 +54,6 @@ entry = "bar.luau"
 [[setting]]
 key = "alert_mode"
 type = "select"
-category = "Alerts"
 label_key = "settings.alert_mode.label"
 description_key = "settings.alert_mode.description"
 default = "both"
@@ -67,7 +66,6 @@ options = [
 [[setting]]
 key = "ring_timeout"
 type = "int"
-category = "Alerts"
 label_key = "settings.ring_timeout.label"
 description_key = "settings.ring_timeout.description"
 default = 120
@@ -77,7 +75,6 @@ max = 1800
 [[setting]]
 key = "alarm_missed_grace"
 type = "int"
-category = "Alerts"
 label_key = "settings.alarm_missed_grace.label"
 description_key = "settings.alarm_missed_grace.description"
 default = 10
@@ -89,7 +86,6 @@ max = 1440
 [[setting]]
 key = "pomo_alert_mode"
 type = "select"
-category = "Pomodoro"
 label_key = "settings.pomo_alert_mode.label"
 description_key = "settings.pomo_alert_mode.description"
 default = "inherit"
@@ -103,7 +99,6 @@ options = [
 [[setting]]
 key = "pomo_work"
 type = "int"
-category = "Pomodoro"
 label_key = "settings.pomo_work.label"
 description_key = "settings.pomo_work.description"
 default = 25
@@ -113,7 +108,6 @@ max = 240
 [[setting]]
 key = "pomo_short_break"
 type = "int"
-category = "Pomodoro"
 label_key = "settings.pomo_short_break.label"
 description_key = "settings.pomo_short_break.description"
 default = 5
@@ -123,7 +117,6 @@ max = 240
 [[setting]]
 key = "pomo_long_break"
 type = "int"
-category = "Pomodoro"
 label_key = "settings.pomo_long_break.label"
 description_key = "settings.pomo_long_break.description"
 default = 15
@@ -133,7 +126,6 @@ max = 240
 [[setting]]
 key = "pomo_sessions"
 type = "int"
-category = "Pomodoro"
 label_key = "settings.pomo_sessions.label"
 description_key = "settings.pomo_sessions.description"
 default = 4
@@ -143,7 +135,6 @@ max = 12
 [[setting]]
 key = "pomo_auto_start"
 type = "bool"
-category = "Pomodoro"
 label_key = "settings.pomo_auto_start.label"
 description_key = "settings.pomo_auto_start.description"
 default = false

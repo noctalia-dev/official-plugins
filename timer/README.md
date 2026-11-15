@@ -37,7 +37,15 @@ All desktop widgets reflect live state from the headless service and display an 
 
 ---
 
-## IPC
+## Usage
+
+Open the panel from a keybind or script:
+
+```sh
+noctalia msg panel-toggle noctalia/timer:panel
+```
+
+### IPC
 
 Every command is `<mode> <action> [args]`:
 
@@ -77,6 +85,45 @@ noctalia msg plugin noctalia/timer:timer all ring stop
 - Clicking while an alert rings immediately stops the sound and opens the panel.
 
 ---
+
+## Settings
+
+Per-widget settings are set in the widget's own settings; the rest are plugin-wide.
+
+### Bar Widget Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `bar_display_mode` | Smart Auto | Smart Auto (`smart`) or Show All Active (`all`) |
+| `priority_order` | T > S > P | Priority ordering for Smart Auto mode |
+| `show_time` | On | Show live time next to the bar icon |
+
+### Desktop Widget Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `mode` | `timer` | Display mode for `desktop`: `timer`, `stopwatch`, `pomodoro`, `smart` |
+| `color` | `primary` | Accent color role for time and progress |
+| `show_progress` | `true` | Show progress bar |
+| `show_flags` | `false`/`true` | Show latest lap or flag |
+| `show_dots` | `true` | Show Pomodoro stage indicator dots |
+
+### Plugin Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `alert_mode` | Both | Notification (`notify`), looping sound (`sound`), or both |
+| `ring_timeout` | 120 | Silence a ring automatically after this long; `0` = never |
+| `alarm_missed_grace` | 10 min | An alarm found later than this is reported as missed instead of ringing; `0` = always ring |
+| `pomo_alert_mode` | Inherit | Use a different alert mode for Pomodoro |
+| `pomo_work` | 25 min | Focus duration (1-240 min) |
+| `pomo_short_break` | 5 min | Short break length (1-240 min) |
+| `pomo_long_break` | 15 min | Long break at end of a cycle (0 = disabled, max 240) |
+| `pomo_sessions` | 4 | Focus sessions per cycle (1-12) |
+| `pomo_auto_start` | Off | Start the next stage automatically once the alert is dismissed |
+
+---
+
 ## Requirements
 
-- Noctalia with `plugin_api` ≥ 22.
+- Noctalia with `plugin_api` ≥ 43.
