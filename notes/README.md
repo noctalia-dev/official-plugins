@@ -30,6 +30,14 @@ directory you control - yours to sync, edit externally, and grep.
 A pinned **Scratchpad** note always sits at the top of the list - the place to
 dump text instantly without naming anything.
 
+Notes are plain files, so another editor, a sync tool or a script can change
+them while the panel is open. With `watch` on (the default) the panel checks
+the folder about once a second and folds those changes into the editor: new,
+renamed and deleted notes show up in the list right away, an appended edit is
+merged with what you are typing, and when both sides changed the same note in
+incompatible ways nothing is overwritten - the panel tells you and saves your
+unsaved text as a copy in the `.conflicts` folder inside the notes directory.
+
 The panel close button respects `shell.show_close_buttons`; if the setting is
 missing, the button stays visible. Requires plugin API 26.
 
@@ -77,6 +85,7 @@ context switches the open panel in place.
 | `notes_dir` | `folder` | `$XDG_DOCUMENTS_DIR/Notes` | Where the note files live. `$XDG_DOCUMENTS_DIR` expands to your localized Documents folder, or `~/Documents` if none is set. If that folder has no `Notes` yet but `~/Documents/Notes` (the pre-1.1.0 default) exists, the old folder keeps being used. Created on first open if missing. |
 | `extension` | `string` | `md` | Comma-separated extensions for note files, without the dot (e.g. `md, txt, org`). Only files with these extensions are listed. New notes and the scratchpad use the first one; renaming a note keeps its extension. |
 | `glyph` | `glyph` | `notes` | Bar widget icon. |
+| `watch` | `boolean` | `true` | Check the notes folder for outside changes and merge them into the open note instead of overwriting your text. |
 
 ## Notes
 

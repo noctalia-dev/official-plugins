@@ -29,7 +29,13 @@
     "notes_dir": {
       "description": "Where note files are stored",
       "label": "Notes Directory"
+    },
+    "watch": {
+      "label": "Watch for outside changes",
+      "description": "Detect external edits and refresh or preserve your changes."
     }
   },
-  "title": "Notes"
+  "title": "Notes",
+  "conflict": "The note changed outside the editor; your version was not overwritten.",
+  "conflict_saved": "A copy of your unsaved text was saved in the .conflicts folder."
 }
