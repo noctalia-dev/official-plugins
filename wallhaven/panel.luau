@@ -36,6 +36,18 @@ local previewPath = nil -- its full image, once downloaded
 local previewProgress = 0 -- 0..1 while downloading
 local previewTickMs = 0
 local applying = false
+local fitEnabled = false
+local cropX = 0.5
+local cropY = 0.5
+local cropDragX = 0
+local cropDragY = 0
+local cropDragging = false
+local cropSession = 0
+local cropProducerActive = false
+local cropProducerStartedAt = 0
+local previewStreaming = false
+local previewImageW = nil
+local previewImageH = nil
 
 local puritySfw = true
 local puritySketchy = false
@@ -428,6 +440,244 @@ local function fileExtension(wallpaper)
   return ".jpg"
 end
 
+local function focusedOutputSize()
+  local outputs = noctalia.outputs()
+  if type(outputs) ~= "table" then
+    return nil
+  end
+  local focusedName = noctalia.focusedOutputName()
+  local fallback = nil
+  for _, output in ipairs(outputs) do
+    if output.focused then
+      return output.width, output.height
+    end
+    if fallback == nil then
+      fallback = output
+    end
+  end
+  if focusedName ~= nil then
+    for _, output in ipairs(outputs) do
+      if output.name == focusedName then
+        return output.width, output.height
+      end
+    end
+  end
+  if fallback ~= nil then
+    return fallback.width, fallback.height
+  end
+  return nil
+end
+
+local function clamp(value, low, high)
+  if value < low then
+    return low
+  end
+  if value > high then
+    return high
+  end
+  return value
+end
+
+local function cropImageRect()
+  local imageWidth, imageHeight = previewImageW, previewImageH
+  if imageWidth == nil or imageHeight == nil then
+    return nil
+  end
+  local width = PANEL_WIDTH - PANEL_PADDING
+  local height = PREVIEW_HEIGHT
+  local scale = math.min(width / imageWidth, height / imageHeight)
+  local displayWidth = imageWidth * scale
+  local displayHeight = imageHeight * scale
+  return (width - displayWidth) / 2, (height - displayHeight) / 2, displayWidth, displayHeight
+end
+
+local function cropBoxNormalized()
+  local imageWidth, imageHeight = previewImageW, previewImageH
+  local monitorWidth, monitorHeight = focusedOutputSize()
+  if imageWidth == nil or imageHeight == nil or monitorWidth == nil or monitorHeight == nil then
+    return nil
+  end
+  local scale = math.min(1, imageWidth / monitorWidth, imageHeight / monitorHeight)
+  return (monitorWidth * scale) / imageWidth, (monitorHeight * scale) / imageHeight
+end
+
+local function clampCropCenter()
+  local boxWidth, boxHeight = cropBoxNormalized()
+  if boxWidth == nil or boxHeight == nil then
+    return
+  end
+  local minX = math.min(0.5, boxWidth / 2)
+  local maxX = math.max(0.5, 1 - boxWidth / 2)
+  local minY = math.min(0.5, boxHeight / 2)
+  local maxY = math.max(0.5, 1 - boxHeight / 2)
+  cropX = clamp(cropX, minX, maxX)
+  cropY = clamp(cropY, minY, maxY)
+end
+
+local function cropRect()
+  local imageWidth, imageHeight = previewImageW, previewImageH
+  local monitorWidth, monitorHeight = focusedOutputSize()
+  if imageWidth == nil or imageHeight == nil or monitorWidth == nil or monitorHeight == nil then
+    return nil
+  end
+  local scale = math.min(1, imageWidth / monitorWidth, imageHeight / monitorHeight)
+  local width = math.floor(monitorWidth * scale + 0.5)
+  local height = math.floor(monitorHeight * scale + 0.5)
+  width = math.max(1, math.min(width, imageWidth))
+  height = math.max(1, math.min(height, imageHeight))
+  local x = math.floor(cropX * imageWidth - width / 2 + 0.5)
+  local y = math.floor(cropY * imageHeight - height / 2 + 0.5)
+  x = math.max(0, math.min(x, imageWidth - width))
+  y = math.max(0, math.min(y, imageHeight - height))
+  return x, y, width, height, monitorWidth, monitorHeight
+end
+
+local function cropDirectory()
+  local stateHome = noctalia.getenv("XDG_STATE_HOME") or ((noctalia.getenv("HOME") or "") .. "/.local/state")
+  return stateHome .. "/noctalia/wallhaven/crop"
+end
+
+local function cropSocketPath()
+  local id = if preview ~= nil then preview.id else "idle"
+  return `{cropDirectory()}/stream-{id}-{cropSession}.sock`
+end
+
+local function cropStatePath()
+  local id = if preview ~= nil then preview.id else "idle"
+  return `{cropDirectory()}/state-{id}-{cropSession}.json`
+end
+
+local function writeCropState()
+  if preview == nil or previewImageW == nil or previewImageH == nil then
+    return
+  end
+  noctalia.mkdirAll(cropDirectory())
+  local monitorWidth, monitorHeight = focusedOutputSize()
+  local data = noctalia.json.encode({
+    fit = fitEnabled,
+    cx = cropX,
+    cy = cropY,
+    monitorWidth = monitorWidth or 0,
+    monitorHeight = monitorHeight or 0,
+  })
+  if data ~= nil then
+    noctalia.writeFile(cropStatePath(), data)
+  end
+end
+
+local function stopCropProducer()
+  cropProducerActive = false
+  if preview == nil then
+    return
+  end
+  local data = noctalia.json.encode({ quit = true })
+  if data ~= nil then
+    noctalia.mkdirAll(cropDirectory())
+    noctalia.writeFile(cropStatePath(), data)
+  end
+end
+
+local function startCropProducer()
+  if previewPath == nil or previewImageW == nil or previewImageH == nil then
+    return
+  end
+  if not noctalia.commandExists("python3") or not noctalia.commandExists("magick") then
+    return
+  end
+  cropSession += 1
+  cropProducerActive = true
+  cropProducerStartedAt = noctalia.nowMs()
+  writeCropState()
+  local script = (noctalia.pluginDir() or "") .. "/crop_stream.py"
+  -- Detached: this process lives as long as the preview. Passing a callback
+  -- would make runAsync wait and kill it at the command timeout.
+  local started = noctalia.runAsync({
+    "python3",
+    script,
+    "--socket", cropSocketPath(),
+    "--state", cropStatePath(),
+    "--image", previewPath,
+    "--image-width", tostring(previewImageW),
+    "--image-height", tostring(previewImageH),
+    "--width", tostring(PANEL_WIDTH - PANEL_PADDING),
+    "--height", tostring(PREVIEW_HEIGHT),
+  })
+  if not started then
+    cropProducerActive = false
+  end
+end
+
+local function ensureCropProducer()
+  if cropProducerActive then
+    -- A missing socket right after launch means the producer is still loading
+    -- the image. Only replace a producer that has had time to start and whose
+    -- socket is gone (idle exit or crash).
+    if noctalia.fileExists(cropSocketPath()) or noctalia.nowMs() - cropProducerStartedAt < 5000 then
+      writeCropState()
+      return
+    end
+    cropProducerActive = false
+  end
+  startCropProducer()
+end
+
+local function pointerToImage(normX, normY)
+  local displayX, displayY, displayWidth, displayHeight = cropImageRect()
+  if displayX == nil then
+    return nil
+  end
+  local x = (tonumber(normX) or 0) * (PANEL_WIDTH - PANEL_PADDING)
+  local y = (tonumber(normY) or 0) * PREVIEW_HEIGHT
+  return (x - displayX) / displayWidth, (y - displayY) / displayHeight
+end
+
+function onCropDown(normX, normY)
+  if not fitEnabled or previewPath == nil then
+    return
+  end
+  local x, y = pointerToImage(normX, normY)
+  if x == nil then
+    return
+  end
+  local boxWidth, boxHeight = cropBoxNormalized()
+  if boxWidth ~= nil
+      and math.abs(x - cropX) <= boxWidth / 2
+      and math.abs(y - cropY) <= boxHeight / 2 then
+    cropDragX = cropX - x
+    cropDragY = cropY - y
+  else
+    cropDragX = 0
+    cropDragY = 0
+    cropX = clamp(x, 0, 1)
+    cropY = clamp(y, 0, 1)
+    clampCropCenter()
+    writeCropState()
+  end
+  cropDragging = true
+end
+
+function onCropMove(normX, normY)
+  if not cropDragging or not fitEnabled then
+    return
+  end
+  local x, y = pointerToImage(normX, normY)
+  if x == nil then
+    return
+  end
+  cropX = clamp(x + cropDragX, 0, 1)
+  cropY = clamp(y + cropDragY, 0, 1)
+  clampCropCenter()
+  writeCropState()
+end
+
+function onCropUp(_normX, _normY)
+  cropDragging = false
+end
+
+function onCropCancel()
+  cropDragging = false
+end
+
 local function findWallpaper(id)
   for _, wallpaper in wallpapers do
     if wallpaper.id == id then
@@ -445,11 +695,15 @@ local function closePreview()
   if preview == nil or applying then
     return
   end
+  stopCropProducer()
   if previewPath ~= nil then
     noctalia.removeFile(previewPath)
   end
   preview = nil
   previewPath = nil
+  previewImageW = nil
+  previewImageH = nil
+  cropDragging = false
 end
 
 openPreview = function(id)
@@ -464,6 +718,20 @@ openPreview = function(id)
   preview = wallpaper
   previewPath = nil
   previewProgress = 0
+  previewImageW = nil
+  previewImageH = nil
+  cropX = 0.5
+  cropY = 0.5
+  cropDragging = false
+  fitEnabled = false
+  previewStreaming = false
+  if type(wallpaper.resolution) == "string" then
+    local width, height = wallpaper.resolution:match("^(%d+)x(%d+)$")
+    if width ~= nil and height ~= nil then
+      previewImageW = tonumber(width)
+      previewImageH = tonumber(height)
+    end
+  end
   render()
 
   local started = noctalia.download(imageUrl, dest, function(ok)
@@ -473,6 +741,18 @@ openPreview = function(id)
     end
     if ok then
       previewPath = dest
+      noctalia.runAsync({ "magick", "identify", "-format", "%w %h", dest }, function(res)
+        if previewPath ~= dest or res == nil or res.exitCode ~= 0 then
+          return
+        end
+        local width, height = res.stdout:match("(%d+)%s+(%d+)")
+        if width ~= nil and height ~= nil then
+          previewImageW = tonumber(width)
+          previewImageH = tonumber(height)
+          ensureCropProducer()
+          render()
+        end
+      end)
     else
       closePreview()
       noctalia.notifyError(tr("title"), tr("download_failed"))
@@ -706,15 +986,32 @@ local function wallpaperGrid()
 end
 
 local function previewView()
+  local media
+  if previewStreaming and previewPath ~= nil and previewImageW ~= nil and previewImageH ~= nil then
+    media = ui.pixelStream({
+      key = "crop_preview",
+      width = PANEL_WIDTH - PANEL_PADDING,
+      height = PREVIEW_HEIGHT,
+      path = cropSocketPath(),
+      radius = 0,
+      onPointerDown = "onCropDown",
+      onPointerMove = "onCropMove",
+      onPointerUp = "onCropUp",
+      onPointerCancel = "onCropCancel",
+    })
+  else
+    media = ui.image({
+      width = PANEL_WIDTH - PANEL_PADDING,
+      height = PREVIEW_HEIGHT,
+      path = previewPath or thumbPaths[preview.id],
+      fit = "contain",
+    })
+  end
+
   return ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, {
     -- Scrolls when a short screen shrinks the panel, so the buttons stay reachable.
     ui.scroll({ flexGrow = 1 }, {
-      ui.image({
-        width = PANEL_WIDTH - PANEL_PADDING,
-        height = PREVIEW_HEIGHT,
-        path = previewPath or thumbPaths[preview.id],
-        fit = "contain",
-      }),
+      media,
     }),
     ui.row({ align = "center", justify = "space_between", gap = 8 }, {
       ui.button({
@@ -738,14 +1035,25 @@ local function previewView()
           }),
         })
       else
-        ui.label({ text = preview.resolution or preview.id, color = "on_surface_variant" }),
-      ui.button({
-        key = "preview_apply",
-        text = tr("preview_apply"),
-        variant = "primary",
-        onClick = "onPreviewApply",
-        enabled = previewPath ~= nil and not applying,
-      }),
+        ui.row({ align = "center", justify = "end", gap = 8, flexGrow = 1 }, {
+          ui.label({ text = preview.resolution or preview.id, color = "on_surface_variant" }),
+          ui.button({
+            key = "preview_fit",
+            text = tr("preview_fit"),
+            variant = if fitEnabled then "primary" else "outline",
+            selected = fitEnabled,
+            tooltip = tr("preview_fit_tooltip"),
+            onClick = "onPreviewFitToggle",
+            enabled = previewPath ~= nil and not applying and previewImageW ~= nil,
+          }),
+          ui.button({
+            key = "preview_apply",
+            text = tr("preview_apply"),
+            variant = "primary",
+            onClick = "onPreviewApply",
+            enabled = previewPath ~= nil and not applying,
+          }),
+        }),
     }),
   })
 end
@@ -884,30 +1192,80 @@ function onPreviewBack()
   render()
 end
 
-function onPreviewApply()
+local function applyPreview()
   if applying or previewPath == nil then
     return
   end
   applying = true
   render()
 
+  local function finishApply(dest)
+    noctalia.setWallpaper(dest)
+    stopCropProducer()
+    preview = nil
+    previewPath = nil
+    previewImageW = nil
+    previewImageH = nil
+    noctalia.notify(tr("title"), tr("applied"))
+    render()
+  end
+
   local destDir = downloadDir()
   local dest = `{destDir}/wallhaven-{preview.id}{fileExtension(preview)}`
-  -- mv, not noctalia.renameFile: the wallpaper directory can be on another filesystem.
-  noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && mv -f {shellQuote(previewPath)} {shellQuote(dest)}`, function(res)
+  if not fitEnabled then
+    -- mv, not noctalia.renameFile: the wallpaper directory can be on another filesystem.
+    noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && mv -f {shellQuote(previewPath)} {shellQuote(dest)}`, function(res)
+      applying = false
+      if res == nil or res.exitCode ~= 0 then
+        noctalia.notifyError(tr("title"), tr("apply_failed"))
+        render()
+        return
+      end
+      finishApply(dest)
+    end)
+    return
+  end
+
+  local x, y, width, height, monitorWidth, monitorHeight = cropRect()
+  if x == nil then
+    applying = false
+    noctalia.notifyError(tr("title"), tr("fit_failed"))
+    render()
+    return
+  end
+  local geometry = `{width}x{height}+{x}+{y}`
+  local resolution = `{monitorWidth}x{monitorHeight}`
+  -- A fitted crop gets its own file name, so re-applying the same wallpaper
+  -- in either mode changes the path and makes Noctalia reload the wallpaper.
+  dest = `{destDir}/wallhaven-{preview.id}-fit-{width}x{height}-{x}-{y}{fileExtension(preview)}`
+  noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && magick {shellQuote(previewPath)} -crop {geometry} +repage -resize {resolution}! {shellQuote(dest)}`, function(res)
     applying = false
     if res == nil or res.exitCode ~= 0 then
-      noctalia.notifyError(tr("title"), tr("apply_failed"))
+      noctalia.notifyError(tr("title"), tr("fit_failed"))
       render()
       return
     end
+    noctalia.removeFile(previewPath)
+    finishApply(dest)
+  end, 30000)
+end
 
-    noctalia.setWallpaper(dest)
-    preview = nil
-    previewPath = nil
-    noctalia.notify(tr("title"), tr("applied"))
-    render()
-  end)
+function onPreviewApply()
+  applyPreview()
+end
+
+function onPreviewFitToggle()
+  if previewPath == nil or applying then
+    return
+  end
+  fitEnabled = not fitEnabled
+  if fitEnabled then
+    previewStreaming = true
+  end
+  if previewStreaming then
+    ensureCropProducer()
+  end
+  render()
 end
 
 function onSearchChange(value)

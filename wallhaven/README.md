@@ -18,7 +18,8 @@ Browse [Wallhaven](https://wallhaven.cc), preview a wallpaper at full size, then
    noctalia msg panel-toggle noctalia/wallhaven:browser
    ```
 
-3. Search by tags, adjust category and purity filters, paginate results (or click the page counter, type a page number, and press Enter), then click a wallpaper to preview it. **Apply** saves it and sets it as your wallpaper; **Back** discards it.
+3. Search by tags, adjust category and purity filters, paginate results (or click the page counter, type a page number, and press Enter), then click a wallpaper to preview it. **Apply** saves the full-resolution image and sets it as your wallpaper; **Back** discards it.
+4. Toggle **Fit** to show the full image with a highlighted monitor-aspect box. Drag the box over the part you want to keep, then press **Apply**: the plugin crops that area and saves it at the focused monitor's resolution. The box is capped at the monitor's native size, so on larger images it can be moved in both directions. Toggle **Fit** off to return to the normal full-image preview.
 
 ## Settings
 
@@ -27,11 +28,16 @@ Browse [Wallhaven](https://wallhaven.cc), preview a wallpaper at full size, then
 | `api_key` | `string` | *(empty)* | Optional Wallhaven API key for higher rate limits and NSFW access. |
 | `download_dir` | `folder` | *(empty)* | Optional download override; defaults to your configured wallpaper directory. |
 
-Thumbnails are cached under `$XDG_STATE_HOME/noctalia/wallhaven/thumbs` (`~/.local/state/noctalia/wallhaven/thumbs` by default). The full image being previewed is kept there too, until you apply or discard it; one left behind by a crash or reload is removed the next time the panel opens.
+Thumbnails are cached under `$XDG_STATE_HOME/noctalia/wallhaven/thumbs` (`~/.local/state/noctalia/wallhaven/thumbs` by default). The full image being previewed is kept there too, until you apply or discard it; one left behind by a crash or reload is removed the next time the panel opens. With **Fit** enabled, the saved file is the selected crop at the monitor resolution; the original full-size download is only used for the preview and is removed after a successful save.
+
+## Requirements
+
+- `python3` — runs `crop_stream.py`, which draws the draggable crop box over the preview.
+- `imagemagick` — crops and resizes the selected area when **Fit** is enabled.
 
 ## Notes
 
-- Requires plugin API 26.
+- Requires plugin API 43.
 - The panel close button respects `shell.show_close_buttons`; if the setting is missing, the button remains visible.
 - Requires network access (`[shell].offline_mode` must be off).
 - NSFW results require a Wallhaven API key.
