@@ -7,7 +7,7 @@ license = "MIT"
 dependencies = ["python3", "imagemagick"]
 tags = ["wallpaper"]
 icon = "photo"
-description = "Browse Wallhaven wallpapers."
+description = "Browse Wallhaven wallpapers with a draggable fit-to-monitor crop."
 
 [[setting]]
 key = "api_key"
