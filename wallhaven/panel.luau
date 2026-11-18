@@ -74,13 +74,15 @@ local needsInitialFetch = false
 local render
 local fetchWallpapers
 local openPreview
+local focusedOutputSize
+local parsePositiveInt
 
 local sortOptions = { "relevance", "random", "date_added", "views", "favorites", "toplist", "hot" }
 local sortIndex = 2
 local sortOrder = "desc"
 
-local function tr(key)
-  return noctalia.tr(key)
+local function tr(key, subst)
+  return noctalia.tr(key, subst)
 end
 
 local function sortLabelList()
@@ -155,6 +157,10 @@ local function sortValue()
   return sortOptions[sortIndex + 1] or "date_added"
 end
 
+local function sortIsRandom()
+  return sortValue() == "random"
+end
+
 -- Wallhaven returns an empty first page for relevance when no search query is set.
 local function relevanceWithoutQuery()
   return sortValue() == "relevance" and noctalia.string.trim(query) == ""
@@ -177,6 +183,7 @@ end
 local function aspectRatioOptions()
   return {
     "",
+    "mine",
     "wide",
     "portrait",
     "16x9",
@@ -194,9 +201,60 @@ local function aspectRatioOptions()
   }
 end
 
+local function aspectRatioOption()
+  return aspectRatioOptions()[aspectRatioIndex + 1] or ""
+end
+
+local function monitorAspectRatioStandard()
+  local width, height = focusedOutputSize()
+  if width == nil or height == nil then
+    return nil
+  end
+  local ratio = width / height
+  local standards = {
+    { 16, 9 },
+    { 16, 10 },
+    { 21, 9 },
+    { 32, 9 },
+    { 48, 9 },
+    { 9, 16 },
+    { 10, 16 },
+    { 9, 18 },
+    { 1, 1 },
+    { 3, 2 },
+    { 4, 3 },
+    { 5, 4 },
+  }
+  local bestWidth, bestHeight, bestDiff = nil, nil, nil
+  for _, standard in ipairs(standards) do
+    local diff = math.abs(ratio - standard[1] / standard[2])
+    if bestDiff == nil or diff < bestDiff then
+      bestWidth, bestHeight, bestDiff = standard[1], standard[2], diff
+    end
+  end
+  if bestWidth ~= nil and bestDiff <= 0.12 then
+    return `{bestWidth}x{bestHeight}`
+  end
+  local a, b = width, height
+  while b ~= 0 do
+    a, b = b, a % b
+  end
+  local divisor = math.max(1, a)
+  return `{math.floor(width / divisor)}x{math.floor(height / divisor)}`
+end
+
+local function monitorAspectRatioLabel()
+  local ratio = monitorAspectRatioStandard()
+  if ratio == nil then
+    return tr("ratio_mine_unknown")
+  end
+  return tr("ratio_mine", { ratio = ratio:gsub("x", ":") })
+end
+
 local function aspectRatioLabelList()
   return {
     tr("ratio_any"),
+    monitorAspectRatioLabel(),
     tr("ratio_wide"),
     tr("ratio_portrait"),
     "16:9",
@@ -214,27 +272,85 @@ local function aspectRatioLabelList()
   }
 end
 
+local function aspectRatioFilterValue()
+  if aspectRatioOption() == "mine" then
+    local width, height = focusedOutputSize()
+    if width ~= nil and height ~= nil then
+      return `{width}x{height}`
+    end
+    return ""
+  end
+  return aspectRatioOption()
+end
+
 local function aspectRatioParamValue()
-  local ratios = aspectRatioOptions()
-  local ratio = ratios[aspectRatioIndex + 1] or ""
+  local ratio = aspectRatioOption()
   if ratio == "" then return nil end
+  if ratio == "mine" then return monitorAspectRatioStandard() end
   if ratio == "wide" then return "landscape" end
   if ratio == "portrait" then return "portrait" end
   return ratio
 end
 
+local function aspectRatioTolerance()
+  return if aspectRatioOption() == "mine" then 0.08 else 0.05
+end
+
+local function monitorResolutionText()
+  local width, height = focusedOutputSize()
+  if width == nil or height == nil then
+    return nil
+  end
+  return `{width}x{height}`
+end
+
+local function monitorResolutionLabel()
+  local resolution = monitorResolutionText()
+  if resolution == nil then
+    return tr("resolution_mode_mine_unknown")
+  end
+  return tr("resolution_mode_mine", { resolution = resolution })
+end
+
+local function monitorAtLeastResolutionLabel()
+  local resolution = monitorResolutionText()
+  if resolution == nil then
+    return tr("resolution_mode_mine_unknown")
+  end
+  return tr("resolution_mode_atleast_mine", { resolution = resolution })
+end
+
+local function resolutionUsesMonitor()
+  return resolutionMode == "mine" or resolutionMode == "atleast_mine"
+end
+
 local function resolutionModeOptions()
-  return { "atleast", "exact" }
+  return { "atleast", "exact", "mine", "atleast_mine" }
 end
 
 local function resolutionModeLabelList()
   return {
     tr("resolution_mode_atleast"),
     tr("resolution_mode_exact"),
+    monitorResolutionLabel(),
+    monitorAtLeastResolutionLabel(),
   }
 end
 
-local function parsePositiveInt(s)
+local function resolutionModeIndex()
+  if resolutionMode == "exact" then
+    return 1
+  end
+  if resolutionMode == "mine" then
+    return 2
+  end
+  if resolutionMode == "atleast_mine" then
+    return 3
+  end
+  return 0
+end
+
+parsePositiveInt = function(s)
   local n = tonumber(s)
   if n == nil or n < 1 or math.floor(n) ~= n then
     return nil
@@ -243,6 +359,17 @@ local function parsePositiveInt(s)
 end
 
 local function buildResolutionParam()
+  if resolutionUsesMonitor() then
+    local monitorWidth, monitorHeight = focusedOutputSize()
+    if monitorWidth ~= nil and monitorHeight ~= nil then
+      local resolution = `{monitorWidth}x{monitorHeight}`
+      if resolutionMode == "atleast_mine" then
+        return "atleast", resolution
+      end
+      return "resolutions", resolution
+    end
+    return nil, nil
+  end
   local w = parsePositiveInt(resolutionWidth)
   local h = parsePositiveInt(resolutionHeight)
   if w ~= nil and h ~= nil then
@@ -278,7 +405,43 @@ local function filterGroup(title, content, flexGrow)
 end
 
 local function filtersPanel()
-  return ui.column({ gap = 12, align = "stretch" }, {
+  local resolutionControls = {
+    ui.select({
+      -- Recreate the select when its width mode changes; otherwise the widget
+      -- keeps the expanded width after switching back from a monitor mode.
+      key = if resolutionUsesMonitor() then "resolution_mode_mine" else "resolution_mode_compact",
+      options = resolutionModeLabelList(),
+      selectedIndex = resolutionModeIndex(),
+      onChange = "onResolutionModeChange",
+      width = if resolutionUsesMonitor() then nil else 210,
+      flexGrow = if resolutionUsesMonitor() then 1 else 0,
+    }),
+  }
+  if not resolutionUsesMonitor() then
+    table.insert(resolutionControls, ui.input({
+      key = `resolution_width_{clearCounter}`,
+      placeholder = tr("resolution_width_placeholder"),
+      value = resolutionWidth,
+      onChange = "onResolutionWidthChange",
+      onSubmit = "onResolutionWidthSubmit",
+      flexGrow = 1,
+    }))
+    table.insert(resolutionControls, ui.label({
+      text = "×",
+      fontSize = 14,
+      color = "on_surface_variant",
+    }))
+    table.insert(resolutionControls, ui.input({
+      key = `resolution_height_{clearCounter}`,
+      placeholder = tr("resolution_height_placeholder"),
+      value = resolutionHeight,
+      onChange = "onResolutionHeightChange",
+      onSubmit = "onResolutionHeightSubmit",
+      flexGrow = 1,
+    }))
+  end
+
+  local rows = {
     ui.row({ gap = 16, align = "center" }, {
       filterGroup(tr("filter_categories"), ui.row({ gap = 6, align = "center" }, {
         filterChip(tr("category_general"), categoryGeneral, "onCategoryGeneral", "filter_cat_general"),
@@ -300,8 +463,8 @@ local function filtersPanel()
         }),
         ui.button({
           key = "sort_order",
-          glyph = if sortOrder == "desc" then "arrow-down" else "arrow-up",
-					tooltip = if sortOrder == "desc" then tr("sort_desc") else tr("sort_asc"),
+          glyph = if sortIsRandom() then "arrows-shuffle" elseif sortOrder == "desc" then "arrow-down" else "arrow-up",
+          tooltip = if sortIsRandom() then tr("sort_shuffle") elseif sortOrder == "desc" then tr("sort_desc") else tr("sort_asc"),
           variant = "outline",
           onClick = "onToggleSortOrder",
         }),
@@ -314,39 +477,10 @@ local function filtersPanel()
           options = aspectRatioLabelList(),
           selectedIndex = aspectRatioIndex,
           onChange = "onAspectRatioChange",
-          width = 260,
+          width = 210,
         })
       })),
-      filterGroup(tr("filter_resolution"), ui.row({ gap = 8, align = "center", flexGrow = 1 }, {
-        ui.select({
-          key = "resolution_mode",
-          options = resolutionModeLabelList(),
-          selectedIndex = if resolutionMode == "exact" then 1 else 0,
-          onChange = "onResolutionModeChange",
-          width = 180,
-        }),
-        ui.input({
-          key = `resolution_width_{clearCounter}`,
-          placeholder = tr("resolution_width_placeholder"),
-          value = resolutionWidth,
-          onChange = "onResolutionWidthChange",
-          onSubmit = "onResolutionWidthSubmit",
-          flexGrow = 1,
-        }),
-        ui.label({
-          text = "×",
-          fontSize = 14,
-          color = "on_surface_variant",
-        }),
-        ui.input({
-          key = `resolution_height_{clearCounter}`,
-          placeholder = tr("resolution_height_placeholder"),
-          value = resolutionHeight,
-          onChange = "onResolutionHeightChange",
-          onSubmit = "onResolutionHeightSubmit",
-          flexGrow = 1,
-        }),
-      }), 1),
+      filterGroup(tr("filter_resolution"), ui.row({ gap = 8, align = "center", flexGrow = 1 }, resolutionControls), 1),
       ui.button({
         key = "clear_resolution",
         text = tr("clear_resolution"),
@@ -354,7 +488,9 @@ local function filtersPanel()
         onClick = "onClearResolution",
       }),
     }),
-  })
+  }
+
+  return ui.column({ gap = 12, align = "stretch" }, rows)
 end
 
 local function httpHeaders()
@@ -440,7 +576,7 @@ local function fileExtension(wallpaper)
   return ".jpg"
 end
 
-local function focusedOutputSize()
+focusedOutputSize = function()
   local outputs = noctalia.outputs()
   if type(outputs) ~= "table" then
     return nil
@@ -836,8 +972,8 @@ fetchWallpapers = function()
     end
 
     local filteredWallpapers = {}
-    local options = aspectRatioOptions()
-    local selectedRatio = options[aspectRatioIndex + 1] or ""
+    local selectedRatio = aspectRatioFilterValue()
+    local ratioTolerance = aspectRatioTolerance()
 
     for _, wallpaper in ipairs(data) do
       local include = true
@@ -861,7 +997,7 @@ fetchWallpapers = function()
               local rw, rh = selectedRatio:match("(%d+)x(%d+)")
               if rw and rh then
                 local targetRatio = tonumber(rw) / tonumber(rh)
-                if math.abs(ratio - targetRatio) > 0.05 then
+                if math.abs(ratio - targetRatio) > ratioTolerance then
                   include = false
                 end
               end
@@ -1340,6 +1476,10 @@ function onSort(index, _text)
 end
 
 function onToggleSortOrder()
+  if sortIsRandom() then
+    persistAndRefetch()
+    return
+  end
   sortOrder = if sortOrder == "desc" then "asc" else "desc"
   persistAndRefetch()
 end

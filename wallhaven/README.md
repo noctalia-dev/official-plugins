@@ -18,7 +18,7 @@ Browse [Wallhaven](https://wallhaven.cc), preview a wallpaper at full size, then
    noctalia msg panel-toggle noctalia/wallhaven:browser
    ```
 
-3. Search by tags, adjust category and purity filters, paginate results (or click the page counter, type a page number, and press Enter), then click a wallpaper to preview it. **Apply** saves the full-resolution image and sets it as your wallpaper; **Back** discards it.
+3. Search by tags, adjust category and purity filters, filter by resolution or aspect ratio (including your focused monitor's resolution and aspect ratio), paginate results (or click the page counter, type a page number, and press Enter), then click a wallpaper to preview it. **Apply** saves the full-resolution image and sets it as your wallpaper; **Back** discards it.
 4. Toggle **Fit** to show the full image with a highlighted monitor-aspect box. Drag the box over the part you want to keep, then press **Apply**: the plugin crops that area and saves it at the focused monitor's resolution. The box is capped at the monitor's native size, so on larger images it can be moved in both directions. Toggle **Fit** off to return to the normal full-image preview.
 
 ## Settings
