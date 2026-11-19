@@ -727,7 +727,7 @@ local function copyItemField(itemId, fieldOverride)
   if type(fieldOverride) == "string" and fieldOverride ~= "" then
     field = fieldOverride
   end
-  if type(field) ~= "string" or field == "" then
+  if type(field) ~= "string" or field == "" or field == "pick" then
     field = "password"
   end
   local function copyFromItem()
