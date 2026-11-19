@@ -246,7 +246,14 @@ local function notifyRecordingSavedIfPresent(notifyIfMissing)
         end
 
         log(`recording saved: {savedPath}`)
-        noctalia.notify(noctalia.tr("notify.recording-saved"), savedPath)
+        noctalia.notify(noctalia.tr("notify.recording-saved"), savedPath, {
+            actions = {
+                { id = "open", label = noctalia.tr("notify.action-open") },
+                { id = "reveal", label = noctalia.tr("notify.action-show-in-folder") },
+            },
+            onAction = "onRecordingSavedAction",
+            context = savedPath,
+        })
         if cfg("copy_to_clipboard") then
             copyToClipboard(savedPath)
         end
@@ -806,6 +813,15 @@ end
 -- Re-evaluate the region overlay when settings change mid-capture.
 function onConfigChanged()
     updateRegionOverlay()
+end
+
+-- Buttons on the "Recording saved" notification; `path` is the saved file.
+function onRecordingSavedAction(actionId, path)
+    if actionId == "open" then
+        noctalia.openPath(path)
+    elseif actionId == "reveal" then
+        noctalia.revealPath(path)
+    end
 end
 
 -- The widget and shortcut drive the recorder by publishing to this channel.

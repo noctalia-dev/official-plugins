@@ -288,6 +288,15 @@ export type NoctaliaOsd = {
   show: (icon: string, value: string?, opts: OsdOptions?) -> (),
 }
 
+-- A notification button. API 56.
+export type NotifyAction = { id: string, label: string }
+
+export type NotifyOptions = {
+  actions: { NotifyAction }, -- 1..6; ids unique, "inline-reply" reserved
+  onAction: string, -- global function name, called as onAction(id, context)
+  context: (string | number | boolean)?,
+}
+
 export type Noctalia = {
   log: (msg: string) -> (),
 
@@ -333,8 +342,14 @@ export type Noctalia = {
   -- The callback receives the canonical #RRGGBB color, or nil when cancelled.
   openColorPicker: (initialColor: string, onClose: (color: string?) -> ()) -> boolean,
 
-  notify: (title: string, body: string?) -> (),
-  notifyError: (title: string, body: string?) -> (),
+  -- options (API 56) adds up to 6 buttons; onAction names a global called as
+  -- onAction(id, context) when one is clicked. Id "default" is the toast body click.
+  notify: (title: string, body: string?, options: NotifyOptions?) -> (),
+  notifyError: (title: string, body: string?, options: NotifyOptions?) -> (),
+  -- Open a file with its default app / show it selected in the file manager. Paths
+  -- resolve like readFile. Inside onAction the click's activation token is forwarded. API 56.
+  openPath: (path: string) -> (),
+  revealPath: (path: string) -> (),
 
   copyToClipboard: (text: string, mimeType: string) -> boolean,
   clipboardText: () -> string?, -- nil when empty or non-text

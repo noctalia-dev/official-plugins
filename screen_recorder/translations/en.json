@@ -1,5 +1,7 @@
 {
   "notify": {
+    "action-open": "Open",
+    "action-show-in-folder": "Show in folder",
     "launch-failed": "Could not launch gpu-screen-recorder",
     "no-monitor": "Could not detect focused monitor",
     "portal-not-running": "xdg-desktop-portal is not running",
