@@ -77,7 +77,7 @@ Open the launcher and type `/bw`:
 | **Lock vault** | Locks the local serve session |
 | **Sync vault** | Pulls latest vault data |
 | **Start bw serve** | Shown when serve is offline |
-| Vault items | Listed when unlocked. Enter opens the entry when it has custom fields (a picker panel lists every copyable field; digits 1–9/0 then letters a–z copy the numbered one), or copies the configured field (`password` by default) when it does not. The picker also has an **Autotype** button: types the username, then Tab, then the password into the previously focused window after a short delay (requires [wtype](https://github.com/atx/wtype)) |
+| Vault items | Listed when unlocked. Enter opens the entry when it has custom fields or `copy_field` is `pick` (a picker panel lists every copyable field; digits 1–9/0 then letters a–z copy the numbered one), or copies the configured field (`password` by default) when it does not. The picker also has an **Autotype** button: types the username, then Tab, then the password into the previously focused window after a short delay (requires [wtype](https://github.com/atx/wtype)) |
 
 When unlocked, `/bw` lists vault items (capped). Typing fuzzy-matches the actions and the vault items
 (name, username, or URI) and ranks them together, best match first, so `/bw unl` selects **Unlock vault**
@@ -96,7 +96,7 @@ the vault locks, a sync completes, or `/bw` is reopened.
 | `vault_timeout_custom_minutes` | int | `15` | Minutes when `vault_timeout` is `custom` (1–10080) |
 | `hide_actions_when_searching` | bool | `false` | Hide pinned actions (generate, lock, sync, etc.) once you start typing, so only vault items are matched (actions stay searchable while locked or logged out) |
 | `server_url` | string | _(empty)_ | Passed to `bw config server` before API-key login |
-| `copy_field` | select | `password` | Field to copy: password, username, totp, uri |
+| `copy_field` | select | `password` | Field to copy: password, username, totp, uri, or `pick` to open the field picker for every entry |
 | `notify_on_copy` | bool | `true` | Notify after a successful copy |
 | `clear_clipboard_seconds` | int | `0` | Clear clipboard after N seconds if unchanged (`0` = off) |
 | `gen_length` | int | `20` | Generated password length |
