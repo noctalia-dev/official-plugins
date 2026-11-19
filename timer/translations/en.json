@@ -1,36 +1,143 @@
 {
+  "alarm": {
+    "add_btn": "Add Alarm",
+    "add_title": "New Alarm",
+    "edit_title": "Edit Alarm",
+    "empty": "No alarms yet \u2014 add one with +",
+    "every_day": "Every day",
+    "label_placeholder": "Alarm label",
+    "repeat_label": "Repeat on",
+    "weekdays": "Weekdays"
+  },
+  "cancel": "Cancel",
+  "flag": "Flag",
+  "flags_label": "Flags",
+  "pause": "Pause",
+  "pomo": {
+    "loop_off": "Loop: off",
+    "loop_on": "Loop: on",
+    "reset_all": "Reset All",
+    "skip": "Skip"
+  },
+  "reset": "Reset",
+  "resume": "Resume",
+  "ring": {
+    "stop": "Stop",
+    "subtitle": "{mode} is ringing \u2014 tap Stop to silence"
+  },
+  "save": "Save",
   "settings": {
-    "alarm": {
-      "description": "Keep beeping until the timer is dismissed, ignoring the alarm duration",
-      "label": "Persistent Alarm"
+    "alarm_missed_grace": {
+      "description": "Alarms found more than this many minutes late (computer asleep or shell off) are reported as missed instead of ringing (0 = always ring)",
+      "label": "Missed alarm after"
     },
-    "alarm_duration": {
-      "description": "Seconds the alarm beeps after the timer finishes. 0 silences it.",
-      "label": "Alarm duration (seconds)"
+    "alert_mode": {
+      "description": "How finished timers and alarms alert you",
+      "label": "Global Alert Mode"
+    },
+    "bar_display_mode": {
+      "all": "Show All Active",
+      "description": "Smart shows one item; All shows every active one",
+      "label": "Bar Display Mode",
+      "smart": "Smart Auto"
     },
     "color": {
       "description": "Accent color for the time and progress bar",
       "label": "Color"
     },
-    "duration": {
-      "description": "Countdown length in seconds",
-      "label": "Duration (seconds)"
+    "desktop_mode": {
+      "description": "What this desktop widget displays",
+      "label": "Display Mode",
+      "pomo": "Pomodoro",
+      "smart": "Smart Auto",
+      "sw": "Stopwatch",
+      "timer": "Countdown Timer"
     },
-    "show_idle": {
-      "description": "Show or hide the widget when timer stopped at zero",
-      "label": "Show count when idle on horizontal bar"
+    "pomo_alert_mode": {
+      "description": "Overrides the global alert for Pomodoro",
+      "label": "Pomodoro Alert Override"
+    },
+    "pomo_auto_start": {
+      "description": "Start the next stage after the alert is dismissed",
+      "label": "Auto-start next stage"
+    },
+    "pomo_long_break": {
+      "description": "Break after the last session, in minutes (0 = no long break)",
+      "label": "Long Break"
+    },
+    "pomo_sessions": {
+      "description": "Focus sessions before the long break",
+      "label": "Focus Sessions per Cycle"
+    },
+    "pomo_short_break": {
+      "description": "Length of short breaks, in minutes",
+      "label": "Short Break"
+    },
+    "pomo_work": {
+      "description": "Length of each focus session, in minutes",
+      "label": "Focus Duration"
+    },
+    "priority_order": {
+      "description": "Smart order: T = Timer, S = Stopwatch, P = Pomodoro",
+      "label": "Priority Order",
+      "pst": "P > S > T",
+      "pts": "P > T > S",
+      "spt": "S > P > T",
+      "stp": "S > T > P",
+      "tps": "T > P > S",
+      "tsp": "T > S > P"
+    },
+    "ring_mode": {
+      "options": {
+        "both": "Both",
+        "inherit": "Inherit",
+        "notify": "Single notification",
+        "sound": "Ring until stopped"
+      }
+    },
+    "ring_timeout": {
+      "description": "Silence an undismissed ring after this many seconds (0 = never)",
+      "label": "Auto-stop after"
+    },
+    "show_dots": {
+      "description": "Show stage progress dots on Pomodoro widget",
+      "label": "Show Stage Dots"
+    },
+    "show_flags": {
+      "description": "Display latest lap or flag",
+      "label": "Show Flags / Laps"
     },
     "show_progress": {
+      "description": "Show progress bar below time display",
       "label": "Show Progress Bar"
+    },
+    "show_time": {
+      "description": "Show the time next to the icon",
+      "label": "Show time in bar"
     }
   },
+  "start": "Start",
+  "tab": {
+    "alarms": "Alarms",
+    "pomodoro": "Pomodoro",
+    "stopwatch": "Stopwatch",
+    "timer": "Timer"
+  },
+  "timer": {
+    "input_placeholder": "e.g. 2500 \u2192 25:00  or  1:30:00",
+    "set_label": "Set duration"
+  },
+  "tip": {
+    "close": "Close",
+    "copy_flags": "Copy flags to clipboard",
+    "delete": "Delete",
+    "edit": "Edit",
+    "settings": "Plugin settings"
+  },
   "ui": {
-    "duration_label": "Timer Duration",
-    "duration_placeholder": "e.g. 400 → 4:00",
-    "notify_body": "Time is up!",
-    "notify_title": "Timer",
     "pause": "Pause",
     "reset": "Reset",
+    "resume": "Resume",
     "start": "Start"
   }
 }

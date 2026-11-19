@@ -1,189 +1,154 @@
 --!nonstrict
--- Timer panel - the [[panel]] entry for duration input and controls.
+-- Timer — unified four-tab panel.
 --
--- The panel provides an interactive surface to set the countdown
--- duration via numeric input (e.g. 300 → 3:00, 10300 → 1:03:00),
--- and start/pause/reset the timer via buttons. The input is disabled
--- while the timer is running. The panel closes automatically on start.
---
---   panel.render(tree)                 declarative UI tree
---   panel.close()                       close the panel surface
---   noctalia.state.set(key, value)     send commands to service
---   noctalia.state.watch(key, fn)      react to state changes
 
-local inputDigits = ""
-local remaining = 0
-local formattedTime = "0"
-local STATE = "IDLE"
--- used to update input value programatically
-local inputKey = 0
+local common = require("./src/panel/common.luau")
+local tr = common.tr
 
-local function parseDigits(digits)
-  digits = digits:gsub("%s", "")
-  if digits == "" then
-    return 0
-  end
-  digits = digits:gsub("[^0-9]", "")
-  if digits == "" then
-    return 0
-  end
+local alarmsTab = require("./src/panel/alarms.luau")
+local stopwatchTab = require("./src/panel/stopwatch.luau")
+local timerTab = require("./src/panel/timer.luau")
+local pomodoroTab = require("./src/panel/pomodoro.luau")
 
-  local secs = 0
-  local mins = 0
-  local hours = 0
+local activeTab = "stopwatch"  -- "alarms" | "stopwatch" | "timer" | "pomodoro"
+local ringing = nil
+local isOpen = false
 
-  if #digits <= 2 then
-    secs = tonumber(digits)
-  elseif #digits <= 4 then
-    local ssStr = digits:sub(-2)
-    local mmStr = digits:sub(1, -3)
-    secs = tonumber(ssStr) or 0
-    mins = tonumber(mmStr) or 0
-  else
-    local ssStr = digits:sub(-2)
-    local mmStr = digits:sub(-4, -3)
-    local hhStr = digits:sub(1, -5)
+local render
+common.render = function() render() end
 
-    secs = math.min(59, math.max(0, tonumber(ssStr) or 0))
-    mins = math.min(59, math.max(0, tonumber(mmStr) or 0))
-    hours = math.max(0, tonumber(hhStr) or 0)
-  end
-
-  return hours * (60 ^ 2) + mins * 60 + secs
+local function tabButton(label, glyph, tab)
+    local active = activeTab == tab
+    return ui.button({
+        key     = "tab-" .. tab,
+        text    = label,
+        glyph   = glyph,
+        variant = active and "primary" or "ghost",
+        onClick = function()
+            if activeTab ~= tab then
+                activeTab = tab
+                render()
+            end
+        end,
+    })
 end
 
-local function render()
-  local remainingText = remaining > 0 and formattedTime or "--:--"
-
-  local btnText = STATE == "RUNNING" and noctalia.tr("ui.pause") or noctalia.tr("ui.start")
-  local btnVariant = STATE == "RUNNING" and "secondary" or "primary"
-
-  panel.render(ui.column({ gap = 12, padding = 16 }, {
-    ui.label({ text = noctalia.tr("ui.duration_label"), fontSize = 16, fontWeight = "bold", color = "primary" }),
-    ui.column({ gap = 8, padding = 8, fill = "surface_container/0.4", radius = 8 }, {
-      ui.row({ justify = "center" }, {
-        ui.label({
-          text = remainingText,
-          fontSize = 36,
-          fontWeight = "bold",
-          color = remaining > 0 and "primary" or "outline_variant",
+local function ringBanner()
+    if type(ringing) ~= "table" then return nil end
+    local modeLabel =
+        ringing.mode == "alarm" and tr("tab.alarms")
+        or (ringing.mode == "timer" and tr("tab.timer")
+        or (ringing.mode == "pomo" and tr("tab.pomodoro") or ""))
+    local title = (ringing.label ~= nil and ringing.label ~= "") and ringing.label or modeLabel
+    return ui.row({
+        key     = "ring-banner",
+        gap     = 10,
+        align   = "center",
+        fill    = "error/0.15",
+        radius  = 8,
+        padding = 10,
+    }, {
+        ui.glyph({ name = "alarm", color = "error", size = 20 }),
+        ui.column({ flexGrow = 1, gap = 1 }, {
+            ui.label({ text = title, fontSize = 13, fontWeight = "bold", color = "error" }),
+            ui.label({ text = tr("ring.subtitle", { mode = modeLabel }), fontSize = 10, color = "on_surface_variant" }),
         }),
-      }),
-      ui.input({
-        key = "dur-" .. inputKey,
-        value = inputDigits,
-        placeholder = noctalia.tr("ui.duration_placeholder"),
-        fontSize = 14,
-        focus = true,
-        onChange = "onInputChange",
-        onSubmit = "onInputSubmit",
-        enabled = STATE == "IDLE"
-      }),
-    }),
-    ui.row({ gap = 8, justify = "space_between" }, {
-      ui.button({
-        text = noctalia.tr("ui.reset"),
-        variant = "destructive",
-        onClick = "onReset",
-      }),
-      ui.button({
-        text = btnText,
-        variant = btnVariant,
-        onClick = "onToggle",
-        enabled = remaining > 0
-      }),
-    }),
-  }))
+        ui.button({
+            key     = "ring-stop",
+            glyph   = "player-stop",
+            text    = tr("ring.stop"),
+            variant = "primary",
+            onClick = function() common.cmd("ring", "stop") end,
+        }),
+    })
 end
 
-local function updateInputDigits()
-  inputKey = inputKey + 1
-end
+render = function()
+    if not isOpen then return end
+    local headerRow = ui.row({ gap = 6, align = "center" }, {
+        ui.label({ text = "Timer", fontSize = 14, fontWeight = "bold", color = "on_surface", flexGrow = 1 }),
+        ui.button({
+            key = "header-settings", glyph = "settings", variant = "ghost",
+            tooltip = tr("tip.settings"), onClick = "onOpenSettings",
+        }),
+        ui.button({
+            key = "header-close", glyph = "close", variant = "ghost",
+            tooltip = tr("tip.close"), onClick = "onClosePanel",
+        }),
+    })
 
-local function playTimer()
-  noctalia.state.set("timer.remaining", parseDigits(inputDigits))
-  noctalia.state.set("timer.cmd", "START")
-end
+    local tabBar = ui.row({ gap = 4, align = "center" }, {
+        tabButton(tr("tab.alarms"),    "bell",       "alarms"),
+        tabButton(tr("tab.stopwatch"), "stopwatch",  "stopwatch"),
+        tabButton(tr("tab.timer"),     "hourglass",  "timer"),
+        tabButton(tr("tab.pomodoro"),  "brain",      "pomodoro"),
+    })
 
-local function resumeTimer()
-  noctalia.state.set("timer.cmd", "START")
-end
+    local content
+    if activeTab == "alarms"    then content = alarmsTab.render()
+    elseif activeTab == "stopwatch" then content = stopwatchTab.render()
+    elseif activeTab == "timer" then content = timerTab.render()
+    else content = pomodoroTab.render()
+    end
 
-local function resetInputDigits()
-  if remaining == 0 then
-    inputDigits = ""
-  else
-    inputDigits = formattedTime
-  end
-  updateInputDigits()
+    local kids = { headerRow, tabBar, ui.separator({}) }
+    local banner = ringBanner()
+    if banner then table.insert(kids, banner) end
+    table.insert(kids, ui.scroll({
+        key = "panel-body-" .. activeTab,
+        flexGrow = 1, gap = 10, align = "stretch",
+    }, { content }))
+
+    panel.render(ui.column({ flexGrow = 1, gap = 10, align = "stretch" }, kids))
 end
 
 function onOpen(_context)
-  STATE = noctalia.state.get("timer.state")
-  remaining = noctalia.state.get("timer.remaining")
-  formattedTime = noctalia.state.get("timer.formattedTime") or "0"
-  resetInputDigits()
-  render()
-end
-
-noctalia.state.watch("timer.state", function(value)
-  if STATE == "NOTIFY" and value == "IDLE" then
-    -- if panel is open input will still be displaying number
-    -- but it won't work to start a new timer so this logic
-    -- resets the input user and user won't be confused
-    resetInputDigits()
-  end
-
-  STATE = value
-
-  render()
-end)
-
-noctalia.state.watch("timer.formattedTime", function(value)
-  formattedTime = value
-  render()
-end)
-
-noctalia.state.watch("timer.remaining", function(value)
-  remaining = value
-  render()
-end)
-
-function onReset()
-  noctalia.state.set("timer.cmd", "RESET")
-  inputDigits = ""
-  -- reseed the (now empty) input; the timer may have been running/paused,
-  -- so the field could still show the old value.
-  updateInputDigits()
-  render()
-end
-
-function onInputChange(value)
-  if STATE == "IDLE" then
-    noctalia.state.set("timer.remaining", parseDigits(value))
-    -- Keep our copy in sync with what the user is typing, but do NOT bump
-    -- inputKey here: the input already holds `value`, and reseeding it
-    -- mid-keystroke would reset the cursor. inputKey is only for pushing a
-    -- new value into the input programmatically (open / reset).
-    inputDigits = value
+    isOpen = true
+    stopwatchTab.sw = noctalia.state.get("timer.sw") or stopwatchTab.sw
+    timerTab.tmr    = noctalia.state.get("timer.timer") or timerTab.tmr
+    pomodoroTab.pomo = noctalia.state.get("timer.pomo") or pomodoroTab.pomo
+    alarmsTab.alarmList = noctalia.state.get("timer.alarms") or {}
+    ringing         = noctalia.state.get("timer.ringing")
     render()
-  end
 end
 
-function onInputSubmit()
-  if STATE == "IDLE" then
-    playTimer()
-  elseif STATE == "PAUSED" then
-    resumeTimer()
-  end
+function onClose()
+    isOpen = false
+    alarmsTab.closeForm()
+    stopwatchTab.closeForm()
+    timerTab.closeForm()
+    pomodoroTab.closeForm()
 end
 
-function onToggle()
-  if STATE == "RUNNING" then
-    noctalia.state.set("timer.cmd", "PAUSE")
-  elseif STATE == "IDLE" then
-    playTimer()
-  elseif STATE == "PAUSED" then
-    resumeTimer()
-  end
+noctalia.state.watch("timer.sw", function(v)
+    if v then stopwatchTab.sw = v end
+    render()
+end)
+
+noctalia.state.watch("timer.timer", function(v)
+    if v then timerTab.tmr = v end
+    render()
+end)
+
+noctalia.state.watch("timer.pomo", function(v)
+    if v then pomodoroTab.pomo = v end
+    render()
+end)
+
+noctalia.state.watch("timer.alarms", function(v)
+    if v then alarmsTab.alarmList = v end
+    render()
+end)
+
+noctalia.state.watch("timer.ringing", function(v)
+    ringing = v
+    render()
+end)
+
+function onOpenSettings()
+    noctalia.openSettings()
+end
+
+function onClosePanel()
+    panel.close()
 end
