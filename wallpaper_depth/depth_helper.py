@@ -30,7 +30,7 @@ REFINEMENT_MAX_DIMENSION = 1920
 GUIDED_FILTER_RADIUS = 8
 GUIDED_FILTER_EPSILON = 0.001
 PYTHON_MIN = (3, 11)
-PYTHON_MAX = (3, 14)
+PYTHON_MAX = (3, 15)
 PACKAGES = (
     "numpy==2.4.2",
     "onnxruntime==1.28.0",
@@ -124,7 +124,9 @@ def setup(data_dir: Path) -> None:
     )
     python_version = sys.version_info[:2]
     if not PYTHON_MIN <= python_version <= PYTHON_MAX:
-        raise RuntimeError("Python 3.11 through 3.14 is required")
+        min_ver = f"{PYTHON_MIN[0]}.{PYTHON_MIN[1]}"
+        max_ver = f"{PYTHON_MAX[0]}.{PYTHON_MAX[1]}"
+        raise RuntimeError(f"Python {min_ver} through {max_ver} is required")
     runtime_dir = data_dir / "runtime"
     venv = runtime_dir / ".venv"
     runtime_dir.mkdir(parents=True, exist_ok=True)
