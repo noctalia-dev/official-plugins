@@ -17,9 +17,10 @@ local COLUMNS = 4
 local COLUMN_GAP = 12
 local PAGE_SIZE = 24
 local THUMB_MAX_CONCURRENT = 4
+local THUMB_MAX_SIZE = 512
 local TILE_RADIUS = 12
 local VIDEO_EXTENSIONS = { mp4 = true, webm = true, mkv = true, mov = true, gif = true }
-local CACHE_DIR = (noctalia.getenv("XDG_CACHE_HOME") or ((noctalia.getenv("HOME") or "") .. "/.cache")) .. "/noctalia/mpvpaper"
+local CACHE_DIR = (noctalia.getenv("XDG_CACHE_HOME") or ((noctalia.getenv("HOME") or "") .. "/.cache")) .. "/noctalia/mpvpaper/picker-512-v1"
 
 local SLIDESHOW_MIN_MINUTES = 0
 local SLIDESHOW_MAX_MINUTES = 120
@@ -183,6 +184,7 @@ local function pumpThumbQueue()
       local cmd = "mkdir -p " .. shellQuote(tmpdir) ..
         " && mpv " .. shellQuote(path) ..
         " --no-config --no-terminal --really-quiet --frames=1 --start=10% --no-audio" ..
+        " --vf=" .. shellQuote("lavfi=[scale=" .. THUMB_MAX_SIZE .. ":" .. THUMB_MAX_SIZE .. ":force_original_aspect_ratio=decrease]") ..
         " --vo=image --vo-image-format=jpg --vo-image-outdir=" .. shellQuote(tmpdir) ..
         " && mv " .. shellQuote(tmpdir .. "/00000001.jpg") .. " " .. shellQuote(dest) ..
         "; rm -rf " .. shellQuote(tmpdir)
@@ -205,9 +207,20 @@ local function queueThumb(video)
     thumbPaths[video.path] = video.path
     return
   end
-  if thumbPaths[video.path] ~= nil or thumbPending[video.path] then
+  if thumbPending[video.path] then
     return
   end
+  -- Keep picker previews separate from the full-resolution wallpaper frames.
+  -- The versioned directory also avoids reusing old, unbounded thumbnails.
+  local cached = cachePath(video.path)
+  local sourceInfo = noctalia.fileInfo(video.path)
+  local cachedInfo = noctalia.fileInfo(cached)
+  if sourceInfo and cachedInfo and not cachedInfo.isDir
+      and cachedInfo.size > 0 and cachedInfo.mtime >= sourceInfo.mtime then
+    thumbPaths[video.path] = cached
+    return
+  end
+  thumbPaths[video.path] = nil
   table.insert(thumbQueue, video.path)
   pumpThumbQueue()
 end
@@ -236,6 +249,7 @@ local function loadVideos()
     for _, video in ipairs(videos) do
       queueThumb(video)
     end
+    render()
   end)
 end
 
