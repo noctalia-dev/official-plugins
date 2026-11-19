@@ -52,6 +52,13 @@ local LANGUAGES = {
 local cache = {}
 local pending = {}
 
+-- The query onQuery was last called with. Async fetch callbacks compare against
+-- this before publishing, so a slow response for a since-superseded (shorter or
+-- otherwise outdated) query can't overwrite the result for what the user has
+-- since typed - without this, fast typing can leave a stale partial translation
+-- on screen if its request happens to resolve after the latest one's.
+local currentQuery = ""
+
 -- Script subtags providers use for language variants; other 4-letter subtags are
 -- too likely to be English words ("de-iced").
 local SCRIPTS = { hans = "Hans", hant = "Hant" }
@@ -233,6 +240,7 @@ local function resultRow(entry)
 end
 
 function onQuery(query)
+  currentQuery = query
   local configured = noctalia.getConfig("target_lang")
   configured = if type(configured) == "string" then noctalia.string.trim(configured) else ""
   local defaultTarget = if configured == "" then "en" else resolveLang(configured) or configured:lower()
@@ -295,6 +303,13 @@ function onQuery(query)
 
     fetchProvider(reqContent, reqTarget, function(translated, err, source)
       pending[reqKey] = nil
+
+      -- The user kept typing while this was in flight: a newer request already
+      -- owns the result row, so publishing this one would show an outdated
+      -- (and possibly incomplete) translation over the current input.
+      if query ~= currentQuery then
+        return
+      end
 
       if not translated then
         -- The target came from the leading token, and the provider rejected it: retry once
