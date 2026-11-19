@@ -75,6 +75,10 @@ in the list. Plain text is used only when nothing is synced. Recordings up to
 Ambiguous or unrelated recordings are rejected rather than showing another
 song's lyrics.
 
+Large provider responses and timing comparisons are processed in small batches
+to keep lookups progressing. If a response cannot be processed, the widget shows
+available lyrics or a request-failure message and follows the normal retry policy.
+
 Results are cached in memory and in a small cache under the plugin's data
 directory, so a restart does not repeat lookups. Small duration or album
 updates do not invalidate found lyrics, and a temporary failure keeps the last

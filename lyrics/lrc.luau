@@ -9,6 +9,7 @@
 
 local catalog = require("./catalog.luau")
 local text = require("./text.luau")
+local work = require("./work.luau")
 
 local M = {}
 
@@ -137,6 +138,7 @@ function M.splitLines(body)
   local length = #body
   local pos = 1
   while pos <= length do
+    work.checkpoint()
     local finish = string.find(body, "\n", pos, true)
     local line = string.sub(body, pos, if finish then finish - 1 else length)
     if string.byte(line, -1) == 13 then
@@ -156,6 +158,7 @@ function M.parseLrc(body)
   local lines = {}
   local offsetMs = 0
   for _, raw in ipairs(M.splitLines(body)) do
+    work.checkpoint()
     if string.sub(raw, 1, 8) == "[offset:" and string.sub(raw, -1) == "]" then
       local value = string.sub(raw, 9, -2)
       if string.sub(value, 1, 1) == "+" then
@@ -342,6 +345,7 @@ local function parseYrcLine(raw)
   local pos = close + 1
   local length = #raw
   while pos <= length do
+    work.checkpoint()
     local tagStart, tagDuration, after = yrcTag(raw, pos)
     if tagStart == nil or tagStart < 0 or tagDuration < 0 then
       return nil
@@ -399,6 +403,7 @@ function M.parseLrclibSearch(body, track)
     local bestScore = nil
     local parsedSynced = {}
     for index, candidate in ipairs(candidates) do
+      work.checkpoint()
       local duration = field(candidate, "duration", "number")
       local match = nil
       if duration >= 0 and duration <= 86400 then
@@ -452,6 +457,7 @@ function M.parseLrclibSearch(body, track)
     -- Identical timing cannot fit two recordings of different lengths, so such a length claim is not trusted.
     if #result.lines > 0 then
       for index, candidate in ipairs(candidates) do
+        work.checkpoint()
         if type(candidate.syncedLyrics) == "string" and type(candidate.duration) == "number" then
           local otherMs = math.floor(candidate.duration * 1000 + 0.5)
           if otherMs > 0 and math.abs(otherMs - result.recordingDurationMs) > SAME_TIMING_LENGTH_GAP_MS then
@@ -499,6 +505,7 @@ function M.parseLrcmux(body, track, expectedIsrc)
       return M.newResult("error")
     end
     for _, item in ipairs(field(json, "lines", "table")) do
+      work.checkpoint()
       local lyric = field(item, "text", "string")
       table.insert(result.plain, lyric)
       if level ~= "none" then
@@ -512,6 +519,7 @@ function M.parseLrcmux(body, track, expectedIsrc)
         if isArray(item.words) then
           local offset = 1
           for _, word in ipairs(item.words) do
+            work.checkpoint()
             local token = field(word, "text", "string")
             local first = if token ~= "" then string.find(lyric, token, offset, true) else nil
             local startMs = field(word, "start", "number")
@@ -563,6 +571,7 @@ function M.parseNetease(body)
     local lines = {}
     local wordTimed = true
     for _, raw in ipairs(M.splitLines(group("yrc"))) do
+      work.checkpoint()
       if raw ~= "" and string.sub(raw, 1, 1) ~= "{" then
         local line = parseYrcLine(raw)
         if line == nil then
@@ -626,12 +635,14 @@ function M.parseLyricsPlus(body, track)
     local kind = optional(json, "type", "string", "")
     local timed = kind == "Word" or kind == "Line"
     for _, item in ipairs(items) do
+      work.checkpoint()
       local line = { timeMs = 0, text = "", words = {} }
       local syllables = item.syllabus
       if kind == "Word" and isArray(syllables) and #syllables > 0 then
         local pieces = {}
         local size = 0
         for _, syllable in ipairs(syllables) do
+          work.checkpoint()
           if syllable.isBackground ~= true and isInteger(field(syllable, "time", "number")) then
             local piece = field(syllable, "text", "string")
             local start = syllable.time

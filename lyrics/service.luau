@@ -17,6 +17,7 @@ local catalog = require("./catalog.luau")
 local lrc = require("./lrc.luau")
 local providers = require("./providers.luau")
 local text = require("./text.luau")
+local work = require("./work.luau")
 
 local POLL_MS = 250
 local USER_AGENT = "User-Agent: NoctaliaLyrics/1.0 (https://noctalia.dev)"
@@ -251,6 +252,7 @@ local function saveDisk()
   end
   local lines = {}
   for key, record in pairs(disk) do
+    work.checkpoint()
     local meta = noctalia.json.encode({
       key = key,
       status = record.status,
@@ -426,6 +428,7 @@ local entries = {} -- track key -> entry
 local entryCount = 0
 local queue = {} -- keys of entries waiting for their next request
 local busy = false
+local processing = nil -- { entry, provider, thread }
 local priorityCounter = 0
 local nextRequestAt = {} -- slot -> ms
 local backoffUntil = {} -- slot -> ms
@@ -570,6 +573,7 @@ end
 local function lineTimes(result)
   local times = {}
   for _, line in ipairs(result.lines) do
+    work.checkpoint()
     local key = text.matchKey(line.text)
     if key ~= "" then
       local list = times[key]
@@ -593,6 +597,7 @@ local function disputedLines(candidates)
   for i, map in ipairs(maps) do
     local disputed = 0
     for key, list in pairs(map) do
+      work.checkpoint()
       for occurrence, timeMs in ipairs(list) do
         local agree, disagree = 0, 0
         for j, other in ipairs(maps) do
@@ -980,16 +985,38 @@ function startNext()
   local entry = entries[key]
   local provider = entry.provider
   busy = true
-  local accepted = noctalia.http({ url = entry.url, headers = { USER_AGENT } }, function(response)
-    busy = false
-    if entries[key] == entry then
-      handleResponse(entry, provider, response)
-    end
-    startNext()
-  end)
+  local function receive(response)
+    processing = {
+      entry = entry,
+      provider = provider,
+      thread = coroutine.create(function()
+        if entries[key] == entry then
+          handleResponse(entry, provider, response)
+        end
+      end),
+    }
+  end
+  local accepted = noctalia.http({ url = entry.url, headers = { USER_AGENT } }, receive)
   if not accepted then
-    busy = false
-    handleResponse(entry, provider, { ok = false, status = 0, body = "" })
+    receive({ ok = false, status = 0, body = "" })
+  end
+end
+
+-- Keep the request slot occupied until parsing finishes; queued requests can then start on a fresh callback budget.
+local function processResponse()
+  local task = processing
+  if task == nil then
+    return
+  end
+  local ok, err = work.resume(task.thread)
+  if ok and coroutine.status(task.thread) ~= "dead" then
+    return
+  end
+  processing = nil
+  busy = false
+  if not ok then
+    markError(task.entry, task.provider, noctalia.nowMs(), tostring(err))
+    complete(task.entry, task.entry.best or lrc.newResult("error"))
   end
 end
 
@@ -1285,6 +1312,7 @@ local function poll()
       end)
     end
   end
+  processResponse()
   startNext()
   publish(player, hasTrack)
 end

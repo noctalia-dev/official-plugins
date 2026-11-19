@@ -6,6 +6,7 @@
 -- (match, nil) on a match, (nil, nil) when nothing matches and (nil, err) for an unusable response.
 
 local text = require("./text.luau")
+local work = require("./work.luau")
 
 local M = {}
 
@@ -571,6 +572,7 @@ function M.matchMusicBrainz(body, raw)
     end
     local candidates = {}
     for _, recording in ipairs(recordings) do
+      work.checkpoint()
       if type(recording) ~= "table" or isArray(recording) and next(recording) ~= nil then
         fail("catalog recording must be an object")
       end
@@ -621,6 +623,7 @@ function M.matchDeezer(body, raw)
     end
     local candidates = {}
     for _, recording in ipairs(recordings) do
+      work.checkpoint()
       local id = field(recording, "id", "number")
       local seconds = field(recording, "duration", "number")
       if id > 0 and seconds > 0 and seconds <= 86400 then
@@ -657,6 +660,7 @@ function M.matchNetease(body, raw)
     end
     local candidates = {}
     for _, song in ipairs(songs) do
+      work.checkpoint()
       local id = field(song, "id", "number")
       local milliseconds = field(song, "duration", "number")
       if id > 0 and milliseconds > 0 and milliseconds <= 86400000 then
@@ -687,6 +691,7 @@ function M.matchKugou(body, raw)
     end
     local candidates = {}
     for _, song in ipairs(songs) do
+      work.checkpoint()
       if type(song) ~= "table" then
         fail("catalog song must be an object")
       end
@@ -718,6 +723,7 @@ function M.pickKugouLyrics(body)
       fail("lyrics candidates must be an array")
     end
     for _, entry in ipairs(candidates) do
+      work.checkpoint()
       if type(entry) ~= "table" then
         fail("lyrics candidate must be an object")
       end
