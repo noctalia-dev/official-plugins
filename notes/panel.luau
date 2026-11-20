@@ -10,6 +10,7 @@ local AUTOSAVE_IDLE_TICKS = 2 -- 1s panel ticks with no edits before a flush
 local SCRATCHPAD_BASE = "scratchpad"
 
 local dirs = require("./dirs.luau")
+local merge = require("./merge.luau")
 
 local notesDir = ""
 local suffixes = { ".md" } -- "." .. each configured extension, resolved in onOpen
@@ -28,8 +29,11 @@ local pins = {} -- filename -> true; persisted in a sidecar next to the notes
 local hoveredKey = nil
 local cornerRadiusScale = 1.0
 local closeButton = true
+local watchedSignature = "" -- note directory signature when it was last checked
+local conflictRemote = nil -- remote text of the last conflict already reported
 
 local render
+local checkExternalChanges -- declared here: update() calls it before it is defined
 
 local function tr(key)
   return noctalia.tr(key)
@@ -56,6 +60,69 @@ end
 
 local function notePath(file)
   return notesDir .. "/" .. file
+end
+
+-- External-change watching can be turned off from the plugin settings; when it
+-- is off the panel only reacts to the launcher's own "notes_bump" signal.
+local function watchEnabled()
+  return noctalia.getConfig("watch") ~= false
+end
+
+-- Cheap fingerprint of the note directory: name, mtime and size of every note.
+-- Comparing it once per tick costs one listDir + one fileInfo per note and
+-- catches new, deleted, renamed and edited notes without filesystem watches.
+local function dirSignature()
+  local list = noctalia.listDir(notesDir)
+  if list == nil then
+    return ""
+  end
+  local parts = {}
+  for _, name in ipairs(list) do
+    if hasSuffix(name) and name:sub(1, 1) ~= "." then
+      local info = noctalia.fileInfo(notePath(name))
+      local mtime = info ~= nil and info.mtime or 0
+      local size = info ~= nil and info.size or 0
+      table.insert(parts, name .. ":" .. tostring(mtime) .. ":" .. tostring(size))
+    end
+  end
+  table.sort(parts)
+  return table.concat(parts, "|")
+end
+
+-- Writes the editor text to a copy under .conflicts/ so nothing is lost when the
+-- note changed on disk in a way that cannot be merged. Returns the copy path.
+local function conflictCopy(file, contents)
+  local dir = notesDir .. "/.conflicts"
+  if not noctalia.mkdirAll(dir) then
+    return nil
+  end
+  local base = displayName(file)
+  local suffix = matchSuffix(file) or defaultSuffix
+  local stamp = noctalia.formatTime("%Y-%m-%d %H.%M.%S")
+  local name = base .. " (" .. stamp .. ")" .. suffix
+  local path = dir .. "/" .. name
+  local counter = 2
+  while noctalia.fileExists(path) do
+    name = base .. " (" .. stamp .. " " .. counter .. ")" .. suffix
+    path = dir .. "/" .. name
+    counter += 1
+  end
+  local ok = noctalia.writeFile(path, contents)
+  return ok and path or nil
+end
+
+-- A conflict is reported once per distinct remote text: autosave runs every
+-- couple of seconds, and repeating the same notification and copy would be noise.
+local function reportConflict(remote)
+  if conflictRemote == remote then
+    return
+  end
+  conflictRemote = remote
+  local path = conflictCopy(current, buffer)
+  noctalia.notifyError(tr("title"), tr("conflict"))
+  if path ~= nil then
+    noctalia.notify(tr("title"), tr("conflict_saved"))
+  end
 end
 
 local function scratchName()
@@ -125,17 +192,38 @@ local function refreshFiles()
   end)
 end
 
+-- Saves the editor. If the file changed on disk since it was last read or
+-- written, a 3-way merge decides first: compatible appends are folded into the
+-- buffer; an incompatible change keeps the local text and saves a copy under
+-- .conflicts/ instead of overwriting what someone else wrote.
 local function flush()
   if not dirty or current == nil then
     return
   end
-  local ok, err = noctalia.writeFile(notePath(current), buffer)
+  local path = notePath(current)
+  local remote = ""
+  if noctalia.fileExists(path) then
+    remote = noctalia.readFile(path) or ""
+  end
+  if remote ~= loadedContent then
+    local r = merge.resolve(loadedContent, buffer, remote)
+    if r.status == "conflict" then
+      reportConflict(remote)
+      return
+    end
+    if r.content ~= buffer then
+      buffer = r.content
+      editorRev += 1
+    end
+  end
+  local ok, err = noctalia.writeFile(path, buffer)
   if not ok then
     noctalia.notifyError(tr("title"), err or tr("save_failed"))
     return
   end
   loadedContent = buffer
   dirty = false
+  conflictRemote = nil
 end
 
 local function openNote(file)
@@ -484,6 +572,8 @@ function onOpen(context)
   end
   loadPins()
   refreshFiles()
+  watchedSignature = dirSignature()
+  conflictRemote = nil
   pendingDelete = nil
   panel.setWantsSecondTicks(true)
   -- An explicit IPC context wins over the launcher handoff below.
@@ -518,6 +608,7 @@ function onClose()
 end
 
 function update()
+  checkExternalChanges()
   if dirty then
     idleTicks += 1
     if idleTicks >= AUTOSAVE_IDLE_TICKS then
@@ -557,6 +648,7 @@ function onNewNote()
     return
   end
   refreshFiles()
+  watchedSignature = dirSignature()
   openNote(name)
 end
 
@@ -592,6 +684,7 @@ function onRename(value)
   end
   current = target
   refreshFiles()
+  watchedSignature = dirSignature()
   render()
 end
 
@@ -617,28 +710,64 @@ end
 -- appends, new notes). Fold external changes into the open editor: an appended
 -- tail is grafted onto whatever is being typed; other divergence only replaces
 -- the buffer when there are no unsaved edits.
-local function onExternalChange()
+local function handleExternalChange()
   if notesDir == "" then
     return -- never opened; nothing resolved yet
   end
   refreshFiles()
-  if current ~= nil then
-    local contents = noctalia.readFile(notePath(current)) or ""
-    if contents ~= loadedContent then
-      if contents:sub(1, #loadedContent) == loadedContent then
-        buffer = buffer .. contents:sub(#loadedContent + 1)
-      elseif not dirty then
-        buffer = contents
-      end
-      loadedContent = contents
-      dirty = buffer ~= loadedContent
-      idleTicks = 0
-      editorRev += 1
-    end
+  if current == nil then
+    render()
+    return
+  end
+
+  local remote = ""
+  if noctalia.fileExists(notePath(current)) then
+    remote = noctalia.readFile(notePath(current)) or ""
+  end
+  if remote == loadedContent then
+    render()
+    return
+  end
+
+  local r = merge.resolve(loadedContent, buffer, remote)
+  if r.status == "conflict" then
+    reportConflict(remote)
+    render()
+    return
+  end
+
+  conflictRemote = nil
+  local before = buffer
+  buffer = r.content
+  -- Whatever is on disk was what the merge started from; a merged result is
+  -- newer than the disk, so it stays dirty and the autosave writes it back.
+  loadedContent = remote
+  dirty = buffer ~= remote
+  idleTicks = 0
+  if buffer ~= before then
+    editorRev += 1
   end
   render()
 end
 
+checkExternalChanges = function()
+  if notesDir == "" or not watchEnabled() then
+    return
+  end
+  local sig = dirSignature()
+  if sig ~= watchedSignature then
+    watchedSignature = sig
+    handleExternalChange()
+    return
+  end
+  if current ~= nil and noctalia.fileExists(notePath(current)) then
+    local remote = noctalia.readFile(notePath(current)) or ""
+    if remote ~= loadedContent then
+      handleExternalChange()
+    end
+  end
+end
+
 noctalia.state.watch("notes_bump", function(_value)
-  onExternalChange()
+  handleExternalChange()
 end)
