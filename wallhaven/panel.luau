@@ -21,6 +21,7 @@ local TILE_LABEL_FONT = 11
 local PREVIEW_HEIGHT = 640 -- what the panel leaves between its header and the preview buttons
 local PREVIEW_PROGRESS_MS = 100
 local PREVIEW_PROGRESS_WIDTH = 240
+local CROP_PRODUCER_START_GRACE_MS = 30000 -- a large image can take a while to decode
 
 local closeButton = true
 
@@ -29,6 +30,7 @@ local page = 1
 local totalPages = 1
 local wallpapers = {}
 local loading = false
+local fetchQueued = false
 local errorMessage = ""
 local selectedId = ""
 local preview = nil -- wallpaper being previewed
@@ -36,6 +38,18 @@ local previewPath = nil -- its full image, once downloaded
 local previewProgress = 0 -- 0..1 while downloading
 local previewTickMs = 0
 local applying = false
+local fitEnabled = false
+local cropX = 0.5
+local cropY = 0.5
+local cropDragX = 0
+local cropDragY = 0
+local cropDragging = false
+local cropSession = 0
+local cropProducerActive = false
+local cropProducerStartedAt = 0
+local previewStreaming = false
+local previewImageW = nil
+local previewImageH = nil
 
 local puritySfw = true
 local puritySketchy = false
@@ -45,7 +59,7 @@ local categoryGeneral = true
 local categoryAnime = true
 local categoryPeople = true
 
-local resolutionMode = "atleast" -- "atleast" or "exact"
+local resolutionMode = "atleast" -- "atleast" | "exact" | "mine" | "atleast_mine"
 local resolutionWidth = ""
 local resolutionHeight = ""
 local aspectRatioIndex = 0
@@ -62,13 +76,15 @@ local needsInitialFetch = false
 local render
 local fetchWallpapers
 local openPreview
+local focusedOutputSize
+local parsePositiveInt
 
 local sortOptions = { "relevance", "random", "date_added", "views", "favorites", "toplist", "hot" }
 local sortIndex = 2
 local sortOrder = "desc"
 
-local function tr(key)
-  return noctalia.tr(key)
+local function tr(key, subst)
+  return noctalia.tr(key, subst)
 end
 
 local function sortLabelList()
@@ -85,6 +101,22 @@ end
 
 local function shellQuote(s)
   return "'" .. s:gsub("'", "'\\''") .. "'"
+end
+
+-- ImageMagick 7 ships `magick`; ImageMagick 6 ships `convert`/`identify`.
+-- Prefer `magick`, but keep the plugin working on IM6-only distributions.
+local magickBinary = nil
+local magickChecked = false
+local function imageMagickBinary()
+  if not magickChecked then
+    magickChecked = true
+    if noctalia.commandExists("magick") then
+      magickBinary = "magick"
+    elseif noctalia.commandExists("convert") and noctalia.commandExists("identify") then
+      magickBinary = "convert"
+    end
+  end
+  return magickBinary
 end
 
 local function apiKey()
@@ -143,6 +175,10 @@ local function sortValue()
   return sortOptions[sortIndex + 1] or "date_added"
 end
 
+local function sortIsRandom()
+  return sortValue() == "random"
+end
+
 -- Wallhaven returns an empty first page for relevance when no search query is set.
 local function relevanceWithoutQuery()
   return sortValue() == "relevance" and noctalia.string.trim(query) == ""
@@ -155,8 +191,11 @@ local function apiPage()
   return page
 end
 
-local function normalizeTotalPages(lastPage)
-  if relevanceWithoutQuery() then
+local function normalizeTotalPages(lastPage, relevance)
+  if relevance == nil then
+    relevance = relevanceWithoutQuery()
+  end
+  if relevance then
     return math.max(1, lastPage - 1)
   end
   return lastPage
@@ -165,6 +204,7 @@ end
 local function aspectRatioOptions()
   return {
     "",
+    "mine",
     "wide",
     "portrait",
     "16x9",
@@ -182,9 +222,60 @@ local function aspectRatioOptions()
   }
 end
 
+local function aspectRatioOption()
+  return aspectRatioOptions()[aspectRatioIndex + 1] or ""
+end
+
+local function monitorAspectRatioStandard()
+  local width, height = focusedOutputSize()
+  if width == nil or height == nil then
+    return nil
+  end
+  local ratio = width / height
+  local standards = {
+    { 16, 9 },
+    { 16, 10 },
+    { 21, 9 },
+    { 32, 9 },
+    { 48, 9 },
+    { 9, 16 },
+    { 10, 16 },
+    { 9, 18 },
+    { 1, 1 },
+    { 3, 2 },
+    { 4, 3 },
+    { 5, 4 },
+  }
+  local bestWidth, bestHeight, bestDiff = nil, nil, nil
+  for _, standard in ipairs(standards) do
+    local diff = math.abs(ratio - standard[1] / standard[2])
+    if bestDiff == nil or diff < bestDiff then
+      bestWidth, bestHeight, bestDiff = standard[1], standard[2], diff
+    end
+  end
+  if bestWidth ~= nil and bestDiff <= 0.12 then
+    return `{bestWidth}x{bestHeight}`
+  end
+  local a, b = width, height
+  while b ~= 0 do
+    a, b = b, a % b
+  end
+  local divisor = math.max(1, a)
+  return `{math.floor(width / divisor)}x{math.floor(height / divisor)}`
+end
+
+local function monitorAspectRatioLabel()
+  local ratio = monitorAspectRatioStandard()
+  if ratio == nil then
+    return tr("ratio_mine_unknown")
+  end
+  return tr("ratio_mine", { ratio = ratio:gsub("x", ":") })
+end
+
 local function aspectRatioLabelList()
   return {
     tr("ratio_any"),
+    monitorAspectRatioLabel(),
     tr("ratio_wide"),
     tr("ratio_portrait"),
     "16:9",
@@ -202,27 +293,129 @@ local function aspectRatioLabelList()
   }
 end
 
+local function aspectRatioFilterValue()
+  if aspectRatioOption() == "mine" then
+    local width, height = focusedOutputSize()
+    if width ~= nil and height ~= nil then
+      return `{width}x{height}`
+    end
+    return ""
+  end
+  return aspectRatioOption()
+end
+
+local function isStandardAspectRatio(value)
+  for _, option in ipairs(aspectRatioOptions()) do
+    if option ~= "" and option ~= "mine" and option ~= "wide" and option ~= "portrait" and option == value then
+      return true
+    end
+  end
+  return false
+end
+
 local function aspectRatioParamValue()
-  local ratios = aspectRatioOptions()
-  local ratio = ratios[aspectRatioIndex + 1] or ""
+  local ratio = aspectRatioOption()
   if ratio == "" then return nil end
+  if ratio == "mine" then
+    local mine = monitorAspectRatioStandard()
+    if mine == nil then
+      return nil
+    end
+    if isStandardAspectRatio(mine) then
+      return mine
+    end
+    -- Wallhaven only accepts its known ratio values. For an unusual output use a
+    -- broad orientation filter and keep the exact ratio check client-side.
+    local width, height = focusedOutputSize()
+    if width == nil or height == nil then
+      return nil
+    end
+    if width > height then
+      return "landscape"
+    end
+    if height > width then
+      return "portrait"
+    end
+    return "1x1"
+  end
   if ratio == "wide" then return "landscape" end
   if ratio == "portrait" then return "portrait" end
   return ratio
 end
 
+local function aspectRatioTolerance()
+  if aspectRatioOption() ~= "mine" then
+    return 0.05
+  end
+  -- The API filter uses the nearest standard ratio, while the client check uses
+  -- the output's exact ratio. Widen just enough for that standard to pass.
+  local standard = monitorAspectRatioStandard()
+  local width, height = focusedOutputSize()
+  if standard ~= nil and width ~= nil and height ~= nil then
+    local ratioWidth, ratioHeight = standard:match("(%d+)x(%d+)")
+    if ratioWidth ~= nil and ratioHeight ~= nil then
+      local target = tonumber(ratioWidth) / tonumber(ratioHeight)
+      return math.max(0.08, math.abs(width / height - target) + 0.02)
+    end
+  end
+  return 0.08
+end
+
+local function monitorResolutionText()
+  local width, height = focusedOutputSize()
+  if width == nil or height == nil then
+    return nil
+  end
+  return `{width}x{height}`
+end
+
+local function monitorResolutionLabel()
+  local resolution = monitorResolutionText()
+  if resolution == nil then
+    return tr("resolution_mode_mine_unknown")
+  end
+  return tr("resolution_mode_mine", { resolution = resolution })
+end
+
+local function monitorAtLeastResolutionLabel()
+  local resolution = monitorResolutionText()
+  if resolution == nil then
+    return tr("resolution_mode_mine_unknown")
+  end
+  return tr("resolution_mode_atleast_mine", { resolution = resolution })
+end
+
+local function resolutionUsesMonitor()
+  return resolutionMode == "mine" or resolutionMode == "atleast_mine"
+end
+
 local function resolutionModeOptions()
-  return { "atleast", "exact" }
+  return { "atleast", "exact", "mine", "atleast_mine" }
 end
 
 local function resolutionModeLabelList()
   return {
     tr("resolution_mode_atleast"),
     tr("resolution_mode_exact"),
+    monitorResolutionLabel(),
+    monitorAtLeastResolutionLabel(),
   }
 end
 
-local function parsePositiveInt(s)
+local function resolutionModeIndex()
+  if resolutionMode == "exact" then
+    return 1
+  end
+  if resolutionMode == "mine" then
+    return 2
+  end
+  if resolutionMode == "atleast_mine" then
+    return 3
+  end
+  return 0
+end
+
+parsePositiveInt = function(s)
   local n = tonumber(s)
   if n == nil or n < 1 or math.floor(n) ~= n then
     return nil
@@ -231,6 +424,17 @@ local function parsePositiveInt(s)
 end
 
 local function buildResolutionParam()
+  if resolutionUsesMonitor() then
+    local monitorWidth, monitorHeight = focusedOutputSize()
+    if monitorWidth ~= nil and monitorHeight ~= nil then
+      local resolution = `{monitorWidth}x{monitorHeight}`
+      if resolutionMode == "atleast_mine" then
+        return "atleast", resolution
+      end
+      return "resolutions", resolution
+    end
+    return nil, nil
+  end
   local w = parsePositiveInt(resolutionWidth)
   local h = parsePositiveInt(resolutionHeight)
   if w ~= nil and h ~= nil then
@@ -266,7 +470,44 @@ local function filterGroup(title, content, flexGrow)
 end
 
 local function filtersPanel()
-  return ui.column({ gap = 12, align = "stretch" }, {
+  local resolutionControls = {
+    ui.select({
+      -- Recreate the select when its width mode changes; otherwise the widget
+      -- keeps the expanded width after switching back from a monitor mode.
+      key = if resolutionUsesMonitor() then "resolution_mode_mine" else "resolution_mode_compact",
+      options = resolutionModeLabelList(),
+      selectedIndex = resolutionModeIndex(),
+      placeholder = tr("resolution_mode_label"),
+      onChange = "onResolutionModeChange",
+      width = if resolutionUsesMonitor() then nil else 210,
+      flexGrow = if resolutionUsesMonitor() then 1 else 0,
+    }),
+  }
+  if not resolutionUsesMonitor() then
+    table.insert(resolutionControls, ui.input({
+      key = `resolution_width_{clearCounter}`,
+      placeholder = tr("resolution_width_placeholder"),
+      value = resolutionWidth,
+      onChange = "onResolutionWidthChange",
+      onSubmit = "onResolutionWidthSubmit",
+      flexGrow = 1,
+    }))
+    table.insert(resolutionControls, ui.label({
+      text = "×",
+      fontSize = 14,
+      color = "on_surface_variant",
+    }))
+    table.insert(resolutionControls, ui.input({
+      key = `resolution_height_{clearCounter}`,
+      placeholder = tr("resolution_height_placeholder"),
+      value = resolutionHeight,
+      onChange = "onResolutionHeightChange",
+      onSubmit = "onResolutionHeightSubmit",
+      flexGrow = 1,
+    }))
+  end
+
+  local rows = {
     ui.row({ gap = 16, align = "center" }, {
       filterGroup(tr("filter_categories"), ui.row({ gap = 6, align = "center" }, {
         filterChip(tr("category_general"), categoryGeneral, "onCategoryGeneral", "filter_cat_general"),
@@ -288,8 +529,8 @@ local function filtersPanel()
         }),
         ui.button({
           key = "sort_order",
-          glyph = if sortOrder == "desc" then "arrow-down" else "arrow-up",
-					tooltip = if sortOrder == "desc" then tr("sort_desc") else tr("sort_asc"),
+          glyph = if sortIsRandom() then "arrows-shuffle" elseif sortOrder == "desc" then "arrow-down" else "arrow-up",
+          tooltip = if sortIsRandom() then tr("sort_shuffle") elseif sortOrder == "desc" then tr("sort_desc") else tr("sort_asc"),
           variant = "outline",
           onClick = "onToggleSortOrder",
         }),
@@ -302,39 +543,10 @@ local function filtersPanel()
           options = aspectRatioLabelList(),
           selectedIndex = aspectRatioIndex,
           onChange = "onAspectRatioChange",
-          width = 260,
+          width = 210,
         })
       })),
-      filterGroup(tr("filter_resolution"), ui.row({ gap = 8, align = "center", flexGrow = 1 }, {
-        ui.select({
-          key = "resolution_mode",
-          options = resolutionModeLabelList(),
-          selectedIndex = if resolutionMode == "exact" then 1 else 0,
-          onChange = "onResolutionModeChange",
-          width = 180,
-        }),
-        ui.input({
-          key = `resolution_width_{clearCounter}`,
-          placeholder = tr("resolution_width_placeholder"),
-          value = resolutionWidth,
-          onChange = "onResolutionWidthChange",
-          onSubmit = "onResolutionWidthSubmit",
-          flexGrow = 1,
-        }),
-        ui.label({
-          text = "×",
-          fontSize = 14,
-          color = "on_surface_variant",
-        }),
-        ui.input({
-          key = `resolution_height_{clearCounter}`,
-          placeholder = tr("resolution_height_placeholder"),
-          value = resolutionHeight,
-          onChange = "onResolutionHeightChange",
-          onSubmit = "onResolutionHeightSubmit",
-          flexGrow = 1,
-        }),
-      }), 1),
+      filterGroup(tr("filter_resolution"), ui.row({ gap = 8, align = "center", flexGrow = 1 }, resolutionControls), 1),
       ui.button({
         key = "clear_resolution",
         text = tr("clear_resolution"),
@@ -342,7 +554,9 @@ local function filtersPanel()
         onClick = "onClearResolution",
       }),
     }),
-  })
+  }
+
+  return ui.column({ gap = 12, align = "stretch" }, rows)
 end
 
 local function httpHeaders()
@@ -378,7 +592,8 @@ local function pumpThumbQueue()
     local wallpaper = table.remove(thumbQueue, 1)
     local id = wallpaper.id
     if thumbPaths[id] == nil and not thumbPending[id] then
-      local thumbUrl = wallpaper.thumbs and wallpaper.thumbs.large
+      local thumbs = wallpaper.thumbs
+      local thumbUrl = if type(thumbs) == "table" then thumbs.large else nil
       if type(thumbUrl) == "string" and thumbUrl ~= "" then
         thumbPending[id] = true
         thumbActive += 1
@@ -428,6 +643,273 @@ local function fileExtension(wallpaper)
   return ".jpg"
 end
 
+focusedOutputSize = function()
+  local outputs = noctalia.outputs()
+  if type(outputs) ~= "table" then
+    return nil
+  end
+  local focusedName = noctalia.focusedOutputName()
+  local fallbackWidth, fallbackHeight = nil, nil
+  for _, output in ipairs(outputs) do
+    local width, height = output.width, output.height
+    if type(width) == "number" and type(height) == "number" and width > 0 and height > 0 then
+      width, height = math.floor(width), math.floor(height)
+      if output.focused then
+        return width, height
+      end
+      if fallbackWidth == nil then
+        fallbackWidth, fallbackHeight = width, height
+      end
+    end
+  end
+  if focusedName ~= nil then
+    for _, output in ipairs(outputs) do
+      if output.name == focusedName then
+        local width, height = output.width, output.height
+        if type(width) == "number" and type(height) == "number" and width > 0 and height > 0 then
+          return math.floor(width), math.floor(height)
+        end
+      end
+    end
+  end
+  if fallbackWidth ~= nil then
+    return fallbackWidth, fallbackHeight
+  end
+  return nil
+end
+
+local function clamp(value, low, high)
+  if value < low then
+    return low
+  end
+  if value > high then
+    return high
+  end
+  return value
+end
+
+local function cropImageRect()
+  local imageWidth, imageHeight = previewImageW, previewImageH
+  if imageWidth == nil or imageHeight == nil then
+    return nil
+  end
+  local width = PANEL_WIDTH - PANEL_PADDING
+  local height = PREVIEW_HEIGHT
+  local scale = math.min(width / imageWidth, height / imageHeight)
+  local displayWidth = imageWidth * scale
+  local displayHeight = imageHeight * scale
+  return (width - displayWidth) / 2, (height - displayHeight) / 2, displayWidth, displayHeight
+end
+
+local function cropBoxNormalized()
+  local imageWidth, imageHeight = previewImageW, previewImageH
+  local monitorWidth, monitorHeight = focusedOutputSize()
+  if imageWidth == nil or imageHeight == nil or monitorWidth == nil or monitorHeight == nil then
+    return nil
+  end
+  local scale = math.min(1, imageWidth / monitorWidth, imageHeight / monitorHeight)
+  return (monitorWidth * scale) / imageWidth, (monitorHeight * scale) / imageHeight
+end
+
+local function clampCropCenter()
+  local boxWidth, boxHeight = cropBoxNormalized()
+  if boxWidth == nil or boxHeight == nil then
+    return
+  end
+  local minX = math.min(0.5, boxWidth / 2)
+  local maxX = math.max(0.5, 1 - boxWidth / 2)
+  local minY = math.min(0.5, boxHeight / 2)
+  local maxY = math.max(0.5, 1 - boxHeight / 2)
+  cropX = clamp(cropX, minX, maxX)
+  cropY = clamp(cropY, minY, maxY)
+end
+
+local function cropRect()
+  local imageWidth, imageHeight = previewImageW, previewImageH
+  local monitorWidth, monitorHeight = focusedOutputSize()
+  if imageWidth == nil or imageHeight == nil or monitorWidth == nil or monitorHeight == nil then
+    return nil
+  end
+  local scale = math.min(1, imageWidth / monitorWidth, imageHeight / monitorHeight)
+  local width = math.floor(monitorWidth * scale + 0.5)
+  local height = math.floor(monitorHeight * scale + 0.5)
+  width = math.max(1, math.min(width, imageWidth))
+  height = math.max(1, math.min(height, imageHeight))
+  local x = math.floor(cropX * imageWidth - width / 2 + 0.5)
+  local y = math.floor(cropY * imageHeight - height / 2 + 0.5)
+  x = math.max(0, math.min(x, imageWidth - width))
+  y = math.max(0, math.min(y, imageHeight - height))
+  return x, y, width, height, monitorWidth, monitorHeight
+end
+
+local function cropDirectory()
+  local stateHome = noctalia.getenv("XDG_STATE_HOME") or ((noctalia.getenv("HOME") or "") .. "/.local/state")
+  return stateHome .. "/noctalia/wallhaven/crop"
+end
+
+local function cropSocketPath()
+  local id = if preview ~= nil then preview.id else "idle"
+  return `{cropDirectory()}/stream-{id}-{cropSession}.sock`
+end
+
+local function cropStatePath()
+  local id = if preview ~= nil then preview.id else "idle"
+  return `{cropDirectory()}/state-{id}-{cropSession}.json`
+end
+
+local function cropPidPath()
+  return cropStatePath() .. ".pid"
+end
+
+local function cropProducerAlive()
+  local contents = noctalia.readFile(cropPidPath())
+  if type(contents) ~= "string" then
+    -- Older helpers and a helper that crashed before writing its PID keep the
+    -- pre-existing socket/grace behavior.
+    return true
+  end
+  local pid = parsePositiveInt(noctalia.string.trim(contents))
+  if pid == nil then
+    return true
+  end
+  return noctalia.fileExists("/proc/" .. tostring(pid))
+end
+
+local function writeCropState()
+  if preview == nil or previewImageW == nil or previewImageH == nil then
+    return
+  end
+  noctalia.mkdirAll(cropDirectory())
+  local monitorWidth, monitorHeight = focusedOutputSize()
+  local data = noctalia.json.encode({
+    fit = fitEnabled,
+    cx = cropX,
+    cy = cropY,
+    monitorWidth = monitorWidth or 0,
+    monitorHeight = monitorHeight or 0,
+  })
+  if data ~= nil then
+    noctalia.writeFile(cropStatePath(), data)
+  end
+end
+
+local function stopCropProducer()
+  local wasActive = cropProducerActive
+  cropProducerActive = false
+  if preview == nil or not wasActive then
+    return
+  end
+  local data = noctalia.json.encode({ quit = true })
+  if data ~= nil then
+    noctalia.mkdirAll(cropDirectory())
+    noctalia.writeFile(cropStatePath(), data)
+  end
+end
+
+local function startCropProducer()
+  if previewPath == nil or previewImageW == nil or previewImageH == nil then
+    return false
+  end
+  if not noctalia.commandExists("python3") or imageMagickBinary() == nil then
+    return false
+  end
+  cropSession += 1
+  cropProducerActive = true
+  cropProducerStartedAt = noctalia.nowMs()
+  writeCropState()
+  local script = (noctalia.pluginDir() or "") .. "/crop_stream.py"
+  -- Detached: this process lives as long as the preview. Passing a callback
+  -- would make runAsync wait and kill it at the command timeout.
+  local started = noctalia.runAsync({
+    "python3",
+    script,
+    "--socket", cropSocketPath(),
+    "--state", cropStatePath(),
+    "--image", previewPath,
+    "--image-width", tostring(previewImageW),
+    "--image-height", tostring(previewImageH),
+    "--width", tostring(PANEL_WIDTH - PANEL_PADDING),
+    "--height", tostring(PREVIEW_HEIGHT),
+  })
+  if not started then
+    cropProducerActive = false
+  end
+  return started
+end
+
+local function ensureCropProducer()
+  if cropProducerActive then
+    -- A missing socket right after launch means the producer is still loading
+    -- the image. Replace it if its PID is gone, or if it has had time to start
+    -- and its socket is gone (idle exit or crash).
+    if cropProducerAlive()
+        and (noctalia.fileExists(cropSocketPath())
+          or noctalia.nowMs() - cropProducerStartedAt < CROP_PRODUCER_START_GRACE_MS) then
+      writeCropState()
+      return true
+    end
+    cropProducerActive = false
+  end
+  return startCropProducer()
+end
+
+local function pointerToImage(normX, normY)
+  local displayX, displayY, displayWidth, displayHeight = cropImageRect()
+  if displayX == nil then
+    return nil
+  end
+  local x = (tonumber(normX) or 0) * (PANEL_WIDTH - PANEL_PADDING)
+  local y = (tonumber(normY) or 0) * PREVIEW_HEIGHT
+  return (x - displayX) / displayWidth, (y - displayY) / displayHeight
+end
+
+function onCropDown(normX, normY)
+  if not fitEnabled or previewPath == nil then
+    return
+  end
+  local x, y = pointerToImage(normX, normY)
+  if x == nil then
+    return
+  end
+  local boxWidth, boxHeight = cropBoxNormalized()
+  if boxWidth ~= nil
+      and math.abs(x - cropX) <= boxWidth / 2
+      and math.abs(y - cropY) <= boxHeight / 2 then
+    cropDragX = cropX - x
+    cropDragY = cropY - y
+  else
+    cropDragX = 0
+    cropDragY = 0
+    cropX = clamp(x, 0, 1)
+    cropY = clamp(y, 0, 1)
+    clampCropCenter()
+    writeCropState()
+  end
+  cropDragging = true
+end
+
+function onCropMove(normX, normY)
+  if not cropDragging or not fitEnabled then
+    return
+  end
+  local x, y = pointerToImage(normX, normY)
+  if x == nil then
+    return
+  end
+  cropX = clamp(x + cropDragX, 0, 1)
+  cropY = clamp(y + cropDragY, 0, 1)
+  clampCropCenter()
+  writeCropState()
+end
+
+function onCropUp(_normX, _normY)
+  cropDragging = false
+end
+
+function onCropCancel()
+  cropDragging = false
+end
+
 local function findWallpaper(id)
   for _, wallpaper in wallpapers do
     if wallpaper.id == id then
@@ -442,6 +924,9 @@ local function previewCachePath(wallpaper)
 end
 
 local function closePreview()
+  -- Stop the helper even while an apply is running; the crop only needs the
+  -- already-downloaded preview file, and a script exit must not orphan it.
+  stopCropProducer()
   if preview == nil or applying then
     return
   end
@@ -450,6 +935,9 @@ local function closePreview()
   end
   preview = nil
   previewPath = nil
+  previewImageW = nil
+  previewImageH = nil
+  cropDragging = false
 end
 
 openPreview = function(id)
@@ -464,6 +952,21 @@ openPreview = function(id)
   preview = wallpaper
   previewPath = nil
   previewProgress = 0
+  previewImageW = nil
+  previewImageH = nil
+  cropX = 0.5
+  cropY = 0.5
+  cropDragging = false
+  fitEnabled = false
+  previewStreaming = false
+  if type(wallpaper.resolution) == "string" then
+    local width, height = wallpaper.resolution:match("^(%d+)x(%d+)$")
+    local parsedWidth, parsedHeight = parsePositiveInt(width), parsePositiveInt(height)
+    if parsedWidth ~= nil and parsedHeight ~= nil then
+      previewImageW = parsedWidth
+      previewImageH = parsedHeight
+    end
+  end
   render()
 
   local started = noctalia.download(imageUrl, dest, function(ok)
@@ -473,6 +976,31 @@ openPreview = function(id)
     end
     if ok then
       previewPath = dest
+      local magick = imageMagickBinary()
+      local identifyCommand = if magick == "magick"
+        then { "magick", "identify", "-format", "%w %h", dest }
+        else { "identify", "-format", "%w %h", dest }
+      if magick == nil then
+        return
+      end
+      noctalia.runAsync(identifyCommand, function(res)
+        if preview == nil or preview.id ~= id or previewPath ~= dest or res == nil or res.exitCode ~= 0 then
+          return
+        end
+        local width, height = res.stdout:match("(%d+)%s+(%d+)")
+        local actualWidth, actualHeight = parsePositiveInt(width), parsePositiveInt(height)
+        if actualWidth ~= nil and actualHeight ~= nil then
+          local changed = previewImageW ~= actualWidth or previewImageH ~= actualHeight
+          previewImageW, previewImageH = actualWidth, actualHeight
+          if changed and cropProducerActive then
+            -- The preview may have started before the real dimensions were known;
+            -- restart the producer so its frames use the corrected size.
+            stopCropProducer()
+          end
+          ensureCropProducer()
+          render()
+        end
+      end)
     else
       closePreview()
       noctalia.notifyError(tr("title"), tr("download_failed"))
@@ -486,6 +1014,13 @@ openPreview = function(id)
     return
   end
   panel.setNeedsFrameTick(true)
+end
+
+-- Wallhaven IDs are short alphanumeric tokens. Reject anything else before it
+-- reaches a cache path or a shell argument, so a malformed API response cannot
+-- escape the plugin's directories.
+local function isSafeWallpaperId(value)
+  return type(value) == "string" and value:match("^[%w_-]+$") ~= nil
 end
 
 local function parseSearchResponse(body)
@@ -507,9 +1042,14 @@ end
 
 fetchWallpapers = function()
   if loading then
+    -- Keep the latest requested state; the in-flight response will start one more
+    -- fetch instead of dropping the change.
+    fetchQueued = true
+    render()
     return
   end
   loading = true
+  fetchQueued = false
   errorMessage = ""
   render()
 
@@ -537,13 +1077,27 @@ fetchWallpapers = function()
   end
 
   local url = API_BASE .. "/search?" .. table.concat(params, "&")
+  -- Capture what this request asked for. Filters can change while the response is
+  -- in flight; those changes set fetchQueued and are fetched again below.
+  local requestAspectRatio = aspectRatioFilterValue()
+  local requestRatioTolerance = aspectRatioTolerance()
+  local requestRelevance = relevanceWithoutQuery()
 
-  noctalia.http({ url = url, headers = httpHeaders() }, function(res)
+  local function scheduleQueuedFetch()
+    if fetchQueued then
+      fetchQueued = false
+      fetchWallpapers()
+    end
+  end
+
+  local started = noctalia.http({ url = url, headers = httpHeaders() }, function(res)
     loading = false
     if not res.ok then
       errorMessage = tr("error")
       wallpapers = {}
+      totalPages = 1
       render()
+      scheduleQueuedFetch()
       return
     end
 
@@ -551,22 +1105,24 @@ fetchWallpapers = function()
     if data == nil then
       errorMessage = err or tr("error")
       wallpapers = {}
+      totalPages = 1
       render()
+      scheduleQueuedFetch()
       return
     end
 
     local filteredWallpapers = {}
-    local options = aspectRatioOptions()
-    local selectedRatio = options[aspectRatioIndex + 1] or ""
+    local selectedRatio = requestAspectRatio
+    local ratioTolerance = requestRatioTolerance
 
     for _, wallpaper in ipairs(data) do
-      local include = true
+      local include = type(wallpaper) == "table" and isSafeWallpaperId(wallpaper.id)
 
       -- Client-side aspect ratio check since API's ratio filter is often inaccurate
-      if selectedRatio ~= "" then
-        local res = wallpaper.resolution
-        if type(res) == "string" then
-          local w, h = res:match("(%d+)x(%d+)")
+      if include and selectedRatio ~= "" then
+        local resolution = wallpaper.resolution
+        if type(resolution) == "string" then
+          local w, h = resolution:match("(%d+)x(%d+)")
           if w and h then
             w, h = tonumber(w), tonumber(h)
             local ratio = w / h
@@ -581,7 +1137,7 @@ fetchWallpapers = function()
               local rw, rh = selectedRatio:match("(%d+)x(%d+)")
               if rw and rh then
                 local targetRatio = tonumber(rw) / tonumber(rh)
-                if math.abs(ratio - targetRatio) > 0.05 then
+                if math.abs(ratio - targetRatio) > ratioTolerance then
                   include = false
                 end
               end
@@ -596,7 +1152,7 @@ fetchWallpapers = function()
     end
 
     wallpapers = filteredWallpapers
-    totalPages = normalizeTotalPages(lastPage)
+    totalPages = normalizeTotalPages(lastPage, requestRelevance)
     if page > totalPages then
       page = totalPages
     end
@@ -607,7 +1163,16 @@ fetchWallpapers = function()
         queueThumbDownload(wallpaper)
       end
     end)
+    scheduleQueuedFetch()
   end)
+  if not started then
+    loading = false
+    errorMessage = tr("error")
+    wallpapers = {}
+    totalPages = 1
+    render()
+    scheduleQueuedFetch()
+  end
 end
 
 local function persistAndRefetch()
@@ -660,7 +1225,7 @@ end
 
 local function wallpaperTile(wallpaper)
   local id = wallpaper.id
-  local resolution = wallpaper.resolution or id
+  local resolution = if type(wallpaper.resolution) == "string" then wallpaper.resolution else id
   local selected = selectedId == id
   local borderColor, borderWidth = tileBorder(wallpaper, selected)
   local frameWidth, frameHeight = tileThumbSize()
@@ -706,15 +1271,34 @@ local function wallpaperGrid()
 end
 
 local function previewView()
+  local media
+  if previewStreaming and previewPath ~= nil and previewImageW ~= nil and previewImageH ~= nil then
+    media = ui.pixelStream({
+      -- A producer restart uses a new socket; recreate the widget so the host
+      -- reconnects instead of keeping the previous stream path.
+      key = `crop_preview_{cropSession}`,
+      width = PANEL_WIDTH - PANEL_PADDING,
+      height = PREVIEW_HEIGHT,
+      path = cropSocketPath(),
+      radius = 0,
+      onPointerDown = "onCropDown",
+      onPointerMove = "onCropMove",
+      onPointerUp = "onCropUp",
+      onPointerCancel = "onCropCancel",
+    })
+  else
+    media = ui.image({
+      width = PANEL_WIDTH - PANEL_PADDING,
+      height = PREVIEW_HEIGHT,
+      path = previewPath or thumbPaths[preview.id],
+      fit = "contain",
+    })
+  end
+
   return ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, {
     -- Scrolls when a short screen shrinks the panel, so the buttons stay reachable.
     ui.scroll({ flexGrow = 1 }, {
-      ui.image({
-        width = PANEL_WIDTH - PANEL_PADDING,
-        height = PREVIEW_HEIGHT,
-        path = previewPath or thumbPaths[preview.id],
-        fit = "contain",
-      }),
+      media,
     }),
     ui.row({ align = "center", justify = "space_between", gap = 8 }, {
       ui.button({
@@ -738,14 +1322,28 @@ local function previewView()
           }),
         })
       else
-        ui.label({ text = preview.resolution or preview.id, color = "on_surface_variant" }),
-      ui.button({
-        key = "preview_apply",
-        text = tr("preview_apply"),
-        variant = "primary",
-        onClick = "onPreviewApply",
-        enabled = previewPath ~= nil and not applying,
-      }),
+        ui.row({ align = "center", justify = "end", gap = 8, flexGrow = 1 }, {
+          ui.label({
+            text = if type(preview.resolution) == "string" then preview.resolution else preview.id,
+            color = "on_surface_variant",
+          }),
+          ui.button({
+            key = "preview_fit",
+            text = tr("preview_fit"),
+            variant = if fitEnabled then "primary" else "outline",
+            selected = fitEnabled,
+            tooltip = tr("preview_fit_tooltip"),
+            onClick = "onPreviewFitToggle",
+            enabled = previewPath ~= nil and not applying and previewImageW ~= nil and previewImageH ~= nil,
+          }),
+          ui.button({
+            key = "preview_apply",
+            text = tr("preview_apply"),
+            variant = "primary",
+            onClick = "onPreviewApply",
+            enabled = previewPath ~= nil and not applying,
+          }),
+        }),
     }),
   })
 end
@@ -834,13 +1432,23 @@ local function sweepPreviewLeftovers()
   if preview ~= nil then
     return
   end
-  noctalia.runAsync(`rm -f {shellQuote(CACHE_DIR)}/*-full.jpg {shellQuote(CACHE_DIR)}/*-full.png`)
+  noctalia.runAsync(`rm -f {shellQuote(CACHE_DIR)}/*-full.jpg {shellQuote(CACHE_DIR)}/*-full.png {shellQuote(CACHE_DIR)}/*-full.jpg.part {shellQuote(CACHE_DIR)}/*-full.png.part {shellQuote(CACHE_DIR)}/*-fit-tmp.jpg {shellQuote(CACHE_DIR)}/*-fit-tmp.png`)
+end
+
+-- `stopCropProducer` asks the helper to quit and it removes its own socket and state
+-- file. A crash can leave both behind, so sweep them when no preview is active.
+local function sweepCropLeftovers()
+  if preview ~= nil then
+    return
+  end
+  noctalia.runAsync(`rm -f {shellQuote(cropDirectory())}/*.sock {shellQuote(cropDirectory())}/*.json {shellQuote(cropDirectory())}/*.pid`)
 end
 
 function onOpen(_context)
   closeButton = noctalia.getSetting("shell.show_close_buttons") ~= false
   normalizePurityFilters()
   sweepPreviewLeftovers()
+  sweepCropLeftovers()
   -- A freshly loaded script has little CPU budget left; fetch on the next frame, whose
   -- callback gets a full budget.
   needsInitialFetch = true
@@ -884,30 +1492,105 @@ function onPreviewBack()
   render()
 end
 
-function onPreviewApply()
+local function applyPreview()
   if applying or previewPath == nil then
     return
   end
   applying = true
   render()
 
+  local function finishApply(dest, targetOutput)
+    if targetOutput ~= nil and targetOutput ~= "" then
+      noctalia.setWallpaper(targetOutput, dest)
+    else
+      noctalia.setWallpaper(dest)
+    end
+    stopCropProducer()
+    previewStreaming = false
+    preview = nil
+    previewPath = nil
+    previewImageW = nil
+    previewImageH = nil
+    noctalia.notify(tr("title"), tr("applied"))
+    render()
+  end
+
   local destDir = downloadDir()
   local dest = `{destDir}/wallhaven-{preview.id}{fileExtension(preview)}`
-  -- mv, not noctalia.renameFile: the wallpaper directory can be on another filesystem.
-  noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && mv -f {shellQuote(previewPath)} {shellQuote(dest)}`, function(res)
+  if not fitEnabled then
+    -- mv, not noctalia.renameFile: the wallpaper directory can be on another filesystem.
+    noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && mv -f {shellQuote(previewPath)} {shellQuote(dest)}`, function(res)
+      applying = false
+      if res == nil or res.exitCode ~= 0 then
+        noctalia.notifyError(tr("title"), tr("apply_failed"))
+        render()
+        return
+      end
+      finishApply(dest)
+    end)
+    return
+  end
+
+  local magick = imageMagickBinary()
+  if magick == nil then
+    applying = false
+    noctalia.notifyError(tr("title"), tr("fit_failed"))
+    render()
+    return
+  end
+  local x, y, width, height, monitorWidth, monitorHeight = cropRect()
+  local targetOutput = focusedOutputName()
+  if x == nil then
+    applying = false
+    noctalia.notifyError(tr("title"), tr("fit_failed"))
+    render()
+    return
+  end
+  local geometry = `{width}x{height}+{x}+{y}`
+  local resolution = `{monitorWidth}x{monitorHeight}`
+  local extension = fileExtension(preview)
+  -- A fitted crop gets its own file name, so re-applying the same wallpaper
+  -- in either mode, or after a monitor resolution change, changes the path and
+  -- makes Noctalia reload the wallpaper.
+  dest = `{destDir}/wallhaven-{preview.id}-fit-{width}x{height}-{x}-{y}-{monitorWidth}x{monitorHeight}{extension}`
+  -- Render to a cache file and move it into place, so a failed or interrupted
+  -- crop never leaves a partial file at the destination (and mv replaces a
+  -- symlink instead of writing through it).
+  local temp = `{CACHE_DIR}/{preview.id}-fit-tmp{extension}`
+  noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && {magick} {shellQuote(previewPath)} -crop {geometry} +repage -resize {resolution}! {shellQuote(temp)} && mv -f {shellQuote(temp)} {shellQuote(dest)}`, function(res)
     applying = false
     if res == nil or res.exitCode ~= 0 then
-      noctalia.notifyError(tr("title"), tr("apply_failed"))
+      noctalia.removeFile(temp)
+      noctalia.notifyError(tr("title"), tr("fit_failed"))
       render()
       return
     end
+    noctalia.removeFile(previewPath)
+    finishApply(dest, targetOutput)
+  end, 30000)
+end
 
-    noctalia.setWallpaper(dest)
-    preview = nil
-    previewPath = nil
-    noctalia.notify(tr("title"), tr("applied"))
-    render()
-  end)
+function onPreviewApply()
+  applyPreview()
+end
+
+function onPreviewFitToggle()
+  if previewPath == nil or applying then
+    return
+  end
+  fitEnabled = not fitEnabled
+  if fitEnabled then
+    previewStreaming = true
+    if not ensureCropProducer() then
+      fitEnabled = false
+      previewStreaming = false
+      noctalia.notifyError(tr("title"), tr("fit_failed"))
+    end
+  end
+  -- The producer keeps running so toggling back on stays instant, but it needs
+  -- to know which frame to draw.
+  writeCropState()
+  render()
 end
 
 function onSearchChange(value)
@@ -982,6 +1665,10 @@ function onSort(index, _text)
 end
 
 function onToggleSortOrder()
+  if sortIsRandom() then
+    persistAndRefetch()
+    return
+  end
   sortOrder = if sortOrder == "desc" then "asc" else "desc"
   persistAndRefetch()
 end

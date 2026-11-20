@@ -1,13 +1,13 @@
 id = "noctalia/wallhaven"
 name = "Wallhaven"
-version = "1.4.1"
+version = "1.5.0"
 plugin_api = 43
 author = "noctalia"
 license = "MIT"
-dependencies = []
+dependencies = ["python3", "imagemagick"]
 tags = ["wallpaper"]
 icon = "photo"
-description = "Browse Wallhaven wallpapers."
+description = "Browse Wallhaven wallpapers with a draggable fit-to-monitor crop."
 
 [[setting]]
 key = "api_key"
