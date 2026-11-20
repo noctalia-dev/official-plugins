@@ -49,6 +49,7 @@
     "search": "Search shaders",
     "all_slots": "All slots",
     "apply": "Apply",
+    "apply_to": "Apply to {slot}",
     "by": "by {author}",
     "imported": "Imported",
     "picking": "Choose a shader for {slot}.",

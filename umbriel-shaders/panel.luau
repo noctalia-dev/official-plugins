@@ -48,7 +48,7 @@ local function append(out, list)
   end
 end
 
--- A small button; `opts` adds variant, enabled, glyph, tooltip, key and so on.
+-- `opts` is merged into the button's props.
 local function button(text, onClick, opts)
   local props = { text = text, onClick = onClick, controlSize = "sm" }
   for key, value in pairs(opts or {}) do
@@ -78,27 +78,36 @@ local function canApply()
   return hasUmbriel and setupState == "present" and not busy
 end
 
-local function commitSelection(nxt, okText, onOk)
+-- Run `start(done)` with the panel marked busy; `done()` clears it and re-renders.
+local function whileBusy(start)
   if busy then
     return
   end
   busy = true
   say(tr("status.working"))
   render()
-  Apply.commit(env, nxt, function(ok, err)
+  start(function()
     busy = false
-    if ok then
-      sel = nxt
-      timingDraft, timingError = {}, {}
-      draftGeneration += 1
-      say(okText or tr("status.applied"))
-      if onOk then
-        onOk()
-      end
-    else
-      say(tr("status.failed", { error = tostring(err) }), true)
-    end
     render()
+  end)
+end
+
+local function commitSelection(nxt, okText, onOk)
+  whileBusy(function(done)
+    Apply.commit(env, nxt, function(ok, err)
+      if ok then
+        sel = nxt
+        timingDraft, timingError = {}, {}
+        draftGeneration += 1
+        say(okText or tr("status.applied"))
+        if onOk then
+          onOk()
+        end
+      else
+        say(tr("status.failed", { error = tostring(err) }), true)
+      end
+      done()
+    end)
   end)
 end
 
@@ -111,21 +120,16 @@ local function refreshSetup()
 end
 
 local function runSetup()
-  if busy then
-    return
-  end
-  busy = true
-  say(tr("status.working"))
-  render()
-  Config.setup(env.paths, function(ok, err)
-    busy = false
-    refreshSetup()
-    if ok then
-      say(tr("setup.done"))
-    else
-      say(tr("setup.failed", { error = tostring(err) }), true)
-    end
-    render()
+  whileBusy(function(done)
+    Config.setup(env.paths, function(ok, err)
+      refreshSetup()
+      if ok then
+        say(tr("setup.done"))
+      else
+        say(tr("setup.failed", { error = tostring(err) }), true)
+      end
+      done()
+    end)
   end)
 end
 
@@ -166,7 +170,7 @@ local function previewFor(effect)
     else
       previews[dest] = "pending"
       local synchronous = true
-      local job = { url = Files.raw .. cat.revision .. "/" .. image, dest = dest }
+      local job = { url = Files.url(cat.revision, image), dest = dest }
       Files.download({ job }, function(failed)
         previews[dest] = failed and "failed" or "ok"
         if not synchronous then
@@ -185,10 +189,14 @@ local function pick(slot, appId)
   render()
 end
 
+local function endPicking()
+  picking, tab, query = nil, "slots", ""
+end
+
 local function applyEffect(effect, slot)
   local target = picking
   if target then
-    picking, tab, query = nil, "slots", ""
+    endPicking()
   end
   local entry = Catalogue.resolve(cat, effect, slot, env.paths.shaders)
   if target and target.app_id then
@@ -226,15 +234,20 @@ local function applyFamily(family)
   end, tr("status.family_applied", { name = family.name }))
 end
 
-local function card(key, children)
-  return ui.column(
-    { key = key, gap = 6, padding = 10, radius = 8, fill = "surface_container/0.5" },
+local function card(key, children, row)
+  local layout = row and ui.row or ui.column
+  return layout(
+    { key = key, gap = row and 12 or 6, padding = 10, radius = 8, fill = "surface_container/0.5" },
     children
   )
 end
 
 local function hint(text)
   return ui.label({ text = text, fontSize = 11, color = "on_surface_variant" })
+end
+
+local function muted(text)
+  return ui.label({ text = text, color = "on_surface_variant" })
 end
 
 local expanded = nil -- slot whose details are open
@@ -453,10 +466,13 @@ end
 
 local function effectCard(effect)
   local buttons = {}
-  for _, slot in ipairs(picking and { picking.slot } or effect.uses) do
+  local slots = picking and { picking.slot } or effect.uses
+  for _, slot in ipairs(slots) do
+    local text = #slots == 1 and tr("browse.apply")
+      or tr("browse.apply_to", { slot = slotLabel(slot) })
     table.insert(
       buttons,
-      button(picking and tr("browse.apply") or slotLabel(slot), function()
+      button(text, function()
         applyEffect(effect, slot)
       end, { key = effect.id .. ":" .. slot, variant = "secondary", enabled = canApply() })
     )
@@ -469,25 +485,27 @@ local function effectCard(effect)
       end, { key = effect.id .. ":remove", variant = "ghost", enabled = canApply() })
     )
   end
+  local slotNames = {}
+  for _, slot in ipairs(effect.uses) do
+    table.insert(slotNames, slotLabel(slot))
+  end
   local image = previewFor(effect)
-  return ui.row(
-    { key = effect.id, gap = 12, padding = 10, radius = 8, fill = "surface_container/0.5" },
-    {
-      image and ui.image({ path = image, width = 144, height = 81, radius = 6, fit = "cover" })
-        or ui.box({ width = 144, height = 81, radius = 6, fill = "surface_container" }),
-      ui.column({ gap = 4, flexGrow = 1 }, {
-        ui.label({ text = effect.name, fontWeight = "bold" }),
-        ui.label({
-          text = effect.imported and tr("browse.imported")
-            or tr("browse.by", { author = effect.author or "" }),
-          fontSize = 12,
-          color = "on_surface_variant",
-        }),
-        ui.label({ text = effect.description or "", fontSize = 12, maxLines = 2 }),
-        ui.row({ gap = 6 }, buttons),
+  return card(effect.id, {
+    image and ui.image({ path = image, width = 144, height = 81, radius = 6, fit = "cover" })
+      or ui.box({ width = 144, height = 81, radius = 6, fill = "surface_container" }),
+    ui.column({ gap = 4, flexGrow = 1 }, {
+      ui.label({ text = effect.name, fontWeight = "bold" }),
+      ui.label({
+        text = (effect.imported and tr("browse.imported") or tr("browse.by", {
+          author = effect.author or "",
+        })) .. " · " .. table.concat(slotNames, ", "),
+        fontSize = 12,
+        color = "on_surface_variant",
       }),
-    }
-  )
+      ui.label({ text = effect.description or "", fontSize = 12, maxLines = 2 }),
+      ui.row({ gap = 6 }, buttons),
+    }),
+  }, true)
 end
 
 local importOpen = false
@@ -523,7 +541,6 @@ local function importShader()
   render()
 end
 
--- The open GLSL import form, shown under the search row.
 local function importCard()
   return card("import", {
     ui.label({ text = tr("import.title"), fontWeight = "bold" }),
@@ -581,13 +598,13 @@ local function browseTab()
           ui.label({ text = text, flexGrow = 1 }),
           target.app_id
             and button(tr("apps.off"), function()
-              picking, tab, query = nil, "slots", ""
+              endPicking()
               commit(function(n)
                 Selection.setApp(n, target.app_id, target.slot, nil)
               end)
             end, { enabled = canApply() }),
           button(tr("browse.cancel"), function()
-            picking, tab, query = nil, "slots", ""
+            endPicking()
             render()
           end, { variant = "ghost" })
         )
@@ -638,13 +655,13 @@ local function browseTab()
   local effects = allEffects()
   if #effects == 0 then
     local key = catState == "error" and "banner.catalogue_failed" or "banner.loading"
-    table.insert(out, ui.label({ text = tr(key), color = "on_surface_variant" }))
+    table.insert(out, muted(tr(key)))
   else
     local results = Catalogue.search(effects, query, picking and picking.slot or slotFilter)
     local pages = math.max(1, math.ceil(#results / PAGE_SIZE))
     page = math.clamp(page, 1, pages)
     if #results == 0 then
-      table.insert(out, ui.label({ text = tr("browse.empty"), color = "on_surface_variant" }))
+      table.insert(out, muted(tr("browse.empty")))
     end
     for i = (page - 1) * PAGE_SIZE + 1, math.min(page * PAGE_SIZE, #results) do
       table.insert(out, effectCard(results[i]))
@@ -671,10 +688,10 @@ end
 
 local function familiesTab()
   if not cat then
-    return { ui.label({ text = tr("banner.loading"), color = "on_surface_variant" }) }
+    return { muted(tr("banner.loading")) }
   end
   if #cat.families == 0 then
-    return { ui.label({ text = tr("families.empty"), color = "on_surface_variant" }) }
+    return { muted(tr("families.empty")) }
   end
   local out = {}
   for _, family in ipairs(cat.families) do

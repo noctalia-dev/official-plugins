@@ -12,13 +12,30 @@ local function dirname(path)
   return path:match("^(.*)/[^/]*$")
 end
 
+function M.url(revision, path)
+  return M.raw .. revision .. "/" .. path
+end
+
+-- Write through `<path>.tmp` and rename, so readers never see a partial file.
+function M.writeAtomic(path, text)
+  local temp = path .. ".tmp"
+  local ok, err = noctalia.writeFile(temp, text)
+  if ok then
+    ok, err = noctalia.renameFile(temp, path)
+  end
+  if not ok then
+    noctalia.removeFile(temp)
+  end
+  return ok, err
+end
+
 function M.jobsFor(entries, shadersDir, exists)
   local jobs, seen = {}, {}
   for _, entry in ipairs(entries) do
     for _, path in ipairs(entry.files or {}) do
       local dest = shadersDir .. "/" .. entry.revision .. "/" .. path
       if not seen[dest] and not exists(dest) then
-        table.insert(jobs, { url = M.raw .. entry.revision .. "/" .. path, dest = dest })
+        table.insert(jobs, { url = M.url(entry.revision, path), dest = dest })
       end
       seen[dest] = true
     end
@@ -72,7 +89,7 @@ function M.import(shadersDir, path, name, slot, taken)
   if not table.find(Slots.list, slot) then
     return nil, "unknown slot"
   end
-  local fullPath = noctalia.expandPath((path or ""):match("^%s*(.-)%s*$"))
+  local fullPath = noctalia.expandPath(noctalia.string.trim(path or ""))
   local source, readErr = noctalia.readFile(fullPath)
   if not source then
     return nil, readErr or ("cannot read " .. fullPath)
@@ -80,7 +97,7 @@ function M.import(shadersDir, path, name, slot, taken)
   if #source > M.maxImportBytes then
     return nil, "file is larger than 256 KiB"
   end
-  local display = (name or ""):match("^%s*(.-)%s*$")
+  local display = noctalia.string.trim(name or "")
   if display == "" then
     display = (fullPath:match("([^/]+)$") or "shader"):gsub("%.glsl$", "")
   end

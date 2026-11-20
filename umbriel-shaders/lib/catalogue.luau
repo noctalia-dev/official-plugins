@@ -85,16 +85,12 @@ function M.index(data)
   end
   local cat = { revision = revision, effects = {}, byId = {}, byPreset = {}, families = {} }
   for _, effect in ipairs(data.effects) do
-    local preview = type(effect) == "table" and effect.preview
-    local image = type(preview) == "table" and preview.image or nil
-    local include = nil
-    if type(effect) == "table" and type(effect.activation) == "table" then
-      include = effect.activation.include
-    end
     local usable = hasEntryFields(effect)
-      and allSafe(effect.install_files)
-      and allSafe(include)
-      and (image == nil or safe(image))
+    if usable then
+      local image = type(effect.preview) == "table" and effect.preview.image or nil
+      local include = type(effect.activation) == "table" and effect.activation.include or nil
+      usable = allSafe(effect.install_files) and allSafe(include) and (image == nil or safe(image))
+    end
     if usable then
       cat.byId[effect.id] = effect
       cat.byPreset[effect.preset] = effect

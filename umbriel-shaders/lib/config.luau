@@ -1,5 +1,7 @@
 -- SPDX-License-Identifier: MIT
 -- The generated Umbriel include file and the user's include of it.
+local Files = require("./files.luau")
+local Selection = require("./selection.luau")
 local Slots = require("./slots.luau")
 
 local M = {}
@@ -60,17 +62,7 @@ local function sortedKeys(t)
 end
 
 function M.render(sel)
-  local entries = {}
-  for _, slot in ipairs(Slots.list) do
-    if sel.slots[slot] then
-      table.insert(entries, sel.slots[slot])
-    end
-  end
-  for _, rule in ipairs(sel.apps) do
-    if rule.entry then
-      table.insert(entries, rule.entry)
-    end
-  end
+  local entries = Selection.entries(sel)
 
   -- A selected parent's effect.toml already includes its companions; including
   -- them again is an Umbriel warning ("include cycle or duplicate skipped").
@@ -241,23 +233,14 @@ end
 -- Plugin-owned files are replaced atomically (tmp + rename). The user's own
 -- config is written in place so a symlinked config.toml is not replaced.
 local function writeText(path, text, atomic)
-  if not atomic then
-    local ok, err = noctalia.writeFile(path, text)
-    return ok, tostring(err or "write failed")
-  end
-  local temp = path .. ".tmp"
-  local ok, err = noctalia.writeFile(temp, text)
-  if ok then
-    ok, err = noctalia.renameFile(temp, path)
-    if not ok then
-      noctalia.removeFile(temp)
-    end
-  end
+  local write = atomic and Files.writeAtomic or noctalia.writeFile
+  local ok, err = write(path, text)
   return ok, tostring(err or "write failed")
 end
 
 -- Write `newText` to `target` and keep it only if Umbriel, validating
 -- `configPath`, reports nothing new; otherwise put the old text back.
+-- On failure `cb` also receives whether putting the old text back failed.
 function M.guardedWrite(configPath, target, newText, atomic, cb)
   M.validate(configPath, function(before, err)
     if not before then
@@ -286,7 +269,7 @@ function M.guardedWrite(configPath, target, newText, atomic, cb)
       if not restored then
         message = message .. "\nrestoring " .. target .. " failed: " .. tostring(restoreErr)
       end
-      cb(false, message)
+      cb(false, message, not restored)
     end)
   end)
 end
@@ -305,13 +288,9 @@ function M.setup(paths, cb)
     cb(false, err)
     return
   end
-  M.guardedWrite(paths.config, paths.config, updated, false, function(done, message)
-    if
-      not done
-      and type(message) == "string"
-      and message:find("restoring " .. paths.config .. " failed", 1, true)
-    then
-      message = message .. "; the original is in " .. paths.config .. ".bak"
+  M.guardedWrite(paths.config, paths.config, updated, false, function(done, message, restoreFailed)
+    if restoreFailed then
+      message ..= "; the original is in " .. paths.config .. ".bak"
     end
     cb(done, message)
   end)

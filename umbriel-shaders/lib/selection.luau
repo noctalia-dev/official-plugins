@@ -1,6 +1,9 @@
 -- SPDX-License-Identifier: MIT
 -- What the user has chosen. Changes are pure: each returns a new selection
 -- that remembers the previous slots, apps and timing for one-level undo.
+local Files = require("./files.luau")
+local Slots = require("./slots.luau")
+
 local M = {}
 
 function M.empty()
@@ -33,12 +36,23 @@ function M.load(path)
 end
 
 function M.save(path, sel)
-  local temp = path .. ".tmp"
-  local ok, err = noctalia.writeFile(temp, noctalia.json.encode(sel, true))
-  if ok then
-    ok, err = noctalia.renameFile(temp, path)
+  return Files.writeAtomic(path, noctalia.json.encode(sel, true))
+end
+
+-- Every entry in use: slots in display order, then app rules.
+function M.entries(sel)
+  local out = {}
+  for _, slot in ipairs(Slots.list) do
+    if sel.slots[slot] then
+      table.insert(out, sel.slots[slot])
+    end
   end
-  return ok, err
+  for _, rule in ipairs(sel.apps) do
+    if rule.entry then
+      table.insert(out, rule.entry)
+    end
+  end
+  return out
 end
 
 function M.change(sel, fn)
