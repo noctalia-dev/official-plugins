@@ -1,0 +1,25 @@
+id = "barrulus/umbriel-shaders"
+name = "Umbriel Shaders"
+version = "0.7.0"
+plugin_api = 43
+author = "Barrulus"
+license = "MIT"
+icon = "sparkles"
+description = "Browse community shaders and apply them to Umbriel effect and animation slots."
+dependencies = ["umbriel"]
+tags = ["umbriel", "theming", "panel", "utility"]
+
+[[panel]]
+id = "shaders"
+entry = "panel.luau"
+width = 640
+height = 740
+placement = "floating"
+
+[[shortcut]]
+id = "open"
+entry = "shortcut.luau"
+
+[[widget]]
+id = "shaders-bar"
+entry = "widget.luau"
