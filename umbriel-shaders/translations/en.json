@@ -1,0 +1,94 @@
+{
+  "title": "Umbriel Shaders",
+  "tabs": { "slots": "Slots", "browse": "Browse", "families": "Families" },
+  "header": { "undo": "Undo", "clear_all": "Clear all", "refresh": "Refresh catalogue", "close": "Close" },
+  "slot": {
+    "effects_cursor": "Cursor",
+    "effects_border": "Border",
+    "effects_window": "Window",
+    "effects_screen": "Screen",
+    "animation_windows_in": "Window open",
+    "animation_windows_out": "Window close",
+    "animation_windows_move": "Window move",
+    "animation_workspaces": "Workspace switch",
+    "animation_overview": "Overview",
+    "animation_scratchpad": "Scratchpad",
+    "animation_layers": "Layer surfaces",
+    "animation_border": "Border animation",
+    "animation_dim_unfocused": "Unfocused dimming"
+  },
+  "status": {
+    "working": "Working…",
+    "applied": "Applied.",
+    "failed": "Not applied: {error}",
+    "cleared": "All shaders cleared.",
+    "undone": "Last change undone.",
+    "family_applied": "Applied the {name} family.",
+    "timing_saved": "Timing saved.",
+    "imported": "Imported {name}. Apply it from its card in Browse.",
+    "import_removed": "Import removed."
+  },
+  "setup": {
+    "text": "Umbriel does not load this plugin's shaders yet. Add this include to {path}:",
+    "add": "Add for me",
+    "copy": "Copy snippet",
+    "copied": "Snippet copied.",
+    "check": "Check again",
+    "done": "Include added. Your previous file is saved as config.toml.bak.",
+    "failed": "Could not add the include: {error}"
+  },
+  "banner": {
+    "no_umbriel": "The umbriel command was not found on PATH.",
+    "offline": "Offline: showing the saved catalogue.",
+    "loading": "Loading catalogue…",
+    "catalogue_failed": "The catalogue could not be loaded. Use Refresh to retry.",
+    "catalogue_error": "Catalogue unavailable: {error}"
+  },
+  "slots": { "none": "None", "change": "Change", "clear": "Clear", "details": "Details", "hide": "Hide" },
+  "browse": {
+    "search": "Search shaders",
+    "all_slots": "All slots",
+    "apply": "Apply",
+    "apply_to": "Apply to {slot}",
+    "by": "by {author}",
+    "imported": "Imported",
+    "picking": "Choose a shader for {slot}.",
+    "picking_app": "Choose a {slot} shader for {app}.",
+    "cancel": "Cancel",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "{page} / {pages}",
+    "empty": "No shaders match."
+  },
+  "families": { "apply": "Apply family", "empty": "No families in the catalogue." },
+  "timing": {
+    "duration": "Duration (ms)",
+    "duration_own": "{value} ms (shader default)",
+    "curve": "Curve",
+    "curve_own": "{value} (shader default)",
+    "apply": "Save timing",
+    "hint": "Leave empty to use the shader's own timing. Spring curves ignore the duration."
+  },
+  "apps": {
+    "title": "Application rules",
+    "add": "Add an open application…",
+    "off": "No effect",
+    "remove": "Remove",
+    "loading": "Reading open windows…",
+    "hint": "Window rules in your own config.toml take precedence."
+  },
+  "import": {
+    "open": "Import GLSL",
+    "title": "Import a GLSL file",
+    "path": "Path to a .glsl file",
+    "name": "Name (optional)",
+    "hint": "The file must define the entry point for its slot: cursor(), border(), window(), screen() or animation().",
+    "save": "Import",
+    "failed": "Import failed: {error}",
+    "remove": "Remove"
+  },
+  "error": {
+    "duration": "Duration must be a whole number of milliseconds.",
+    "download": "Download failed: {file}"
+  }
+}
