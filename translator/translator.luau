@@ -52,6 +52,12 @@ local LANGUAGES = {
 local cache = {}
 local pending = {}
 
+-- The most recently seen onQuery input. Async fetch callbacks re-check this
+-- before publishing: requests for successive keystrokes can resolve out of
+-- order over the network, and a stale response arriving after a newer one
+-- must never overwrite it with a truncated translation.
+local lastQuery = nil
+
 -- Script subtags providers use for language variants; other 4-letter subtags are
 -- too likely to be English words ("de-iced").
 local SCRIPTS = { hans = "Hans", hant = "Hant" }
@@ -233,6 +239,8 @@ local function resultRow(entry)
 end
 
 function onQuery(query)
+  lastQuery = query
+
   local configured = noctalia.getConfig("target_lang")
   configured = if type(configured) == "string" then noctalia.string.trim(configured) else ""
   local defaultTarget = if configured == "" then "en" else resolveLang(configured) or configured:lower()
@@ -296,6 +304,11 @@ function onQuery(query)
     fetchProvider(reqContent, reqTarget, function(translated, err, source)
       pending[reqKey] = nil
 
+      -- A newer onQuery call has already superseded this one: publishing now
+      -- would overwrite its (possibly already-shown) result with a stale
+      -- translation of a shorter/older input. Drop it silently.
+      local stale = query ~= lastQuery
+
       if not translated then
         -- The target came from the leading token, and the provider rejected it: retry once
         -- with the whole input against the default target. Skipped when the retry would
@@ -307,6 +320,9 @@ function onQuery(query)
           requestTranslation(defaultTarget, text, first, reqKey)
           return
         end
+        if stale then
+          return
+        end
         launcher.setResults(query, { hintRow(err or "Translation error", reqContent, "alert-triangle") })
         return
       end
@@ -315,6 +331,9 @@ function onQuery(query)
       cache[reqKey] = entry
       if aliasKey then
         cache[aliasKey] = entry
+      end
+      if stale then
+        return
       end
       launcher.setResults(query, { resultRow(entry) })
     end)
