@@ -1,6 +1,6 @@
 id = "noctalia/translator"
 name = "Translator"
-version = "1.0.9"
+version = "1.0.10"
 plugin_api = 3
 author = "noctalia"
 license = "MIT"
