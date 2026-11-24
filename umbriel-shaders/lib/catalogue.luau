@@ -34,15 +34,23 @@ local function byName(a, b)
   return a.name:lower() < b.name:lower()
 end
 
--- Settings become TOML: keys must be bare-key-safe dotted paths and values scalars.
+-- Settings become TOML: keys must be dotted bare keys with no empty segment, values scalars.
+local function validKey(key)
+  if type(key) ~= "string" then
+    return false
+  end
+  for _, part in ipairs(key:split(".")) do
+    if not part:match("^[%w_%-]+$") then
+      return false
+    end
+  end
+  return true
+end
+
 local function validSettings(settings)
   for key, value in pairs(settings) do
     local t = type(value)
-    if
-      type(key) ~= "string"
-      or not key:match("^[%w_%-]+[%w_.%-]*$")
-      or (t ~= "string" and t ~= "number" and t ~= "boolean")
-    then
+    if not validKey(key) or (t ~= "string" and t ~= "number" and t ~= "boolean") then
       return false
     end
   end
@@ -93,7 +101,6 @@ function M.index(data)
     end
     if usable then
       cat.byId[effect.id] = effect
-      cat.byPreset[effect.preset] = effect
       if isListable(effect) then
         table.insert(cat.effects, effect)
       end
@@ -113,6 +120,10 @@ function M.index(data)
     end
   end
   cat.effects = listed
+  -- Families select members by preset; only offer effects that can be applied.
+  for _, effect in ipairs(listed) do
+    cat.byPreset[effect.preset] = effect
+  end
   table.sort(cat.effects, byName)
   for _, family in ipairs(type(data.families) == "table" and data.families or {}) do
     if isFamily(family) then
