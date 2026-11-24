@@ -187,8 +187,11 @@ function M.includeState(text)
   if type(text) ~= "string" then
     return "manual"
   end
-  if text:find(M.fileName, 1, true) then
-    return "present"
+  -- A commented-out include does not load the file.
+  for _, line in ipairs(text:split("\n")) do
+    if line:match("^([^#]*)"):find(M.fileName, 1, true) then
+      return "present"
+    end
   end
   return M.addInclude(text) and "insert" or "manual"
 end
