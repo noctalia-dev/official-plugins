@@ -50,11 +50,14 @@ export type HttpStreamHandle = {
 export type Output = {
   name: string,
   description: string,
-  width: number,
+  width: number, -- logical size
   height: number,
-  x: number,
+  x: number, -- position in logical output space
   y: number,
-  scale: number,
+  scale: number, -- integer wl_output scale
+  pixelWidth: number, -- API 59. Displayed (post-rotation) size in pixels; a full-output wallpaper's size
+  pixelHeight: number, -- API 59
+  scaleFactor: number, -- API 59. Effective scale, possibly fractional (1.5)
   focused: boolean,
 }
 
