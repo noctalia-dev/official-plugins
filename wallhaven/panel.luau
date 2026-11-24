@@ -1539,7 +1539,7 @@ local function applyPreview()
     return
   end
   local x, y, width, height, monitorWidth, monitorHeight = cropRect()
-  local targetOutput = focusedOutputName()
+  local targetOutput = noctalia.focusedOutputName()
   if x == nil then
     applying = false
     noctalia.notifyError(tr("title"), tr("fit_failed"))
