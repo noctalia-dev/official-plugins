@@ -95,7 +95,7 @@ function M.import(shadersDir, path, name, slot, taken)
     return nil, readErr or ("cannot read " .. fullPath)
   end
   if #source > M.maxImportBytes then
-    return nil, "file is larger than 256 KiB"
+    return nil, noctalia.tr("error.too_large")
   end
   local display = noctalia.string.trim(name or "")
   if display == "" then

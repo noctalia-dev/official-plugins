@@ -85,11 +85,11 @@ end
 
 function M.index(data)
   if type(data) ~= "table" or data.schema_version ~= 1 or type(data.effects) ~= "table" then
-    return nil, "unsupported catalogue"
+    return nil, noctalia.tr("error.catalogue")
   end
   local revision = type(data.source) == "table" and data.source.revision
   if type(revision) ~= "string" or not revision:match("^%x+$") then
-    return nil, "unsupported catalogue revision"
+    return nil, noctalia.tr("error.catalogue_revision")
   end
   local cat = { revision = revision, effects = {}, byId = {}, byPreset = {}, families = {} }
   for _, effect in ipairs(data.effects) do
@@ -254,7 +254,7 @@ function M.fetch(dataDir, cb)
     cb(cat)
   end)
   if not started then
-    cb(nil, "request not started")
+    cb(nil, noctalia.tr("error.request"))
   end
 end
 

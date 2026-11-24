@@ -223,13 +223,13 @@ function M.validate(configPath, cb)
     local report = noctalia.json.decode(result.stdout or "")
     if type(report) ~= "table" or type(report.diagnostics) ~= "table" then
       local stderr = result.stderr or ""
-      cb(nil, stderr ~= "" and stderr or "umbriel config validate failed")
+      cb(nil, stderr ~= "" and stderr or noctalia.tr("error.validate"))
       return
     end
     cb(report)
   end)
   if not started then
-    cb(nil, "could not run umbriel")
+    cb(nil, noctalia.tr("error.run_umbriel"))
   end
 end
 
@@ -270,7 +270,7 @@ function M.guardedWrite(configPath, target, newText, atomic, cb)
       end
       local message = table.concat(problems, "\n")
       if not restored then
-        message = message .. "\nrestoring " .. target .. " failed: " .. tostring(restoreErr)
+        message ..= "\n" .. noctalia.tr("error.restore", { path = target, error = tostring(restoreErr) })
       end
       cb(false, message, not restored)
     end)
@@ -283,7 +283,7 @@ function M.setup(paths, cb)
   local text = noctalia.readFile(paths.config)
   local updated = type(text) == "string" and M.addInclude(text) or nil
   if not updated then
-    cb(false, "add the snippet to " .. paths.config .. " by hand")
+    cb(false, noctalia.tr("error.manual_setup", { path = paths.config }))
     return
   end
   local ok, err = noctalia.writeFile(paths.config .. ".bak", text)
@@ -293,7 +293,7 @@ function M.setup(paths, cb)
   end
   M.guardedWrite(paths.config, paths.config, updated, false, function(done, message, restoreFailed)
     if restoreFailed then
-      message ..= "; the original is in " .. paths.config .. ".bak"
+      message ..= "\n" .. noctalia.tr("error.backup", { path = paths.config .. ".bak" })
     end
     cb(done, message)
   end)

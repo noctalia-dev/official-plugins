@@ -89,6 +89,15 @@
   },
   "error": {
     "duration": "Duration must be a whole number of milliseconds.",
-    "download": "Download failed: {file}"
+    "download": "Download failed: {file}",
+    "validate": "umbriel config validate failed.",
+    "run_umbriel": "Could not run umbriel.",
+    "restore": "Restoring {path} failed: {error}",
+    "manual_setup": "Add the snippet to {path} by hand.",
+    "backup": "The original is in {path}.",
+    "too_large": "The file is larger than 256 KiB.",
+    "catalogue": "Unsupported catalogue format.",
+    "catalogue_revision": "Unsupported catalogue revision.",
+    "request": "The request could not be started."
   }
 }
