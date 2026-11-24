@@ -351,3 +351,16 @@ icon = "microphone-2"
 description = "Synced lyrics for the playing track on your desktop, with word-by-word highlighting."
 plugin_api = 51
 tags = ["music", "media", "desktop"]
+
+[[plugin]]
+id = "barrulus/umbriel-shaders"
+name = "Umbriel Shaders"
+version = "0.7.0"
+updated_at = 1795555466
+added_at = 1795555466
+author = "Barrulus"
+license = "MIT"
+icon = "sparkles"
+description = "Browse community shaders and apply them to Umbriel effect and animation slots."
+plugin_api = 43
+tags = ["umbriel", "theming", "panel", "utility"]
