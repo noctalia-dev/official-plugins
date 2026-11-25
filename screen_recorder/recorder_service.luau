@@ -144,41 +144,58 @@ local function setState(nextState)
     updateRegionOverlay()
 end
 
+-- Match the executable at the start of argv, including absolute native, Nix and
+-- Flatpak paths.
+local RECORDER_PATTERN = "^([^ ]*/)?(gpu-screen-recorder|com[.]dec05eba[.]gpu_screen_recorder)"
+-- the plugin's own launch shell lives as long as the recorder, so it covers a slow
+-- Flatpak start. it begins with the log header printed by the build*Command functions.
+local LAUNCHER_PATTERN = "^/bin/sh -c printf '=== gpu-screen-recorder "
+
 local function detectProcessStateAsync(callback)
-    local pending = 6
-    local isReplaying = false
-    local isRecording = false
+    local pending = 2
+    local found = false
 
-    local function finish(kind, matched)
-        if matched then
-            if kind == "replaying" then
-                isReplaying = true
-            elseif kind == "recording" then
-                isRecording = true
+    -- processMatches looks anywhere in a command line, so a shell or a search that only
+    -- mentions the recorder matches too. confirm a hit against the executable itself or
+    -- the launch shell.
+    local function confirm()
+        local pattern = `{RECORDER_PATTERN} |{LAUNCHER_PATTERN}`
+        local ok = noctalia.runAsync({ "pgrep", "-af", "--", pattern }, function(result)
+            local commands = result.stdout or ""
+            if commands:find(" -r ", 1, true) then
+                callback("replaying")
+            elseif commands:find(" -w ", 1, true) or commands:find(" -o ", 1, true) then
+                callback("recording")
+            else
+                callback(nil)
             end
+        end)
+        if not ok then
+            callback(nil)
         end
+    end
 
+    local function finish(matched)
+        found = found or matched
         pending -= 1
         if pending > 0 then return end
 
-        callback(if isReplaying then "replaying" elseif isRecording then "recording" else nil)
-    end
-
-    local function queue(kind, name, token)
-        local ok = noctalia.processMatches(function(matched)
-            finish(kind, matched)
-        end, name, token)
-        if not ok then
-            finish(kind, false)
+        if found then
+            confirm()
+        else
+            callback(nil)
         end
     end
 
-    queue("replaying", "gpu-screen-recorder", " -r ")
-    queue("replaying", "com.dec05eba.gpu_screen_recorder", " -r ")
-    queue("recording", "gpu-screen-recorder", " -w ")
-    queue("recording", "com.dec05eba.gpu_screen_recorder", " -w ")
-    queue("recording", "gpu-screen-recorder", " -o ")
-    queue("recording", "com.dec05eba.gpu_screen_recorder", " -o ")
+    local function queue(name)
+        local ok = noctalia.processMatches(finish, name)
+        if not ok then
+            finish(false)
+        end
+    end
+
+    queue("gpu-screen-recorder")
+    queue("com.dec05eba.gpu_screen_recorder")
 end
 
 local function flatpakGsrInstalled()
@@ -211,10 +228,9 @@ local function shellQuote(value)
     return "'" .. value:gsub("'", [["'"']]) .. "'"
 end
 
--- Match the executable at the start of argv, including absolute native, Nix and
--- Flatpak paths. Anchoring also keeps the signal command from matching its shell.
+-- Anchoring also keeps the signal command from matching its shell.
 local function signalRecorder(signal, replayOnly, forceAfterDelay)
-    local pattern = "^([^ ]*/)?(gpu-screen-recorder|com[.]dec05eba[.]gpu_screen_recorder)"
+    local pattern = RECORDER_PATTERN
         .. (if replayOnly then " (.* )?-r " else "( |$)")
 
     local cmd = `pids=$(pgrep -f -- {shellQuote(pattern)}) || exit 0\nkill -s {signal} $pids 2>/dev/null || true`

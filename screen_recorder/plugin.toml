@@ -13,7 +13,7 @@
 
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.6.0"
+version = "1.6.1"
 plugin_api = 56
 author = "noctalia"
 license = "MIT"
