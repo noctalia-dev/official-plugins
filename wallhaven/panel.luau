@@ -1618,6 +1618,30 @@ local function applyPreview()
   -- which applies to every output when the focused connector is unavailable.
   local targetOutput = noctalia.focusedOutputName()
   if type(targetOutput) ~= "string" or targetOutput == "" then
+    -- The host can report no focused connector for the panel context even when
+    -- an output is focused. Fall back to the output the host marks as focused,
+    -- then to the first output, so Fit keeps working on single-monitor setups.
+    local outputs = noctalia.outputs()
+    if type(outputs) == "table" then
+      local firstName = nil
+      for _, output in ipairs(outputs) do
+        local name = if type(output) == "table" then output.name else nil
+        if type(name) == "string" and name ~= "" then
+          if firstName == nil then
+            firstName = name
+          end
+          if output.focused == true then
+            targetOutput = name
+            break
+          end
+        end
+      end
+      if type(targetOutput) ~= "string" or targetOutput == "" then
+        targetOutput = firstName
+      end
+    end
+  end
+  if type(targetOutput) ~= "string" or targetOutput == "" then
     applying = false
     noctalia.notifyError(tr("title"), tr("apply_failed"))
     render()
