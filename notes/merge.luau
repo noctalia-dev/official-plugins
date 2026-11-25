@@ -10,12 +10,30 @@
 --   "local"    -> remote == base: only local changed -> save localBuf.
 --   "remote"   -> localBuf == base: only remote changed -> adopt remote.
 --   "merged"   -> both changed but compatibly (appends) -> merged content.
+--                 A disk text that is `base .. tail` is also merged as
+--                 `localBuf .. tail`, so a launcher quick-capture lands even
+--                 when the buffer has unrelated unsaved edits.
 --   "conflict" -> both changed incompatibly -> keep localBuf, do not write.
 
 local M = {}
 
 local function isPrefix(s, prefix)
   return s:sub(1, #prefix) == prefix
+end
+
+-- Joins two appended tails without gluing the last line of the first one to the
+-- first line of the second one.
+local function joinTails(left, right)
+  if left == "" then
+    return right
+  end
+  if right == "" then
+    return left
+  end
+  if left:sub(-1) == "\n" or right:sub(1, 1) == "\n" then
+    return left .. right
+  end
+  return left .. "\n" .. right
 end
 
 function M.resolve(base, localBuf, remote)
@@ -46,7 +64,18 @@ function M.resolve(base, localBuf, remote)
       return { status = "merged", content = base .. ls }
     end
     -- Distinct appends: keep both, nothing is lost.
-    return { status = "merged", content = base .. ls .. rs }
+    return { status = "merged", content = base .. joinTails(ls, rs) }
+  end
+  -- The launcher appends to the file while the panel may have unrelated unsaved
+  -- edits. A disk text that is exactly base plus a tail is an append, so graft
+  -- that tail onto the local buffer instead of calling it a conflict. An empty
+  -- base is excluded: there is no way to tell an append from a full text.
+  if base ~= "" and isPrefix(remote, base) then
+    local tail = remote:sub(#base + 1)
+    if localBuf:sub(-#tail) == tail then
+      return { status = "merged", content = localBuf }
+    end
+    return { status = "merged", content = localBuf .. tail }
   end
   return { status = "conflict", content = localBuf }
 end

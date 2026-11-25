@@ -38,6 +38,9 @@ merged with what you are typing, and when both sides changed the same note in
 incompatible ways nothing is overwritten - the panel tells you and saves your
 unsaved text as a copy in the `.conflicts` folder inside the notes directory.
 
+`watch` only controls that poll. The merge check before every save and the
+handling of launcher quick-captures run whether it is on or off.
+
 The panel close button respects `shell.show_close_buttons`; if the setting is
 missing, the button stays visible. Requires plugin API 26.
 
@@ -85,7 +88,7 @@ context switches the open panel in place.
 | `notes_dir` | `folder` | `$XDG_DOCUMENTS_DIR/Notes` | Where the note files live. `$XDG_DOCUMENTS_DIR` expands to your localized Documents folder, or `~/Documents` if none is set. If that folder has no `Notes` yet but `~/Documents/Notes` (the pre-1.1.0 default) exists, the old folder keeps being used. Created on first open if missing. |
 | `extension` | `string` | `md` | Comma-separated extensions for note files, without the dot (e.g. `md, txt, org`). Only files with these extensions are listed. New notes and the scratchpad use the first one; renaming a note keeps its extension. |
 | `glyph` | `glyph` | `notes` | Bar widget icon. |
-| `watch` | `boolean` | `true` | Check the notes folder for outside changes and merge them into the open note instead of overwriting your text. |
+| `watch` | `bool` | `true` | Poll the notes folder for outside changes and merge them into the open note instead of overwriting your text. The merge check on save applies even when this is off. |
 
 ## Notes
 

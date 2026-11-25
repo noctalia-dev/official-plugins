@@ -1,6 +1,9 @@
 {
   "bad_extension": "Invalid file extension setting – using md",
   "confirm_delete": "Delete?",
+  "conflict": "The note changed outside the editor.",
+  "conflict_copy_failed": "The note changed outside the editor, but your text could not be copied. It stays in the editor; check the notes folder.",
+  "conflict_saved": "Your unsaved text was saved in the .conflicts folder.",
   "counts": "{words} words · {chars} chars",
   "editing": "Editing…",
   "editor_placeholder": "Write your note…",
@@ -31,11 +34,9 @@
       "label": "Notes Directory"
     },
     "watch": {
-      "label": "Watch for outside changes",
-      "description": "Detect external edits and refresh or preserve your changes."
+      "description": "Poll the notes folder for outside changes. Saves still merge with the file on disk when this is off.",
+      "label": "Watch for outside changes"
     }
   },
-  "title": "Notes",
-  "conflict": "The note changed outside the editor; your version was not overwritten.",
-  "conflict_saved": "A copy of your unsaved text was saved in the .conflicts folder."
+  "title": "Notes"
 }
