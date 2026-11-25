@@ -800,13 +800,16 @@ export type UiSelectProps = {
 -- ui.segmented (API 60). Exclusive button group (segmented control) for mutually
 -- exclusive options. Value-driven like ui.select: pass selectedIndex on every render
 -- and update it from onChange, which receives the selected index and the option's
--- value. Options are bare strings or tables; value defaults to label, label defaults
--- to an explicit value, and onChange reports value, not label.
+-- value. Options are bare strings or tables; value defaults to label, and onChange
+-- reports value, not label. A label-less (glyph-only) option needs an explicit value
+-- and a tooltip explaining the option; options with neither a label nor a glyph are
+-- rejected.
 export type UiSegmentedOption = string
     | {
-        label: string?, -- required unless value is set
+        label: string?, -- a label-less option is glyph-only (see tooltip/value)
         value: string?, -- defaults to label; this is what onChange reports
         glyph: string?,
+        tooltip: string?, -- required for glyph-only options
       }
 
 export type UiSegmentedProps = {
