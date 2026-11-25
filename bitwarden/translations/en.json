@@ -81,6 +81,7 @@
       "label": "Copy Field",
       "options": {
         "password": "Password",
+        "pick": "Choose Each Time",
         "totp": "TOTP",
         "uri": "URI",
         "username": "Username"

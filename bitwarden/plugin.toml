@@ -2,7 +2,7 @@
 
 id = "noctalia/bitwarden"
 name = "Bitwarden"
-version = "1.4.0"
+version = "1.5.0"
 plugin_api = 17
 author = "noctalia"
 license = "MIT"
@@ -70,6 +70,7 @@ options = [
   { value = "username", label_key = "settings.copy_field.options.username" },
   { value = "totp", label_key = "settings.copy_field.options.totp" },
   { value = "uri", label_key = "settings.copy_field.options.uri" },
+  { value = "pick", label_key = "settings.copy_field.options.pick" },
 ]
 
 [[setting]]

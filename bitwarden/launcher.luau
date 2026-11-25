@@ -164,9 +164,14 @@ local function unwrapList(decoded)
   return {}, nil
 end
 
+local function alwaysPickField()
+  return noctalia.getConfig("copy_field") == "pick"
+end
+
 -- Fetch one item and decide how to copy it: entries without custom fields
--- keep the old single-keypress flow; entries with custom fields open the
--- field picker panel (mirrors the entry detail in the Bitwarden apps).
+-- keep the old single-keypress flow; entries with custom fields, or every
+-- entry when copy_field is "pick", open the field picker panel (mirrors the
+-- entry detail in the Bitwarden apps).
 local function fetchItemFields(itemId)
   local url = `http://127.0.0.1:{servePort()}/object/item/{noctalia.string.urlEncode(itemId)}`
   noctalia.http({
@@ -274,7 +279,7 @@ local function fetchItemFields(itemId)
     end
 
     local hasCustom = type(item.fields) == "table" and #item.fields > 0
-    if not hasCustom then
+    if not hasCustom and not (alwaysPickField() and #fields > 0) then
       noctalia.state.set("command", { action = "copy", id = itemId })
       return
     end
@@ -556,7 +561,7 @@ function onActivate(id)
           break
         end
       end
-      if cached ~= nil and not cached.hasFields then
+      if cached ~= nil and not cached.hasFields and not alwaysPickField() then
         noctalia.state.set("command", { action = "copy", id = itemId })
       else
         fetchItemFields(itemId)
