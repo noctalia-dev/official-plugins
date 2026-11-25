@@ -52,11 +52,16 @@ local LANGUAGES = {
 local cache = {}
 local pending = {}
 
--- The most recently seen onQuery input. Async fetch callbacks re-check this
--- before publishing: requests for successive keystrokes can resolve out of
--- order over the network, and a stale response arriving after a newer one
--- must never overwrite it with a truncated translation.
-local lastQuery = nil
+-- The most recently seen onQuery input, and the request key the row it's
+-- showing is actually waiting on. Comparing by request key (not the raw query
+-- string) matters because `pending` already shares one in-flight request
+-- across equivalent queries (e.g. trailing-whitespace variants): a fetch
+-- callback runs for whichever onQuery call actually issued the request, so it
+-- must publish against the *current* query, and must only do so (or retry)
+-- while it's still the request the visible row is waiting on - otherwise a
+-- superseded request can retry into, or overwrite, what a newer query shows.
+local currentQuery = ""
+local currentKey = nil
 
 -- Script subtags providers use for language variants; other 4-letter subtags are
 -- too likely to be English words ("de-iced").
@@ -239,7 +244,8 @@ local function resultRow(entry)
 end
 
 function onQuery(query)
-  lastQuery = query
+  currentQuery = query
+  currentKey = nil
 
   local configured = noctalia.getConfig("target_lang")
   configured = if type(configured) == "string" then noctalia.string.trim(configured) else ""
@@ -293,6 +299,7 @@ function onQuery(query)
       return
     end
 
+    currentKey = reqKey
     launcher.setResults(query, { hintRow("Translating…", reqContent, "loader") })
 
     if pending[reqKey] then
@@ -304,10 +311,16 @@ function onQuery(query)
     fetchProvider(reqContent, reqTarget, function(translated, err, source)
       pending[reqKey] = nil
 
-      -- A newer onQuery call has already superseded this one: publishing now
-      -- would overwrite its (possibly already-shown) result with a stale
-      -- translation of a shorter/older input. Drop it silently.
-      local stale = query ~= lastQuery
+      -- A newer query no longer waiting on this request has already superseded
+      -- it: publishing or retrying now would overwrite its (possibly
+      -- already-shown) result with a stale translation of a shorter/older
+      -- input. Checked before the retry so a stale request never retries or
+      -- touches the row - only publish/retry while still current, and always
+      -- against the current query, since a shared in-flight request can be
+      -- joined by a later onQuery call whose own closure never runs here.
+      if reqKey ~= currentKey then
+        return
+      end
 
       if not translated then
         -- The target came from the leading token, and the provider rejected it: retry once
@@ -320,10 +333,7 @@ function onQuery(query)
           requestTranslation(defaultTarget, text, first, reqKey)
           return
         end
-        if stale then
-          return
-        end
-        launcher.setResults(query, { hintRow(err or "Translation error", reqContent, "alert-triangle") })
+        launcher.setResults(currentQuery, { hintRow(err or "Translation error", reqContent, "alert-triangle") })
         return
       end
 
@@ -332,10 +342,7 @@ function onQuery(query)
       if aliasKey then
         cache[aliasKey] = entry
       end
-      if stale then
-        return
-      end
-      launcher.setResults(query, { resultRow(entry) })
+      launcher.setResults(currentQuery, { resultRow(entry) })
     end)
   end
 
