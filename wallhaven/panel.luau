@@ -354,8 +354,11 @@ local function aspectRatioTolerance()
   if standard ~= nil and width ~= nil and height ~= nil then
     local ratioWidth, ratioHeight = standard:match("(%d+)x(%d+)")
     if ratioWidth ~= nil and ratioHeight ~= nil then
-      local target = tonumber(ratioWidth) / tonumber(ratioHeight)
-      return math.max(0.08, math.abs(width / height - target) + 0.02)
+      local targetWidth, targetHeight = tonumber(ratioWidth), tonumber(ratioHeight)
+      if targetWidth ~= nil and targetHeight ~= nil and targetHeight ~= 0 then
+        local target = targetWidth / targetHeight
+        return math.max(0.08, math.abs(width / height - target) + 0.02)
+      end
     end
   end
   return 0.08
@@ -643,32 +646,47 @@ local function fileExtension(wallpaper)
   return ".jpg"
 end
 
+-- API 59 exposes the output size in real pixels. width/height are logical
+-- coordinates, so they are not usable for wallpaper crops or resolution filters
+-- on scaled or rotated outputs.
+local function outputPixelSize(output)
+  local width, height = output.pixelWidth, output.pixelHeight
+  if type(width) ~= "number" or type(height) ~= "number" then
+    return nil
+  end
+  if width <= 0 or height <= 0 then
+    return nil
+  end
+  return math.floor(width), math.floor(height)
+end
+
 focusedOutputSize = function()
   local outputs = noctalia.outputs()
   if type(outputs) ~= "table" then
     return nil
   end
+  -- Prefer the connector used by focusedOutputName(), so the crop geometry and
+  -- the target passed to setWallpaper(connector, path) cannot disagree.
   local focusedName = noctalia.focusedOutputName()
+  if focusedName ~= nil then
+    for _, output in ipairs(outputs) do
+      if output.name == focusedName then
+        local width, height = outputPixelSize(output)
+        if width ~= nil then
+          return width, height
+        end
+      end
+    end
+  end
   local fallbackWidth, fallbackHeight = nil, nil
   for _, output in ipairs(outputs) do
-    local width, height = output.width, output.height
-    if type(width) == "number" and type(height) == "number" and width > 0 and height > 0 then
-      width, height = math.floor(width), math.floor(height)
+    local width, height = outputPixelSize(output)
+    if width ~= nil then
       if output.focused then
         return width, height
       end
       if fallbackWidth == nil then
         fallbackWidth, fallbackHeight = width, height
-      end
-    end
-  end
-  if focusedName ~= nil then
-    for _, output in ipairs(outputs) do
-      if output.name == focusedName then
-        local width, height = output.width, output.height
-        if type(width) == "number" and type(height) == "number" and width > 0 and height > 0 then
-          return math.floor(width), math.floor(height)
-        end
       end
     end
   end
@@ -993,11 +1011,22 @@ openPreview = function(id)
           local changed = previewImageW ~= actualWidth or previewImageH ~= actualHeight
           previewImageW, previewImageH = actualWidth, actualHeight
           if changed and cropProducerActive then
-            -- The preview may have started before the real dimensions were known;
-            -- restart the producer so its frames use the corrected size.
+            -- Fit can be toggled before identify finishes (using the metadata
+            -- resolution). Restart the helper only if Fit is still on; if it was
+            -- toggled off, fall back to the static image instead of streaming
+            -- from a helper that was just stopped.
             stopCropProducer()
+            if fitEnabled and previewStreaming then
+              if not ensureCropProducer() then
+                fitEnabled = false
+                previewStreaming = false
+                noctalia.notifyError(tr("title"), tr("fit_failed"))
+              end
+            else
+              fitEnabled = false
+              previewStreaming = false
+            end
           end
-          ensureCropProducer()
           render()
         end
       end)
@@ -1136,9 +1165,12 @@ fetchWallpapers = function()
             elseif selectedRatio:find("x") then
               local rw, rh = selectedRatio:match("(%d+)x(%d+)")
               if rw and rh then
-                local targetRatio = tonumber(rw) / tonumber(rh)
-                if math.abs(ratio - targetRatio) > ratioTolerance then
-                  include = false
+                local targetWidth, targetHeight = tonumber(rw), tonumber(rh)
+                if targetWidth ~= nil and targetHeight ~= nil and targetHeight ~= 0 then
+                  local targetRatio = targetWidth / targetHeight
+                  if math.abs(ratio - targetRatio) > ratioTolerance then
+                    include = false
+                  end
                 end
               end
             end
@@ -1424,15 +1456,52 @@ render = function()
   panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, children))
 end
 
--- A crash or a reload mid-download can leave a finished <id>-full.<ext> behind; `.part`
--- files belong to downloads that may still be running, so they are left alone. The sweep
--- runs detached: listing thousands of cached thumbs can blow the callback CPU budget.
--- Plain globs only — runAsync's quoting strips backslashes, so escapes like `\( \)` break.
+-- A crash or a reload mid-download can leave a finished <id>-full.<ext>, a crop
+-- temp, or a `.part` file behind. The sweep runs detached: listing thousands of
+-- cached thumbs can blow the callback CPU budget. Plain globs only — runAsync's
+-- quoting strips backslashes, so escapes like `\( \)` break.
 local function sweepPreviewLeftovers()
   if preview ~= nil then
     return
   end
-  noctalia.runAsync(`rm -f {shellQuote(CACHE_DIR)}/*-full.jpg {shellQuote(CACHE_DIR)}/*-full.png {shellQuote(CACHE_DIR)}/*-full.jpg.part {shellQuote(CACHE_DIR)}/*-full.png.part {shellQuote(CACHE_DIR)}/*-fit-tmp.jpg {shellQuote(CACHE_DIR)}/*-fit-tmp.png`)
+  noctalia.runAsync(`rm -f {shellQuote(CACHE_DIR)}/*-full.jpg {shellQuote(CACHE_DIR)}/*-full.png {shellQuote(CACHE_DIR)}/*-fit-tmp.jpg {shellQuote(CACHE_DIR)}/*-fit-tmp.png {shellQuote(CACHE_DIR)}/*.part`)
+end
+
+-- Remove older fitted variants for a wallpaper after a successful apply. Keep
+-- every path Noctalia still reports for an output, so a crop applied to one
+-- monitor is not deleted while another monitor still uses it.
+local function sweepFittedWallpaperFiles(id, directory, keepPath)
+  if not isSafeWallpaperId(id) then
+    return
+  end
+  local keep = {}
+  if type(keepPath) == "string" then
+    keep[keepPath] = true
+  end
+  local outputs = noctalia.outputs()
+  if type(outputs) ~= "table" or type(noctalia.wallpaperPath) ~= "function" then
+    -- Without the active wallpaper paths, deleting old fitted files could remove
+    -- a crop that another output is still using.
+    return
+  end
+  for _, output in ipairs(outputs) do
+    if type(output.name) == "string" then
+      local active = noctalia.wallpaperPath(output.name)
+      if type(active) == "string" and active ~= "" then
+        keep[active] = true
+        local expanded = noctalia.expandPath(active)
+        if type(expanded) == "string" and expanded ~= "" then
+          keep[expanded] = true
+        end
+      end
+    end
+  end
+  local keepChecks = ""
+  for path in pairs(keep) do
+    keepChecks = keepChecks .. `[ "$f" = {shellQuote(path)} ] && continue; `
+  end
+  local prefix = shellQuote(directory .. "/wallhaven-" .. id .. "-fit-") .. "*"
+  noctalia.runAsync(`for f in {prefix}; do [ -f "$f" ] || continue; {keepChecks} rm -f -- "$f"; done`)
 end
 
 -- `stopCropProducer` asks the helper to quit and it removes its own socket and state
@@ -1499,12 +1568,15 @@ local function applyPreview()
   applying = true
   render()
 
-  local function finishApply(dest, targetOutput)
+  local destDir = downloadDir()
+  local function finishApply(dest, targetOutput, keepFittedPath)
+    local appliedId = preview.id
     if targetOutput ~= nil and targetOutput ~= "" then
       noctalia.setWallpaper(targetOutput, dest)
     else
       noctalia.setWallpaper(dest)
     end
+    sweepFittedWallpaperFiles(appliedId, destDir, keepFittedPath)
     stopCropProducer()
     previewStreaming = false
     preview = nil
@@ -1515,11 +1587,10 @@ local function applyPreview()
     render()
   end
 
-  local destDir = downloadDir()
   local dest = `{destDir}/wallhaven-{preview.id}{fileExtension(preview)}`
   if not fitEnabled then
     -- mv, not noctalia.renameFile: the wallpaper directory can be on another filesystem.
-    noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && mv -f {shellQuote(previewPath)} {shellQuote(dest)}`, function(res)
+    local started = noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && mv -f {shellQuote(previewPath)} {shellQuote(dest)}`, function(res)
       applying = false
       if res == nil or res.exitCode ~= 0 then
         noctalia.notifyError(tr("title"), tr("apply_failed"))
@@ -1528,6 +1599,11 @@ local function applyPreview()
       end
       finishApply(dest)
     end)
+    if not started then
+      applying = false
+      noctalia.notifyError(tr("title"), tr("apply_failed"))
+      render()
+    end
     return
   end
 
@@ -1538,8 +1614,16 @@ local function applyPreview()
     render()
     return
   end
-  local x, y, width, height, monitorWidth, monitorHeight = cropRect()
+  -- A fitted crop belongs to one monitor. Never fall back to setWallpaper(path),
+  -- which applies to every output when the focused connector is unavailable.
   local targetOutput = noctalia.focusedOutputName()
+  if type(targetOutput) ~= "string" or targetOutput == "" then
+    applying = false
+    noctalia.notifyError(tr("title"), tr("apply_failed"))
+    render()
+    return
+  end
+  local x, y, width, height, monitorWidth, monitorHeight = cropRect()
   if x == nil then
     applying = false
     noctalia.notifyError(tr("title"), tr("fit_failed"))
@@ -1557,7 +1641,7 @@ local function applyPreview()
   -- crop never leaves a partial file at the destination (and mv replaces a
   -- symlink instead of writing through it).
   local temp = `{CACHE_DIR}/{preview.id}-fit-tmp{extension}`
-  noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && {magick} {shellQuote(previewPath)} -crop {geometry} +repage -resize {resolution}! {shellQuote(temp)} && mv -f {shellQuote(temp)} {shellQuote(dest)}`, function(res)
+  local started = noctalia.runAsync(`mkdir -p {shellQuote(destDir)} && {magick} {shellQuote(previewPath)} -crop {geometry} +repage -resize {resolution}! {shellQuote(temp)} && mv -f {shellQuote(temp)} {shellQuote(dest)}`, function(res)
     applying = false
     if res == nil or res.exitCode ~= 0 then
       noctalia.removeFile(temp)
@@ -1566,8 +1650,13 @@ local function applyPreview()
       return
     end
     noctalia.removeFile(previewPath)
-    finishApply(dest, targetOutput)
+    finishApply(dest, targetOutput, dest)
   end, 30000)
+  if not started then
+    applying = false
+    noctalia.notifyError(tr("title"), tr("apply_failed"))
+    render()
+  end
 end
 
 function onPreviewApply()
