@@ -75,7 +75,7 @@ function M.resolve(base, localBuf, remote)
     if localBuf:sub(-#tail) == tail then
       return { status = "merged", content = localBuf }
     end
-    return { status = "merged", content = localBuf .. tail }
+    return { status = "merged", content = joinTails(localBuf, tail) }
   end
   return { status = "conflict", content = localBuf }
 end
