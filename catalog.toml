@@ -136,15 +136,21 @@ rev = "48beb7c3ed4e3b0065c57097237f2525bcb89cd8"
 [[plugin]]
 id = "noctalia/wallhaven"
 name = "Wallhaven"
-version = "1.4.1"
-updated_at = 1794244192
+version = "1.5.0"
+updated_at = 1795828866
 added_at = 1782324517
 author = "noctalia"
 license = "MIT"
 icon = "photo"
-description = "Browse Wallhaven wallpapers."
-plugin_api = 43
+description = "Browse Wallhaven wallpapers with a draggable fit-to-monitor crop."
+plugin_api = 59
 tags = ["wallpaper"]
+
+[[plugin.release]]
+plugin_api = 43
+version = "1.4.1"
+updated_at = 1794244192
+rev = "3341d662ba1ed3f08732207f35a89ac5be018e38"
 
 [[plugin.release]]
 plugin_api = 26
