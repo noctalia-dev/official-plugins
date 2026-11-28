@@ -52,6 +52,11 @@ local LANGUAGES = {
 local cache = {}
 local pending = {}
 
+-- Latest onQuery input, and the request key its "Translating…" row waits on. Compared
+-- by key, not query string: `pending` shares one fetch across whitespace variants.
+local currentQuery = ""
+local currentKey = nil
+
 -- Script subtags providers use for language variants; other 4-letter subtags are
 -- too likely to be English words ("de-iced").
 local SCRIPTS = { hans = "Hans", hant = "Hant" }
@@ -233,6 +238,9 @@ local function resultRow(entry)
 end
 
 function onQuery(query)
+  currentQuery = query
+  currentKey = nil
+
   local configured = noctalia.getConfig("target_lang")
   configured = if type(configured) == "string" then noctalia.string.trim(configured) else ""
   local defaultTarget = if configured == "" then "en" else resolveLang(configured) or configured:lower()
@@ -285,6 +293,7 @@ function onQuery(query)
       return
     end
 
+    currentKey = reqKey
     launcher.setResults(query, { hintRow("Translating…", reqContent, "loader") })
 
     if pending[reqKey] then
@@ -295,6 +304,20 @@ function onQuery(query)
 
     fetchProvider(reqContent, reqTarget, function(translated, err, source)
       pending[reqKey] = nil
+
+      -- Cache even when superseded, so returning to this input skips the fetch.
+      if translated then
+        local entry = { text = translated, target = reqTarget, source = source, recoveredFrom = recoveredFrom }
+        cache[reqKey] = entry
+        if aliasKey then
+          cache[aliasKey] = entry
+        end
+      end
+
+      -- Only the request the current row waits on may retry or publish.
+      if reqKey ~= currentKey then
+        return
+      end
 
       if not translated then
         -- The target came from the leading token, and the provider rejected it: retry once
@@ -307,16 +330,11 @@ function onQuery(query)
           requestTranslation(defaultTarget, text, first, reqKey)
           return
         end
-        launcher.setResults(query, { hintRow(err or "Translation error", reqContent, "alert-triangle") })
+        launcher.setResults(currentQuery, { hintRow(err or "Translation error", reqContent, "alert-triangle") })
         return
       end
 
-      local entry = { text = translated, target = reqTarget, source = source, recoveredFrom = recoveredFrom }
-      cache[reqKey] = entry
-      if aliasKey then
-        cache[aliasKey] = entry
-      end
-      launcher.setResults(query, { resultRow(entry) })
+      launcher.setResults(currentQuery, { resultRow(cache[reqKey]) })
     end)
   end
 
