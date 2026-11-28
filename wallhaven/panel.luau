@@ -1456,15 +1456,16 @@ render = function()
   panel.render(ui.column({ flexGrow = 1, gap = 12, align = "stretch" }, children))
 end
 
--- A crash or a reload mid-download can leave a finished <id>-full.<ext>, a crop
--- temp, or a `.part` file behind. The sweep runs detached: listing thousands of
+-- A crash or a reload mid-download can leave a finished <id>-full.<ext> or a crop temp
+-- behind; `.part` files belong to downloads that may still be running (they outlive a
+-- panel close), so they are left alone. The sweep runs detached: listing thousands of
 -- cached thumbs can blow the callback CPU budget. Plain globs only — runAsync's
 -- quoting strips backslashes, so escapes like `\( \)` break.
 local function sweepPreviewLeftovers()
   if preview ~= nil then
     return
   end
-  noctalia.runAsync(`rm -f {shellQuote(CACHE_DIR)}/*-full.jpg {shellQuote(CACHE_DIR)}/*-full.png {shellQuote(CACHE_DIR)}/*-fit-tmp.jpg {shellQuote(CACHE_DIR)}/*-fit-tmp.png {shellQuote(CACHE_DIR)}/*.part`)
+  noctalia.runAsync(`rm -f {shellQuote(CACHE_DIR)}/*-full.jpg {shellQuote(CACHE_DIR)}/*-full.png {shellQuote(CACHE_DIR)}/*-fit-tmp.jpg {shellQuote(CACHE_DIR)}/*-fit-tmp.png`)
 end
 
 -- Remove older fitted variants for a wallpaper after a successful apply. Keep
@@ -1614,8 +1615,9 @@ local function applyPreview()
     render()
     return
   end
-  -- A fitted crop belongs to one monitor. Never fall back to setWallpaper(path),
-  -- which applies to every output when the focused connector is unavailable.
+  -- A fitted crop belongs to one monitor, so always pass a connector: never fall back
+  -- to setWallpaper(path), which applies it to every output. Without a focused
+  -- connector, the fallback below picks the focused-flagged output, then the first one.
   local targetOutput = noctalia.focusedOutputName()
   if type(targetOutput) ~= "string" or targetOutput == "" then
     -- The host can report no focused connector for the panel context even when
