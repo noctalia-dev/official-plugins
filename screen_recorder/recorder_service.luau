@@ -456,6 +456,7 @@ local function buildRecordCommand(focusedOutputName, sourceOverride)
 
     log(`starting recording: mode={selectedVideoSource(sourceOverride)} target={source} output={outputPath} flags=[{flags}]`)
 
+    -- LAUNCHER_PATTERN matches this header; keep them in sync.
     local header = `printf '=== gpu-screen-recorder recording %s ===\n' "$(date '+%Y-%m-%d %H:%M:%S')" > "{logFile}"`
     flags ..= ` >> "{logFile}" 2>&1`
 
@@ -494,6 +495,7 @@ local function buildReplayCommand(focusedOutputName, sourceOverride)
 
     log(`starting replay buffer: mode={selectedVideoSource(sourceOverride)} target={source} dir={dir} flags=[{flags}]`)
 
+    -- LAUNCHER_PATTERN matches this header; keep them in sync.
     local header = `printf '=== gpu-screen-recorder replay %s ===\n' "$(date '+%Y-%m-%d %H:%M:%S')" > "{logFile}"`
     flags ..= ` >> "{logFile}" 2>&1`
 
