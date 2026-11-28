@@ -474,6 +474,7 @@ export type UiClickHandler = string | (() -> ())
 export type UiHoverHandler = string | ((state: string, key: string) -> ())
 export type UiChangeHandler = string | ((value: string) -> ())
 export type UiSelectHandler = string | ((index: string, text: string) -> ())
+export type UiSegmentedHandler = string | ((index: string, value: string) -> ())
 export type UiScrollHandler = string | ((offset: string, maxOffset: string) -> ())
 -- Pointer position normalized to the graph's own box, "0.0000".."1.0000", 0,0 top-left.
 export type UiPointerHandler = string | ((normX: string, normY: string) -> ())
@@ -796,6 +797,34 @@ export type UiSelectProps = {
   onChange: UiSelectHandler?,
 }
 
+-- ui.segmented (API 60). Exclusive button group (segmented control) for mutually
+-- exclusive options. Value-driven like ui.select: pass selectedIndex on every render
+-- and update it from onChange, which receives the selected index and the option's
+-- value. Options are bare strings or tables; value defaults to label, and onChange
+-- reports value, not label. A label-less (glyph-only) option needs an explicit value
+-- and a tooltip explaining the option; options with neither a label nor a glyph are
+-- rejected.
+export type UiSegmentedOption = string
+    | {
+        label: string?, -- a label-less option is glyph-only (see tooltip/value)
+        value: string?, -- defaults to label; this is what onChange reports
+        glyph: string?,
+        tooltip: string?, -- required for glyph-only options
+      }
+
+export type UiSegmentedProps = {
+  key: string?,
+  width: number?,
+  height: number?,
+  flexGrow: number?,
+  opacity: number?,
+  visible: boolean?,
+  options: { UiSegmentedOption }?,
+  selectedIndex: number?,
+  enabled: boolean?,
+  onChange: UiSegmentedHandler?,
+}
+
 -- ui.slider. Value-driven, but `value` is re-applied only while not dragging, so
 -- re-rendering mid-drag with a draft value is safe. onChange reports every change
 -- (coalesced); onDragEnd fires with no arguments when the interaction ends - pointer
@@ -953,6 +982,7 @@ declare ui: {
   graph: (props: UiGraphProps?) -> UiNode,
   input: (props: UiInputProps?) -> UiNode,
   select: (props: UiSelectProps?) -> UiNode,
+  segmented: (props: UiSegmentedProps?) -> UiNode,
   slider: (props: UiSliderProps?) -> UiNode,
   toggle: (props: UiToggleProps?) -> UiNode,
 }
