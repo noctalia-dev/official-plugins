@@ -311,6 +311,15 @@ function onQuery(query)
     fetchProvider(reqContent, reqTarget, function(translated, err, source)
       pending[reqKey] = nil
 
+      -- Cache even when superseded, so returning to this input skips the fetch.
+      if translated then
+        local entry = { text = translated, target = reqTarget, source = source, recoveredFrom = recoveredFrom }
+        cache[reqKey] = entry
+        if aliasKey then
+          cache[aliasKey] = entry
+        end
+      end
+
       -- A newer query no longer waiting on this request has already superseded
       -- it: publishing or retrying now would overwrite its (possibly
       -- already-shown) result with a stale translation of a shorter/older
@@ -337,12 +346,7 @@ function onQuery(query)
         return
       end
 
-      local entry = { text = translated, target = reqTarget, source = source, recoveredFrom = recoveredFrom }
-      cache[reqKey] = entry
-      if aliasKey then
-        cache[aliasKey] = entry
-      end
-      launcher.setResults(currentQuery, { resultRow(entry) })
+      launcher.setResults(currentQuery, { resultRow(cache[reqKey]) })
     end)
   end
 
