@@ -52,14 +52,8 @@ local LANGUAGES = {
 local cache = {}
 local pending = {}
 
--- The most recently seen onQuery input, and the request key the row it's
--- showing is actually waiting on. Comparing by request key (not the raw query
--- string) matters because `pending` already shares one in-flight request
--- across equivalent queries (e.g. trailing-whitespace variants): a fetch
--- callback runs for whichever onQuery call actually issued the request, so it
--- must publish against the *current* query, and must only do so (or retry)
--- while it's still the request the visible row is waiting on - otherwise a
--- superseded request can retry into, or overwrite, what a newer query shows.
+-- Latest onQuery input, and the request key its "Translating…" row waits on. Compared
+-- by key, not query string: `pending` shares one fetch across whitespace variants.
 local currentQuery = ""
 local currentKey = nil
 
@@ -320,13 +314,7 @@ function onQuery(query)
         end
       end
 
-      -- A newer query no longer waiting on this request has already superseded
-      -- it: publishing or retrying now would overwrite its (possibly
-      -- already-shown) result with a stale translation of a shorter/older
-      -- input. Checked before the retry so a stale request never retries or
-      -- touches the row - only publish/retry while still current, and always
-      -- against the current query, since a shared in-flight request can be
-      -- joined by a later onQuery call whose own closure never runs here.
+      -- Only the request the current row waits on may retry or publish.
       if reqKey ~= currentKey then
         return
       end
