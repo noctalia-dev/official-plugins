@@ -147,8 +147,8 @@ end
 -- Match the executable at the start of argv, including absolute native, Nix and
 -- Flatpak paths.
 local RECORDER_PATTERN = "^([^ ]*/)?(gpu-screen-recorder|com[.]dec05eba[.]gpu_screen_recorder)"
--- the plugin's own launch shell lives as long as the recorder, so it covers a slow
--- Flatpak start. it begins with the log header printed by the build*Command functions.
+-- The plugin's own launch shell lives as long as the recorder, so it covers a slow
+-- Flatpak start. It begins with the log header printed by the build*Command functions.
 local LAUNCHER_PATTERN = "^/bin/sh -c printf '=== gpu-screen-recorder "
 
 local function detectProcessStateAsync(callback)
@@ -156,7 +156,7 @@ local function detectProcessStateAsync(callback)
     local found = false
 
     -- processMatches looks anywhere in a command line, so a shell or a search that only
-    -- mentions the recorder matches too. confirm a hit against the executable itself or
+    -- mentions the recorder matches too. Confirm a hit against the executable itself or
     -- the launch shell.
     local function confirm()
         local pattern = `{RECORDER_PATTERN} |{LAUNCHER_PATTERN}`
@@ -228,7 +228,7 @@ local function shellQuote(value)
     return "'" .. value:gsub("'", [["'"']]) .. "'"
 end
 
--- Anchoring also keeps the signal command from matching its shell.
+-- Anchoring on RECORDER_PATTERN keeps the signal command from matching its own shell.
 local function signalRecorder(signal, replayOnly, forceAfterDelay)
     local pattern = RECORDER_PATTERN
         .. (if replayOnly then " (.* )?-r " else "( |$)")
