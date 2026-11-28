@@ -1,185 +1,151 @@
 --!nonstrict
--- Countdown timer service - the headless [[service]] entry.
---
--- The service owns the timer state and handles the countdown logic.
--- It publishes state changes to other entries via noctalia.state,
--- and listens for commands (START, PAUSE, RESET) from panel and bar.
---
---   noctalia.setUpdateInterval(ms)     set tick rate for countdown
---   noctalia.state.set(key, value)     publish state to other entries
---   noctalia.state.watch(key, fn)      react to commands from UI entries
---   noctalia.notify(title, body)       alert user when timer completes
---   noctalia.sound.load/play           optional repeating completion alarm
+-- Timer service: owns every state machine (timer, stopwatch, pomodoro, alarms),
+-- publishes to noctalia.state and applies the commands the UI entries write to
+-- `timer.cmd`.
 
 noctalia.setUpdateInterval(1000)
 
-local function formatTime(seconds)
-  local m = seconds // 60
-  local s = seconds % 60
-  if m >= 60 then
-    return `{m // 60}:{string.format("%02d", m % 60)}:{string.format("%02d", s)}`
-  end
-  return `{m}:{string.format("%02d", s)}`
+local store = require("./src/service/store.luau")
+local ring = require("./src/service/ring.luau")
+local sw = require("./src/service/stopwatch.luau")
+local tmr = require("./src/service/timer.luau")
+local pomoMod = require("./src/service/pomo.luau")
+local alarmsMod = require("./src/service/alarms.luau")
+local ipc = require("./src/service/ipc.luau")
+
+local function persistData()
+    store.persist(alarmsMod.alarms)
 end
 
----- Initialize state
-noctalia.state.set("timer.state", "IDLE") -- IDLE, NOTIFY, RUNNING, PAUSED
-noctalia.state.set("timer.remaining", 0)
-noctalia.state.set("timer.formattedTime", "0")
--- The countdown total captured when the timer starts, so UI entries can render
--- a progress bar (remaining / duration). Reset to 0 when the timer is cleared.
-noctalia.state.set("timer.duration", 0)
+alarmsMod.setPersistCallback(persistData)
 
-noctalia.state.watch("timer.remaining", function (value)
-  noctalia.state.set("timer.formattedTime", formatTime(value))
+local function stopRingFor(mode)
+    if ring.isActive() and ring.getMode() == mode then ring.stop() end
+end
+
+local function dispatch(cmd)
+    local mode    = cmd.mode
+    local action  = cmd.action
+    local payload = cmd.payload
+
+    if mode == "sw" then
+        if action == "start"       then sw.start()
+        elseif action == "pause"   then sw.pause()
+        elseif action == "reset"   then sw.reset()
+        elseif action == "flag"    then sw.flag(payload)
+        elseif action == "rename_flag" and type(payload) == "table" then
+            sw.renameFlag(payload.id, payload.name)
+        end
+        sw.publish()
+
+    elseif mode == "timer" then
+        if action == "start"       then tmr.start()
+        elseif action == "pause"   then tmr.pause()
+        elseif action == "reset"   then
+            tmr.reset()
+            stopRingFor("timer")
+        elseif action == "set" and type(payload) == "number" then
+            tmr.set(payload)
+        elseif action == "set_start" and type(payload) == "number" then
+            tmr.set(payload)
+            tmr.start()
+        elseif action == "adjust" and type(payload) == "number" then
+            tmr.adjust(payload)
+        elseif action == "flag"    then tmr.flag(payload)
+        elseif action == "rename_flag" and type(payload) == "table" then
+            tmr.renameFlag(payload.id, payload.name)
+        end
+        tmr.publish()
+
+    elseif mode == "pomo" then
+        if action == "start"       then pomoMod.start()
+        elseif action == "pause"   then pomoMod.pause()
+        elseif action == "skip"    then pomoMod.skip()
+        elseif action == "reset"   then
+            pomoMod.resetStage()
+            stopRingFor("pomo")
+        elseif action == "reset_all" then
+            pomoMod.reset()
+            stopRingFor("pomo")
+        elseif action == "toggle_loop" then
+            pomoMod.toggleLoop()
+        elseif action == "adjust_remaining" and type(payload) == "number" then
+            pomoMod.adjust(payload)
+        elseif action == "flag"    then pomoMod.flag(payload)
+        elseif action == "rename_flag" and type(payload) == "table" then
+            pomoMod.renameFlag(payload.id, payload.name)
+        end
+        pomoMod.publish()
+
+    elseif mode == "alarm" then
+        if type(payload) == "table" then
+            if action == "add" then
+                alarmsMod.add(payload.label, payload.hh, payload.mm, payload.days)
+            elseif action == "edit" then
+                alarmsMod.edit(tonumber(payload.id), payload.label, payload.hh, payload.mm, payload.days)
+            end
+        elseif action == "remove" and payload ~= nil then
+            alarmsMod.remove(tonumber(payload))
+        elseif action == "toggle" and payload ~= nil then
+            alarmsMod.toggle(tonumber(payload))
+        end
+
+    elseif mode == "ring" then
+        if action == "stop" then
+            ring.stop()
+            pomoMod.checkPending()
+            -- Dismissing the ring also clears the finished (DONE) timer/pomodoro.
+            local tState = noctalia.state.get("timer.timer")
+            if tState and tState.state == "DONE" then tmr.reset(); tmr.publish() end
+            local pState = noctalia.state.get("timer.pomo")
+            if pState and pState.state == "DONE" then pomoMod.reset(); pomoMod.publish() end
+        end
+    end
+end
+
+-- `timer.cmd` holds one command or `{ batch = { cmd... } }`. Every command has a
+-- monotonic `nonce` and anything at or below the last one seen is a duplicate.
+-- Batching keeps commands issued in the same tick from overwriting each other.
+local lastNonce = 0
+noctalia.state.watch("timer.cmd", function(msg)
+    if type(msg) ~= "table" then return end
+    local list = type(msg.batch) == "table" and msg.batch or { msg }
+    for _, cmd in ipairs(list) do
+        if type(cmd) == "table" and type(cmd.nonce) == "number" and cmd.nonce > lastNonce then
+            lastNonce = cmd.nonce
+            dispatch(cmd)
+        end
+    end
 end)
 
-local function resetTimer()
-  noctalia.state.set("timer.remaining", 0)
-  noctalia.state.set("timer.duration", 0)
-  noctalia.state.set("timer.state", "IDLE")
-end
-
--- Countdown state transitions, shared by the timer.cmd watcher (panel and bar
--- commands) and the IPC handler below.
-local actions = {
-  PAUSE = function()
-    noctalia.state.set("timer.state", "PAUSED")
-  end,
-  START = function ()
-    local remaining = noctalia.state.get("timer.remaining")
-    local STATE = noctalia.state.get("timer.state")
-
-    if (STATE == "IDLE" or STATE == "PAUSED") and remaining > 0 then
-      -- Capture the total on a fresh start so progress bars have a baseline;
-      -- leave it untouched when resuming from PAUSED.
-      if STATE == "IDLE" then
-        noctalia.state.set("timer.duration", remaining)
-      end
-      noctalia.state.set("timer.state", "RUNNING")
-    end
-  end,
-  RESET = function ()
-    resetTimer()
-  end,
-}
-
-noctalia.state.watch("timer.cmd", function (cmd)
-  local action = actions[cmd]
-  if action then
-    action()
-  else
-    noctalia.log(`Unknown command: {cmd}`)
-  end
-
-end)
-
--- Completion alarm: the tick replays the sound while NOTIFY for alarm_duration
--- seconds (0 silences it), then the timer returns to idle; the alarm bool keeps
--- it beeping in NOTIFY until dismissed.
-local ALARM_SOUND = "alarm"
-local alarmEnabled = noctalia.getConfig("alarm") == true
-local alarmReady = false
-local alarmDuration = noctalia.getConfig("alarm_duration") or 10
-local notifyElapsed = 0
-
-local function playAlarm()
-  if alarmReady and (alarmEnabled or notifyElapsed < alarmDuration) then
-    noctalia.sound.play(ALARM_SOUND)
-  end
-end
-
-local function loadAlarm()
-  if alarmReady or (not alarmEnabled and alarmDuration <= 0) then
-    return
-  end
-  local accepted = noctalia.sound.load(ALARM_SOUND, "sounds/alarm.wav", function(ok, err)
-    if ok then
-      alarmReady = true
-    else
-      noctalia.log(`Timer alarm sound failed to load: {err}`)
-    end
-  end)
-  if not accepted then
-    noctalia.log("Timer alarm sound load was rejected")
-  end
-end
-
-loadAlarm()
-
-function onConfigChanged()
-  alarmEnabled = noctalia.getConfig("alarm") == true
-  alarmDuration = noctalia.getConfig("alarm_duration") or 10
-  loadAlarm()
-end
-
--- send notification and start the optional alarm when the timer completes
-local function notifyUser()
-  noctalia.notify(noctalia.tr("ui.notify_title"), noctalia.tr("ui.notify_body"))
+function onIpc(event, payload)
+    ipc.handle(event, payload)
 end
 
 function update()
-  local STATE = noctalia.state.get("timer.state")
-  local remaining = noctalia.state.get("timer.remaining")
-
-  if STATE == "RUNNING" then
-    if remaining > 0 then
-      noctalia.state.set("timer.remaining", remaining - 1)
-    else
-      noctalia.state.set("timer.state", "NOTIFY")
-      notifyUser()
-      notifyElapsed = 0
-      playAlarm()
-    end
-
-  elseif STATE == "NOTIFY" then
-    notifyElapsed = notifyElapsed + 1
-    playAlarm()
-    if not alarmEnabled and notifyElapsed >= alarmDuration then
-      resetTimer()
-    end
-  end
+    sw.tick()
+    tmr.tick()
+    pomoMod.tick()
+    alarmsMod.tick()
+    ring.tick()
 end
 
--- Begin a fresh countdown of the given duration, replacing whatever the timer
--- shows: an idle timer, a paused one (also refreshing the progress baseline so
--- bars do not divide by the old duration), or a ringing completion alarm,
--- which this dismisses on the way to the new countdown. Used by the IPC
--- handler only, which runs synchronously; queueing a timer.cmd event instead
--- would apply the transition through the mailbox, letting a second queued
--- call observe IDLE and bypass the running-timer guard.
-local function startCountdown(seconds)
-  notifyElapsed = 0
-  noctalia.state.set("timer.remaining", seconds)
-  noctalia.state.set("timer.duration", seconds)
-  noctalia.state.set("timer.state", "RUNNING")
+local saved = store.loadData()
+alarmsMod.load(saved)
+pomoMod.load()
+ring.load()
+
+-- Publish initial state so panel/widget have data on first open.
+sw.publish()
+tmr.publish()
+pomoMod.publish()
+alarmsMod.publish()
+ring.publish()
+
+function onConfigChanged()
+    pomoMod.onConfigChanged()
 end
 
--- IPC entry point: noctalia msg plugin noctalia/timer:timer all <event> [payload].
---   start <minutes>   e.g. start 40 = 40:00; ignored while a countdown is running,
---                     so repeated calls (keybinds, shell aliases) cannot clobber
---                     a running timer. Otherwise it replaces the countdown with
---                     the new duration (while paused too, refreshing the progress
---                     baseline) and restarts out of the completion alarm.
---   pause             pause the countdown, or resume it when paused
---   cancel | reset    back to idle
-function onIpc(event, payload)
-  local STATE = noctalia.state.get("timer.state")
-  if event == "start" then
-    -- Applied synchronously; a queued START would let a second queued call
-    -- observe IDLE and bypass the running-timer guard.
-    local mins = tonumber(payload)
-    local seconds = mins and math.floor(mins * 60)
-    if seconds and seconds > 0 and seconds < math.huge and STATE ~= "RUNNING" then
-      startCountdown(seconds)
-    end
-  elseif event == "pause" then
-    if STATE == "RUNNING" then
-      actions.PAUSE()
-    elseif STATE == "PAUSED" then
-      actions.START()
-    end
-  elseif event == "cancel" or event == "reset" then
-    actions.RESET()
-  end
+function onExit(_signal, _reason)
+    ring.stop()
 end

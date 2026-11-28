@@ -1,73 +1,179 @@
-# Reference multi-entry plugin: a countdown timer whose bar widget, panel, and
-# desktop widget are all thin UI clients of one headless service, sharing a
-# single timer through noctalia.state. Demonstrates:
-#
-# service -> headless countdown logic + state, with command handling (START/PAUSE/RESET)
-# IPC -> noctalia msg plugin noctalia/timer:timer all start <minutes>|pause|cancel
-# bar     -> declarative UI with per-placement settings; opens the panel
-# panel   -> interactive controls (typed duration input) driving the service
-# desktop -> keyboard-free +/- duration adjusters + a progress bar, pinned to the desktop
-#
-# All three UI entries watch noctalia.state, so they reflect and control the
-# same countdown live.
-
 id = "noctalia/timer"
 name = "Timer"
-version = "1.5.1"
+version = "2.0.7"
 plugin_api = 43
 author = "noctalia"
 license = "MIT"
 dependencies = []
-tags = ["countdown", "utility"]
+tags = ["time", "utility", "productivity"]
 icon = "clock"
-description = "A countdown timer with bar widget, panel, and desktop widget."
+description = "All in one Time Suite with Alarms, Stopwatch, Countdown Timer & Pomodoro"
 
-# Alarm sound at countdown 0, beeps until dismissed, overriding alarm_duration
-[[setting]]
-key = "alarm"
-type = "bool"
-label_key = "settings.alarm.label"
-description_key = "settings.alarm.description"
-default = false
-
-# Alarm length in seconds, 0 silences it. Hidden while alarm is on
-[[setting]]
-key = "alarm_duration"
-type = "int"
-label_key = "settings.alarm_duration.label"
-description_key = "settings.alarm_duration.description"
-default = 10
-min = 0
-max = 60
-visible_when = { key = "alarm", values = ["false"] }
+# Bar widget
 
 [[widget]]
 id = "bar"
 entry = "bar.luau"
 
   [[widget.setting]]
-  key = "show_idle_on_horizontal"
+  key = "bar_display_mode"
+  type = "select"
+  label_key = "settings.bar_display_mode.label"
+  description_key = "settings.bar_display_mode.description"
+  default = "smart"
+  options = [
+    { value = "smart", label_key = "settings.bar_display_mode.smart" },
+    { value = "all", label_key = "settings.bar_display_mode.all" },
+  ]
+
+  [[widget.setting]]
+  key = "show_time"
   type = "bool"
-  label_key = "settings.show_idle.label"
-  description_key = "settings.show_idle.description"
+  label_key = "settings.show_time.label"
+  description_key = "settings.show_time.description"
   default = true
 
-[[panel]]
-id = "panel"
-entry = "panel.luau"
-width = 320
-height = 280
-placement = "attached"
-position = "auto"
-open_near_click = true
+  [[widget.setting]]
+  key = "priority_order"
+  type = "select"
+  label_key = "settings.priority_order.label"
+  description_key = "settings.priority_order.description"
+  default = "timer,sw,pomo"
+  visible_when = { key = "bar_display_mode", values = ["smart"] }
+  options = [
+    { value = "timer,sw,pomo", label_key = "settings.priority_order.tsp" },
+    { value = "timer,pomo,sw", label_key = "settings.priority_order.tps" },
+    { value = "sw,timer,pomo", label_key = "settings.priority_order.stp" },
+    { value = "sw,pomo,timer", label_key = "settings.priority_order.spt" },
+    { value = "pomo,timer,sw", label_key = "settings.priority_order.pts" },
+    { value = "pomo,sw,timer", label_key = "settings.priority_order.pst" },
+  ]
+
+# Alerts
+
+[[setting]]
+key = "alert_mode"
+type = "select"
+label_key = "settings.alert_mode.label"
+description_key = "settings.alert_mode.description"
+default = "both"
+options = [
+  { value = "notify", label_key = "settings.ring_mode.options.notify" },
+  { value = "sound", label_key = "settings.ring_mode.options.sound" },
+  { value = "both", label_key = "settings.ring_mode.options.both" },
+]
+
+[[setting]]
+key = "ring_timeout"
+type = "int"
+label_key = "settings.ring_timeout.label"
+description_key = "settings.ring_timeout.description"
+default = 120
+min = 0
+max = 1800
+
+[[setting]]
+key = "alarm_missed_grace"
+type = "int"
+label_key = "settings.alarm_missed_grace.label"
+description_key = "settings.alarm_missed_grace.description"
+default = 10
+min = 0
+max = 1440
+
+# Pomodoro
+
+[[setting]]
+key = "pomo_alert_mode"
+type = "select"
+label_key = "settings.pomo_alert_mode.label"
+description_key = "settings.pomo_alert_mode.description"
+default = "inherit"
+options = [
+  { value = "inherit", label_key = "settings.ring_mode.options.inherit" },
+  { value = "notify", label_key = "settings.ring_mode.options.notify" },
+  { value = "sound", label_key = "settings.ring_mode.options.sound" },
+  { value = "both", label_key = "settings.ring_mode.options.both" },
+]
+
+[[setting]]
+key = "pomo_work"
+type = "int"
+label_key = "settings.pomo_work.label"
+description_key = "settings.pomo_work.description"
+default = 25
+min = 1
+max = 240
+
+[[setting]]
+key = "pomo_short_break"
+type = "int"
+label_key = "settings.pomo_short_break.label"
+description_key = "settings.pomo_short_break.description"
+default = 5
+min = 1
+max = 240
+
+[[setting]]
+key = "pomo_long_break"
+type = "int"
+label_key = "settings.pomo_long_break.label"
+description_key = "settings.pomo_long_break.description"
+default = 15
+min = 0
+max = 240
+
+[[setting]]
+key = "pomo_sessions"
+type = "int"
+label_key = "settings.pomo_sessions.label"
+description_key = "settings.pomo_sessions.description"
+default = 4
+min = 1
+max = 12
+
+[[setting]]
+key = "pomo_auto_start"
+type = "bool"
+label_key = "settings.pomo_auto_start.label"
+description_key = "settings.pomo_auto_start.description"
+default = false
+
+# Service
 
 [[service]]
 id = "timer"
 entry = "service.luau"
 
+# Panel
+
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 440
+height = 440
+placement = "attached"
+position = "auto"
+open_near_click = true
+
+# Desktop Widget
+
 [[desktop_widget]]
 id = "desktop"
 entry = "desktop.luau"
+
+  [[desktop_widget.setting]]
+  key = "mode"
+  type = "select"
+  label_key = "settings.desktop_mode.label"
+  description_key = "settings.desktop_mode.description"
+  default = "timer"
+  options = [
+    { value = "timer", label_key = "settings.desktop_mode.timer" },
+    { value = "stopwatch", label_key = "settings.desktop_mode.sw" },
+    { value = "pomodoro", label_key = "settings.desktop_mode.pomo" },
+    { value = "smart", label_key = "settings.desktop_mode.smart" },
+  ]
 
   [[desktop_widget.setting]]
   key = "color"
@@ -80,4 +186,19 @@ entry = "desktop.luau"
   key = "show_progress"
   type = "bool"
   label_key = "settings.show_progress.label"
+  description_key = "settings.show_progress.description"
+  default = true
+
+  [[desktop_widget.setting]]
+  key = "show_flags"
+  type = "bool"
+  label_key = "settings.show_flags.label"
+  description_key = "settings.show_flags.description"
+  default = false
+
+  [[desktop_widget.setting]]
+  key = "show_dots"
+  type = "bool"
+  label_key = "settings.show_dots.label"
+  description_key = "settings.show_dots.description"
   default = true
